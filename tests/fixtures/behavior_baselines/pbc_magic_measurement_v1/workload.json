@@ -1,0 +1,52 @@
+{
+  "layers": [
+    {
+      "active_qubits": [
+        0,
+        2
+      ],
+      "index": 0,
+      "operations": [
+        {
+          "classical_bits": [],
+          "kind": "pauli_rotation",
+          "name": "t_pauli",
+          "parameters": [],
+          "pauli": "+XIZ",
+          "qubits": [
+            0,
+            2
+          ],
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "active_qubits": [
+        0,
+        1
+      ],
+      "index": 1,
+      "operations": [
+        {
+          "classical_bits": [],
+          "kind": "pauli_measurement",
+          "name": "m_pauli",
+          "parameters": [],
+          "pauli": "+YYI",
+          "qubits": [
+            0,
+            1
+          ],
+          "weight": 2
+        }
+      ]
+    }
+  ],
+  "num_clbits": 0,
+  "num_qubits": 3,
+  "provenance": {},
+  "representation": "pbc",
+  "schema_version": "heteqsys.ft-workload.v2",
+  "semantic_hash": "ed9087aab909f45c8779b5ef23bbb82456d909ff3faf6d9b7c49bd2c446924b7"
+}

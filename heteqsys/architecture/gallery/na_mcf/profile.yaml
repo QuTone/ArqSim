@@ -1,0 +1,49 @@
+schema_version: arqsim.architecture-profile.v3
+id: "2.1"
+name: NA-MCF
+description: Homogeneous neutral-atom system with separated memory and compute.
+
+nodes:
+  na_node:
+    modality: neutral_atom
+    modules:
+      na_memory:
+        type: memory
+        submodules:
+          memory_region:
+            type: region
+            payload: logical_qubit
+      na_compute:
+        type: compute
+        submodules:
+          compute_region:
+            type: region
+            payload: logical_qubit
+          store_load_buffer:
+            type: buffer
+            payload: logical_qubit
+          magic_state_input_buffer:
+            type: buffer
+            payload: magic_state
+      na_msf:
+        type: resource_factory
+        submodules:
+          factory_engine:
+            type: engine
+            payload: magic_state
+          magic_state_output_buffer:
+            type: buffer
+            payload: magic_state
+    connections:
+      na_memory_compute_bus:
+        direction: bidirectional
+        endpoints:
+          - na_memory/memory_region
+          - na_compute/store_load_buffer
+      na_magic_bus:
+        direction: directed
+        endpoints:
+          - na_msf/magic_state_output_buffer
+          - na_compute/magic_state_input_buffer
+
+interconnects: {}

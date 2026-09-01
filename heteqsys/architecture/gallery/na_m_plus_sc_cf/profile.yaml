@@ -1,0 +1,73 @@
+schema_version: arqsim.architecture-profile.v3
+id: "2.2"
+name: NA-M + SC-CF
+description: Neutral-atom memory connected to superconducting compute.
+
+nodes:
+  na_memory_node:
+    modality: neutral_atom
+    modules:
+      na_memory:
+        type: memory
+        submodules:
+          memory_region:
+            type: region
+            payload: logical_qubit
+          store_load_buffer:
+            type: buffer
+            payload: logical_qubit
+  sc_compute_node:
+    modality: superconducting
+    modules:
+      sc_compute:
+        type: compute
+        submodules:
+          compute_region:
+            type: region
+            payload: logical_qubit
+          store_load_buffer:
+            type: buffer
+            payload: logical_qubit
+          magic_state_input_buffer:
+            type: buffer
+            payload: magic_state
+      sc_msf:
+        type: resource_factory
+        submodules:
+          factory_engine:
+            type: engine
+            payload: magic_state
+          magic_state_output_buffer:
+            type: buffer
+            payload: magic_state
+    connections:
+      sc_magic_bus:
+        direction: directed
+        endpoints:
+          - sc_msf/magic_state_output_buffer
+          - sc_compute/magic_state_input_buffer
+
+interconnects:
+  memory_compute_link:
+    endpoints:
+      - na_memory_node/na_memory/store_load_buffer
+      - sc_compute_node/sc_compute/store_load_buffer
+    modules:
+      bell_engine:
+        type: bell_engine
+        submodules:
+          pair_generator:
+            type: engine
+            payload: bell_pair
+      bell_storage:
+        type: bell_storage
+        submodules:
+          bell_buffer:
+            type: buffer
+            payload: bell_pair
+    connections:
+      engine_to_storage:
+        direction: directed
+        endpoints:
+          - bell_engine/pair_generator
+          - bell_storage/bell_buffer

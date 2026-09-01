@@ -1,0 +1,81 @@
+{
+  "compiler_spec": {
+    "preset": "canonical"
+  },
+  "evaluation_policy": {
+    "magic_state_consumption": "bulk_wave",
+    "max_events": 10000000,
+    "resource_fill_policy": "greedy_fill_to_capacity",
+    "seed": 0,
+    "selected_layers": [],
+    "store_load_policy": "dependency_aware_overlap",
+    "trace_level": "full"
+  },
+  "fidelity_profile": null,
+  "footprint_model": {
+    "preset": "protocol_aware_reference_v1"
+  },
+  "latency_profile": {
+    "bell_pair_arrival": {
+      "initial_delay_s": 0.0,
+      "initial_delay_samples": 0,
+      "kind": "deterministic",
+      "mean_interval_s": 0.005,
+      "repeat_trace": true,
+      "success_probability": 1.0,
+      "trace_intervals_s": []
+    },
+    "compute_protocol_by_modality": {
+      "neutral_atom": "gbc_transversal",
+      "superconducting": "pbc_lattice_surgery"
+    },
+    "gate_duration_s": {
+      "neutral_atom": 0.001,
+      "superconducting": 1e-06
+    },
+    "link_item_s": 0.001,
+    "local_magic_delivery_s": 0.0,
+    "magic_state_arrival": {
+      "initial_delay_s": 0.0,
+      "initial_delay_samples": 0,
+      "kind": "deterministic",
+      "mean_interval_s": 0.005,
+      "repeat_trace": true,
+      "success_probability": 1.0,
+      "trace_intervals_s": []
+    },
+    "provenance": {},
+    "reaction_latency_by_modality_s": {},
+    "store_load_protocol": "bb_surface_transfer",
+    "syndrome_profiles": {
+      "bb_surface_transfer": {
+        "cycle_time_s": 0.001,
+        "distance_module_role": "memory",
+        "provenance": {
+          "assumption": "qldpc_distance_adapter_measurement"
+        },
+        "round_mode": "qec_distance"
+      },
+      "gbc_transversal": {
+        "cycle_time_s": 0.001,
+        "provenance": {
+          "assumption": "one_round_correlated_decoding"
+        },
+        "round_mode": "fixed",
+        "rounds": 1
+      },
+      "pbc_lattice_surgery": {
+        "cycle_time_s": 1e-06,
+        "distance_module_role": "compute",
+        "provenance": {
+          "assumption": "surface_distance_merged_measurement"
+        },
+        "round_mode": "qec_distance"
+      }
+    }
+  },
+  "layout_policy_overrides": {},
+  "profile_id": "1.3",
+  "schema_version": "arqsim.evaluation-config.v1",
+  "workflow_id": "step2-clifford-t-v1"
+}

@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heteqsys"
+version = "0.2.0"
+description = "System-level evaluation framework for fault-tolerant quantum architectures"
+authors = [{ name = "Xiang Fang" }]
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+keywords = [
+    "fault-tolerant quantum computing",
+    "quantum architecture",
+    "quantum compiler",
+    "resource estimation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "networkx>=2.6",
+    "pyyaml>=5.4",
+    "qiskit>=1.0",
+]
+
+[project.optional-dependencies]
+nwqec = [
+    "nwqec>=0.1.2,<0.2",
+]
+visualization = [
+    "matplotlib>=3.7",
+]
+test = [
+    "matplotlib>=3.7",
+    "pytest>=7.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/QuTone/ArqSim"
+Documentation = "https://github.com/QuTone/ArqSim/tree/main/docs"
+Issues = "https://github.com/QuTone/ArqSim/issues"
+Repository = "https://github.com/QuTone/ArqSim.git"
+
+[project.scripts]
+heteqsys = "heteqsys.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["heteqsys*"]
+
+[tool.setuptools.package-data]
+"heteqsys" = [
+    "architecture/gallery/*/profile.yaml",
+    "qec/protocol_profiles/*.yaml",
+    "operation_profiles/fidelity_profiles/*.yaml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "integration: tests that use an installed optional backend",
+]

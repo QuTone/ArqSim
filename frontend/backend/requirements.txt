@@ -1,0 +1,11 @@
+# Core dependencies for the ArqSim frontend backend
+
+# ArqSim core (`heteqsys`) — editable install from the monorepo root.
+# setup.sh runs pip from this backend/ directory, so `../..` resolves to the
+# repository root.
+-e ../..
+
+# Web API
+fastapi>=0.100.0
+pydantic>=2.0
+uvicorn>=0.20.0

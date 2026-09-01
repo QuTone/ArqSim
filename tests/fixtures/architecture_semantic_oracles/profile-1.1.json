@@ -1,0 +1,679 @@
+{
+  "architecture": {
+    "interconnects": [],
+    "nodes": [
+      {
+        "connections": [
+          {
+            "direction": "directed",
+            "endpoints": [
+              "na_msf/magic_state_output_buffer",
+              "na_compute/magic_state_input_buffer"
+            ],
+            "id": "na_magic_bus",
+            "payload": "magic_state"
+          }
+        ],
+        "id": "na_node",
+        "modality": "neutral_atom",
+        "modules": [
+          {
+            "id": "na_compute",
+            "submodules": [
+              {
+                "capacity": {
+                  "logical_patches": 4
+                },
+                "id": "compute_region",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "na_node/na_compute/compute_region/slot_0",
+                    "logical_coordinate": [
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "id": "na_node/na_compute/compute_region/slot_1",
+                    "logical_coordinate": [
+                      1,
+                      0
+                    ]
+                  },
+                  {
+                    "id": "na_node/na_compute/compute_region/slot_2",
+                    "logical_coordinate": [
+                      0,
+                      1
+                    ]
+                  },
+                  {
+                    "id": "na_node/na_compute/compute_region/slot_3",
+                    "logical_coordinate": [
+                      1,
+                      1
+                    ]
+                  }
+                ],
+                "type": "region"
+              },
+              {
+                "capacity": {
+                  "logical_magic_states": 1
+                },
+                "id": "magic_state_input_buffer",
+                "payload": "magic_state",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "na_node/na_compute/magic_state_input_buffer/slot_0",
+                    "logical_coordinate": [
+                      3,
+                      0
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "compute"
+          },
+          {
+            "id": "na_msf",
+            "submodules": [
+              {
+                "capacity": {
+                  "copies": 1
+                },
+                "id": "factory_engine",
+                "payload": "magic_state",
+                "resource_protocol": {
+                  "id": "cultivation-d5-d15-p1e3"
+                },
+                "type": "engine"
+              },
+              {
+                "capacity": {
+                  "logical_magic_states": 1
+                },
+                "id": "magic_state_output_buffer",
+                "payload": "magic_state",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "na_node/na_msf/magic_state_output_buffer/slot_0",
+                    "logical_coordinate": [
+                      100,
+                      40
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "resource_factory"
+          }
+        ]
+      }
+    ],
+    "profile_id": "1.1",
+    "resource_protocols": [
+      {
+        "copies": 1,
+        "outputs_per_copy_per_batch": 1,
+        "protocol_id": "cultivation-d5-d15-p1e3",
+        "resource_kind": "magic_state"
+      }
+    ],
+    "workload": {
+      "logical_qubits": 4
+    }
+  },
+  "case_id": "six-profile-clifford-t",
+  "execution": {
+    "compiler": {
+      "mapping_backend": "sabre_na",
+      "routing_backend": "powermove_na"
+    },
+    "plan": {
+      "buffers": [
+        {
+          "capacity": 1,
+          "id": "magic_compute",
+          "owner": {
+            "module": "na_node/na_compute",
+            "submodule": "na_node/na_compute/magic_state_input_buffer"
+          },
+          "slots": [
+            "na_node/na_compute/magic_state_input_buffer/slot_0"
+          ],
+          "token_kind": "magic_state"
+        },
+        {
+          "capacity": 1,
+          "id": "msf_output",
+          "owner": {
+            "module": "na_node/na_msf",
+            "submodule": "na_node/na_msf/magic_state_output_buffer"
+          },
+          "slots": [
+            "na_node/na_msf/magic_state_output_buffer/slot_0"
+          ],
+          "token_kind": "magic_state"
+        }
+      ],
+      "engines": [
+        {
+          "capacity": 1,
+          "id": "compute:na_node/na_compute",
+          "owner": {
+            "module": "na_node/na_compute",
+            "submodule": "na_node/na_compute/compute_region"
+          }
+        },
+        {
+          "capacity": 1,
+          "id": "msf:na_node/na_msf",
+          "owner": {
+            "module": "na_node/na_msf",
+            "submodule": "na_node/na_msf/factory_engine"
+          }
+        },
+        {
+          "capacity": 1,
+          "id": "resource_move",
+          "owner": {
+            "module": "na_node/na_msf",
+            "submodule": null
+          }
+        }
+      ],
+      "program": [
+        {
+          "consumes": {},
+          "duration_s": 0.002,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [],
+          "produces": {},
+          "signature": "L0:EXECUTE_COMPUTE:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L0:EXECUTE_COMPUTE:q0,1"
+          ],
+          "produces": {},
+          "signature": "L0:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {
+            "magic_compute": 1
+          },
+          "duration_s": 0.002,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L0:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L1:EXECUTE_COMPUTE:q0",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L1:EXECUTE_COMPUTE:q0"
+          ],
+          "produces": {},
+          "signature": "L1:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0021797097891751993,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L1:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L2:EXECUTE_COMPUTE:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L2:EXECUTE_COMPUTE:q0,1"
+          ],
+          "produces": {},
+          "signature": "L2:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.002,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L2:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L3:EXECUTE_COMPUTE:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L3:EXECUTE_COMPUTE:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {
+            "magic_compute": 1
+          },
+          "duration_s": 0.002,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L3:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L4:EXECUTE_COMPUTE:q2",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L4:EXECUTE_COMPUTE:q2"
+          ],
+          "produces": {},
+          "signature": "L4:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0021797097891751993,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L4:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L5:EXECUTE_COMPUTE:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L5:EXECUTE_COMPUTE:q2,3"
+          ],
+          "produces": {},
+          "signature": "L5:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        }
+      ],
+      "program_opcode_counts": {
+        "EXECUTE_COMPUTE": 6,
+        "FENCE": 6
+      },
+      "resource_processes": [
+        {
+          "arrival_distribution": {
+            "initial_delay_s": 0.0,
+            "initial_delay_samples": 0,
+            "kind": "deterministic",
+            "mean_interval_s": 0.001,
+            "repeat_trace": true,
+            "success_probability": 1.0,
+            "trace_intervals_s": []
+          },
+          "consumes": {},
+          "dispatch_policy": "single",
+          "duration_s": 0.0,
+          "engines": {
+            "msf:na_node/na_msf": 1
+          },
+          "forwards": {},
+          "id": "prepare_magic",
+          "opcode": "PREPARE_MAGIC_STATE",
+          "output_overflow_policy": "discard_excess",
+          "parallelism": 1,
+          "produces": {
+            "msf_output": 1
+          },
+          "protocol": "cultivation-d5-d15-p1e3",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_msf"
+          ]
+        },
+        {
+          "arrival_distribution": null,
+          "consumes": {
+            "msf_output": 1
+          },
+          "dispatch_policy": "eager_available",
+          "duration_s": 0.0,
+          "engines": {
+            "resource_move": 1
+          },
+          "forwards": {
+            "msf_output": "magic_compute"
+          },
+          "id": "deliver_magic_local",
+          "opcode": "MOVE_QUBITS",
+          "output_overflow_policy": "block",
+          "parallelism": 1,
+          "produces": {
+            "magic_compute": 1
+          },
+          "protocol": "local_magic_delivery",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute",
+            "na_node/na_msf"
+          ]
+        }
+      ]
+    },
+    "trace": {
+      "all_invariants_hold": true,
+      "buffer_peaks": {
+        "magic_compute": 1,
+        "msf_output": 1
+      },
+      "buffer_tokens_consumed": {
+        "magic_compute": 2,
+        "msf_output": 3
+      },
+      "buffer_tokens_produced": {
+        "magic_compute": 3,
+        "msf_output": 4
+      },
+      "completed_opcode_counts": {
+        "EXECUTE_COMPUTE": 6,
+        "FENCE": 6,
+        "MOVE_QUBITS": 3,
+        "PREPARE_MAGIC_STATE": 4
+      },
+      "completed_program_instructions": 12,
+      "completed_work_s_by_opcode": {
+        "EXECUTE_COMPUTE": 0.012657273563656146,
+        "FENCE": 0.0,
+        "MOVE_QUBITS": 0.0025665760114433915,
+        "PREPARE_MAGIC_STATE": 0.004000000000000001
+      },
+      "completion_schedule": [
+        {
+          "duration_s": 0.002,
+          "end_s": 0.002,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L0:EXECUTE_COMPUTE:q0,1",
+          "plane": "program",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.001,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.0008555253371477973,
+          "end_s": 0.0018555253371477973,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.001
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.002,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.001
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.002,
+          "opcode": "FENCE",
+          "operation": "L0:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.002
+        },
+        {
+          "duration_s": 0.0021378842915251717,
+          "end_s": 0.004137884291525172,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L1:EXECUTE_COMPUTE:q0",
+          "plane": "program",
+          "start_s": 0.002
+        },
+        {
+          "duration_s": 0.0008555253371477973,
+          "end_s": 0.0028555253371477973,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.002
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.003,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.002
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.004137884291525172,
+          "opcode": "FENCE",
+          "operation": "L1:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.004137884291525172
+        },
+        {
+          "duration_s": 0.0021797097891751993,
+          "end_s": 0.006317594080700371,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L2:EXECUTE_COMPUTE:q0,1",
+          "plane": "program",
+          "start_s": 0.004137884291525172
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.006317594080700371,
+          "opcode": "FENCE",
+          "operation": "L2:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.006317594080700371
+        },
+        {
+          "duration_s": 0.002,
+          "end_s": 0.008317594080700371,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L3:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
+          "start_s": 0.006317594080700371
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.008317594080700371,
+          "opcode": "FENCE",
+          "operation": "L3:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.008317594080700371
+        },
+        {
+          "duration_s": 0.002159969693780576,
+          "end_s": 0.010477563774480947,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L4:EXECUTE_COMPUTE:q2",
+          "plane": "program",
+          "start_s": 0.008317594080700371
+        },
+        {
+          "duration_s": 0.0008555253371477969,
+          "end_s": 0.009173119417848168,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.008317594080700371
+        },
+        {
+          "duration_s": 0.0010000000000000009,
+          "end_s": 0.009317594080700372,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.008317594080700371
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.010477563774480947,
+          "opcode": "FENCE",
+          "operation": "L4:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.010477563774480947
+        },
+        {
+          "duration_s": 0.0021797097891751993,
+          "end_s": 0.012657273563656146,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L5:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
+          "start_s": 0.010477563774480947
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.012657273563656146,
+          "opcode": "FENCE",
+          "operation": "L5:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.012657273563656146
+        }
+      ],
+      "inflight_resource_events_at_program_completion": 0,
+      "producer_blocked_s": {
+        "deliver_magic_local": 0.009090697552212755,
+        "prepare_magic": 0.008657273563656146
+      },
+      "program_state_blocked_s": 0.0,
+      "resource_items_started": {
+        "deliver_magic_local": 3,
+        "prepare_magic": 4
+      },
+      "terminal_buffer_tokens": {
+        "magic_compute": [
+          "magic_state:2"
+        ],
+        "msf_output": [
+          "magic_state:3"
+        ]
+      },
+      "total_latency_s": 0.012657273563656146
+    }
+  },
+  "results": {
+    "footprint": {
+      "bell_endpoint_components": [],
+      "interconnects": [],
+      "model_id": "reference-space-v1",
+      "total_physical_qubits": 2485.0
+    }
+  },
+  "schema_version": "arqsim.architecture-semantic-oracle.v1"
+}

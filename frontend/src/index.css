@@ -1,0 +1,598 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ArqSim quantum design system - all colors in HSL. */
+
+@layer base {
+  :root {
+    /* Quantum Dark Theme (default) */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 6% 10%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 6% 10%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Electric Purple - Primary Actions */
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Panel backgrounds */
+    --secondary: 240 6% 10%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+
+    /* Cyan accent for data/info */
+    --accent: 187 96% 66%;
+    --accent-foreground: 240 10% 3.9%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Subtle zinc-800 borders */
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 258 90% 66%;
+
+    --radius: 0.5rem;
+
+    /* Quantum Neon Palette */
+    --quantum-purple: 258 90% 66%;
+    --quantum-cyan: 187 96% 66%;
+    --quantum-amber: 38 92% 50%;
+    --quantum-coral: 0 100% 77%;
+    --quantum-purple-glow: 258 90% 66%;
+
+    /* Canvas specific */
+    --canvas: 240 10% 3.9%;
+    --panel: 240 6% 10%;
+
+    /* Sidebar */
+    --sidebar-background: 240 6% 10%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 258 90% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 258 90% 66%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body, #root {
+    @apply h-full overflow-hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  /* Quantum glow effects */
+  .glow-purple {
+    box-shadow: 0 0 20px hsl(var(--quantum-purple) / 0.4),
+                0 0 40px hsl(var(--quantum-purple) / 0.2);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 20px hsl(var(--quantum-cyan) / 0.4),
+                0 0 40px hsl(var(--quantum-cyan) / 0.2);
+  }
+
+  /* Dot grid pattern for canvas */
+  .dot-grid {
+    background-image: radial-gradient(circle, hsl(0 0% 100% / 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Panel styling */
+  .panel {
+    @apply bg-secondary border-border;
+  }
+
+  /* Monospace for data */
+  .font-data {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Timeline striped pattern for routing */
+  .bg-stripes-cyan {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgba(6, 182, 212, 0.3) 4px,
+      rgba(6, 182, 212, 0.3) 8px
+    );
+  }
+
+  /* Flow animation for transport links */
+  @keyframes flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 200% 50%;
+    }
+  }
+
+  .animate-flow {
+    background-size: 200% 100%;
+    animation: flow 1.5s linear infinite;
+  }
+}
+
+@layer components {
+  /* Resize handle styling */
+  .resize-handle {
+    @apply bg-border hover:bg-primary/50 transition-colors duration-150;
+  }
+
+  .resize-handle:active {
+    @apply bg-primary;
+  }
+
+  /* Architecture hierarchy: hardware package, die, and substrate visual language. */
+  .architecture-stage {
+    position: relative;
+    isolation: isolate;
+    background-color: hsl(var(--canvas));
+    background-image:
+      radial-gradient(circle at 14% 8%, hsl(var(--quantum-cyan) / 0.085), transparent 27rem),
+      radial-gradient(circle at 88% 88%, hsl(var(--quantum-purple) / 0.08), transparent 31rem),
+      linear-gradient(hsl(0 0% 100% / 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.018) 1px, transparent 1px);
+    background-size: auto, auto, 36px 36px, 36px 36px;
+  }
+
+  .architecture-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.28;
+    background:
+      linear-gradient(90deg, transparent 8%, hsl(var(--quantum-cyan) / 0.14) 8.08%, transparent 8.16%) 0 0 / 280px 100%,
+      linear-gradient(0deg, transparent 82%, hsl(var(--quantum-purple) / 0.12) 82.1%, transparent 82.2%) 0 0 / 100% 220px;
+    mask-image: linear-gradient(to bottom, black, transparent 76%);
+  }
+
+  .arch-node-package {
+    isolation: isolate;
+    border: 1px solid hsl(190 48% 45% / 0.34);
+    border-radius: 14px;
+    background:
+      linear-gradient(132deg, hsl(190 38% 18% / 0.82), hsl(240 9% 8% / 0.98) 44%, hsl(250 16% 5% / 0.99)),
+      hsl(240 9% 7%);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.12),
+      inset 0 -12px 22px hsl(0 0% 0% / 0.48),
+      0 3px 0 hsl(190 20% 5%),
+      0 9px 0 hsl(240 10% 3%),
+      0 24px 48px -27px hsl(var(--quantum-cyan) / 0.68);
+    transform: perspective(900px) rotateX(0.8deg) translateY(0);
+    transform-origin: center bottom;
+    transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+  }
+
+  .arch-node-package::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    z-index: 0;
+    pointer-events: none;
+    border: 1px solid hsl(0 0% 100% / 0.055);
+    border-radius: 9px;
+    background:
+      linear-gradient(90deg, transparent 49.7%, hsl(var(--quantum-cyan) / 0.045) 50%, transparent 50.3%),
+      linear-gradient(transparent 49.7%, hsl(var(--quantum-cyan) / 0.04) 50%, transparent 50.3%);
+  }
+
+  .arch-node-package::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(112deg, transparent 16%, hsl(0 0% 100% / 0.055) 34%, transparent 49%);
+    transform: translateX(-54%);
+    transition: transform 650ms ease;
+  }
+
+  .arch-node-package:hover {
+    border-color: hsl(var(--quantum-cyan) / 0.64);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.14),
+      inset 0 -12px 22px hsl(0 0% 0% / 0.48),
+      0 3px 0 hsl(190 20% 5%),
+      0 11px 0 hsl(240 10% 3%),
+      0 30px 54px -24px hsl(var(--quantum-cyan) / 0.82);
+    transform: perspective(900px) rotateX(0.2deg) translateY(-4px);
+  }
+
+  .arch-node-package:hover::after {
+    transform: translateX(58%);
+  }
+
+  .arch-package-edge {
+    position: absolute;
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0.72;
+  }
+
+  .arch-package-edge--top,
+  .arch-package-edge--bottom {
+    left: 38px;
+    right: 38px;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, hsl(var(--quantum-cyan) / 0.75) 0 5px, transparent 5px 12px);
+  }
+
+  .arch-package-edge--top { top: 5px; }
+  .arch-package-edge--bottom { bottom: 5px; }
+
+  .arch-package-edge--left,
+  .arch-package-edge--right {
+    top: 38px;
+    bottom: 38px;
+    width: 3px;
+    background: repeating-linear-gradient(0deg, hsl(var(--quantum-purple) / 0.7) 0 5px, transparent 5px 12px);
+  }
+
+  .arch-package-edge--left { left: 5px; }
+  .arch-package-edge--right { right: 5px; }
+
+  .arch-package-fastener,
+  .arch-board-mount {
+    position: absolute;
+    z-index: 5;
+    width: 10px;
+    height: 10px;
+    border: 1px solid hsl(190 20% 60% / 0.4);
+    border-radius: 50%;
+    background: radial-gradient(circle, hsl(190 20% 70% / 0.72) 0 1px, hsl(215 12% 15%) 2px 4px, hsl(0 0% 0%) 5px);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.8);
+  }
+
+  .arch-package-fastener--tl { left: 14px; top: 14px; }
+  .arch-package-fastener--tr { right: 14px; top: 14px; }
+  .arch-package-fastener--bl { left: 14px; bottom: 14px; }
+  .arch-package-fastener--br { right: 14px; bottom: 14px; }
+
+  .arch-technology-motif {
+    position: relative;
+    display: block;
+    width: min(100%, 19rem);
+    height: 7.5rem;
+    margin: 0.7rem auto 0.55rem;
+    overflow: hidden;
+    border: 1px solid hsl(0 0% 100% / 0.06);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at center, hsl(var(--quantum-cyan) / 0.11), transparent 40%),
+      repeating-radial-gradient(circle at center, transparent 0 15px, hsl(var(--quantum-cyan) / 0.035) 16px, transparent 17px);
+    box-shadow: inset 0 0 28px hsl(0 0% 0% / 0.62), 0 0 26px hsl(var(--quantum-cyan) / 0.05);
+  }
+
+  .arch-technology-motif__reticle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 94px;
+    height: 94px;
+    border: 1px dashed hsl(var(--quantum-cyan) / 0.16);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .arch-technology-motif__axis {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    background: linear-gradient(90deg, transparent, hsl(var(--quantum-cyan) / 0.22), transparent);
+  }
+
+  .arch-technology-motif__axis--x { width: 82%; height: 1px; transform: translate(-50%, -50%); }
+  .arch-technology-motif__axis--y { width: 1px; height: 82%; transform: translate(-50%, -50%); }
+
+  .arch-technology-motif__scan {
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    top: 12%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--quantum-cyan) / 0.7), transparent);
+    box-shadow: 0 0 8px hsl(var(--quantum-cyan) / 0.5);
+    animation: arch-scan 5.4s ease-in-out infinite;
+  }
+
+  .arch-atom-orbit,
+  .arch-sc-loop {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border: 1px solid hsl(var(--quantum-cyan) / 0.48);
+    border-radius: 50%;
+    box-shadow: 0 0 10px hsl(var(--quantum-cyan) / 0.1);
+  }
+
+  .arch-atom-orbit { width: 112px; height: 38px; }
+  .arch-atom-orbit--one { transform: translate(-50%, -50%) rotate(12deg); }
+  .arch-atom-orbit--two { transform: translate(-50%, -50%) rotate(72deg); }
+  .arch-atom-orbit--three { transform: translate(-50%, -50%) rotate(132deg); }
+
+  .arch-atom-nucleus,
+  .arch-sc-core,
+  .arch-generic-core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    color: hsl(var(--quantum-cyan));
+    border: 1px solid hsl(var(--quantum-cyan) / 0.45);
+    border-radius: 50%;
+    background: radial-gradient(circle, hsl(188 40% 18%), hsl(240 10% 6%));
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.12), 0 0 22px hsl(var(--quantum-cyan) / 0.28);
+    transform: translate(-50%, -50%);
+  }
+
+  .arch-atom-site {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: hsl(var(--quantum-cyan));
+    box-shadow: 0 0 8px hsl(var(--quantum-cyan) / 0.75);
+  }
+
+  .arch-atom-site--one { left: 25%; top: 29%; }
+  .arch-atom-site--two { right: 24%; top: 33%; }
+  .arch-atom-site--three { left: 31%; bottom: 21%; }
+  .arch-atom-site--four { right: 29%; bottom: 22%; }
+
+  .arch-technology-motif--sc {
+    background:
+      linear-gradient(90deg, transparent 49.5%, hsl(var(--quantum-purple) / 0.12) 50%, transparent 50.5%),
+      linear-gradient(transparent 49.5%, hsl(var(--quantum-purple) / 0.12) 50%, transparent 50.5%),
+      radial-gradient(circle at center, hsl(var(--quantum-purple) / 0.13), transparent 42%);
+  }
+
+  .arch-sc-loop--outer { width: 130px; height: 78px; transform: translate(-50%, -50%); border-color: hsl(var(--quantum-purple) / 0.5); }
+  .arch-sc-loop--inner { width: 84px; height: 48px; transform: translate(-50%, -50%); border-color: hsl(var(--quantum-cyan) / 0.42); }
+  .arch-sc-core { color: hsl(var(--quantum-purple)); border-color: hsl(var(--quantum-purple) / 0.5); box-shadow: 0 0 24px hsl(var(--quantum-purple) / 0.28); }
+
+  .arch-sc-junction {
+    position: absolute;
+    top: 50%;
+    width: 18px;
+    height: 8px;
+    border: 1px solid hsl(var(--quantum-cyan) / 0.5);
+    background: hsl(220 14% 9%);
+    box-shadow: 0 0 9px hsl(var(--quantum-cyan) / 0.25);
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .arch-sc-junction--left { left: calc(50% - 75px); }
+  .arch-sc-junction--right { right: calc(50% - 75px); }
+
+  .arch-modality-seal {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.3rem;
+    min-height: 2.3rem;
+    border-radius: 5px;
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.1), 0 0 14px currentColor;
+  }
+
+  .arch-node-substrate {
+    border: 1px solid hsl(182 42% 38% / 0.32);
+    border-radius: 16px;
+    background:
+      linear-gradient(145deg, hsl(179 31% 12% / 0.97), hsl(218 24% 8% / 0.99) 48%, hsl(242 15% 6% / 0.99));
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.1),
+      inset 0 0 56px hsl(0 0% 0% / 0.42),
+      0 5px 0 hsl(184 18% 4%),
+      0 17px 0 hsl(240 12% 2%),
+      0 34px 60px -34px hsl(var(--quantum-cyan) / 0.55);
+  }
+
+  .arch-node-substrate__traces {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.24;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 42px, hsl(var(--quantum-cyan) / 0.22) 43px, transparent 44px 84px),
+      repeating-linear-gradient(0deg, transparent 0 56px, hsl(42 72% 62% / 0.13) 57px, transparent 58px 112px);
+    mask-image: linear-gradient(135deg, black, transparent 68%);
+  }
+
+  .arch-board-mount { width: 14px; height: 14px; }
+  .arch-board-mount--tl { left: 16px; top: 16px; }
+  .arch-board-mount--tr { right: 16px; top: 16px; }
+  .arch-board-mount--bl { left: 16px; bottom: 16px; }
+  .arch-board-mount--br { right: 16px; bottom: 16px; }
+
+  .arch-module-die {
+    border: 1px solid hsl(var(--quantum-purple) / 0.3);
+    border-radius: 8px;
+    background: linear-gradient(145deg, hsl(248 18% 19% / 0.98), hsl(239 12% 10% / 0.99) 52%, hsl(240 12% 6%));
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.1),
+      inset 0 -8px 16px hsl(0 0% 0% / 0.42),
+      0 3px 0 hsl(250 18% 7%),
+      0 8px 0 hsl(240 12% 3%),
+      0 18px 29px -17px hsl(var(--quantum-purple) / 0.64);
+    transition: transform 190ms ease, border-color 190ms ease, box-shadow 190ms ease;
+  }
+
+  .arch-module-die::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    pointer-events: none;
+    border: 1px solid hsl(0 0% 100% / 0.045);
+    border-radius: 4px;
+  }
+
+  .arch-module-die:hover {
+    border-color: hsl(var(--quantum-purple) / 0.7);
+    box-shadow: inset 0 1px hsl(0 0% 100% / 0.12), 0 4px 0 hsl(250 18% 7%), 0 11px 0 hsl(240 12% 3%), 0 24px 36px -16px hsl(var(--quantum-purple) / 0.78);
+    transform: translateY(-3px);
+  }
+
+  .arch-module-die__routing,
+  .arch-submodule-chip__etch {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.25;
+    background:
+      linear-gradient(90deg, transparent 20%, hsl(var(--quantum-purple) / 0.28) 20.5%, transparent 21%) 0 0 / 53px 100%,
+      linear-gradient(0deg, transparent 72%, hsl(var(--quantum-cyan) / 0.2) 72.5%, transparent 73%) 0 0 / 100% 41px;
+  }
+
+  .arch-module-die__core,
+  .arch-die-core {
+    border: 1px solid hsl(var(--quantum-purple) / 0.45);
+    border-radius: 6px;
+    background: radial-gradient(circle at 35% 28%, hsl(var(--quantum-purple) / 0.2), hsl(240 10% 6%) 62%);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.1), 0 0 18px hsl(var(--quantum-purple) / 0.22);
+  }
+
+  .arch-die-contact-strip {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    z-index: 4;
+    height: 2px;
+    pointer-events: none;
+    background: repeating-linear-gradient(90deg, hsl(42 72% 60% / 0.66) 0 4px, transparent 4px 10px);
+  }
+
+  .arch-die-contact-strip--top { top: 3px; }
+  .arch-die-contact-strip--bottom { bottom: 3px; }
+
+  .arch-bus-bank {
+    border: 1px solid hsl(var(--quantum-cyan) / 0.18);
+    border-radius: 9px;
+    background: linear-gradient(90deg, hsl(185 27% 7% / 0.82), hsl(240 10% 5% / 0.76));
+    box-shadow: inset 0 0 24px hsl(0 0% 0% / 0.3);
+  }
+
+  .arch-bus-channel {
+    border: 1px solid hsl(var(--quantum-cyan) / 0.14);
+    border-radius: 5px;
+    background: hsl(190 20% 6% / 0.72);
+    box-shadow: inset 0 1px hsl(0 0% 100% / 0.035);
+  }
+
+  .arch-bus-trace { height: 12px; }
+  .arch-bus-trace::before,
+  .arch-bus-trace::after,
+  .arch-bus-trace__lane {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: hsl(var(--quantum-cyan) / 0.58);
+    box-shadow: 0 0 8px hsl(var(--quantum-cyan) / 0.28);
+  }
+
+  .arch-bus-trace::before { top: 2px; }
+  .arch-bus-trace__lane { top: 6px; }
+  .arch-bus-trace::after { top: 10px; }
+
+  .arch-bus-via {
+    position: absolute;
+    top: 1px;
+    z-index: 2;
+    width: 10px;
+    height: 10px;
+    border: 1px solid hsl(var(--quantum-cyan) / 0.74);
+    border-radius: 50%;
+    background: hsl(220 15% 7%);
+    box-shadow: 0 0 10px hsl(var(--quantum-cyan) / 0.3);
+  }
+
+  .arch-bus-via--left { left: -4px; }
+  .arch-bus-via--right { right: -4px; }
+
+  .arch-submodule-chip {
+    border: 1px solid hsl(var(--quantum-purple) / 0.34);
+    border-radius: 7px;
+    background: linear-gradient(145deg, hsl(245 15% 20% / 0.98), hsl(238 12% 10% / 0.99) 58%, hsl(240 10% 5%));
+    box-shadow: inset 0 1px hsl(0 0% 100% / 0.1), 0 3px 0 hsl(250 17% 5%), 0 9px 17px -8px hsl(var(--quantum-purple) / 0.66);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .arch-submodule-chip:hover,
+  .arch-submodule-chip--selected {
+    border-color: hsl(var(--quantum-purple) / 0.82);
+    box-shadow: inset 0 1px hsl(0 0% 100% / 0.12), 0 4px 0 hsl(250 17% 5%), 0 14px 25px -8px hsl(var(--quantum-purple) / 0.8);
+    transform: translateY(-2px);
+  }
+
+  .arch-module-plane-frame,
+  .arch-inspector-panel {
+    border: 1px solid hsl(var(--quantum-purple) / 0.28);
+    border-radius: 10px;
+    background: hsl(240 11% 4% / 0.94);
+    box-shadow: inset 0 0 30px hsl(0 0% 0% / 0.45), 0 18px 36px -25px hsl(var(--quantum-purple) / 0.5);
+  }
+
+  .arch-module-plane-surface {
+    background-color: hsl(222 18% 5%);
+    background-image:
+      radial-gradient(circle, hsl(var(--quantum-cyan) / 0.13) 1px, transparent 1px),
+      linear-gradient(hsl(var(--quantum-purple) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--quantum-purple) / 0.04) 1px, transparent 1px);
+    background-size: 24px 24px, 96px 96px, 96px 96px;
+  }
+
+  .arch-hierarchy-toolbar {
+    border-bottom: 1px solid hsl(var(--quantum-cyan) / 0.16);
+    background: linear-gradient(90deg, hsl(188 24% 8% / 0.88), hsl(240 10% 5% / 0.82));
+    box-shadow: 0 8px 24px -20px hsl(var(--quantum-cyan) / 0.55);
+    backdrop-filter: blur(12px);
+  }
+
+  @keyframes arch-scan {
+    0%, 100% { top: 14%; opacity: 0.15; }
+    48% { opacity: 0.8; }
+    52% { top: 86%; opacity: 0.8; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arch-technology-motif__scan { animation: none; top: 50%; opacity: 0.26; }
+    .arch-node-package,
+    .arch-node-package::after,
+    .arch-module-die,
+    .arch-submodule-chip { transition: none; }
+    .arch-node-package:hover,
+    .arch-module-die:hover,
+    .arch-submodule-chip:hover,
+    .arch-submodule-chip--selected { transform: none; }
+  }
+}

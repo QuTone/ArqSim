@@ -1,0 +1,71 @@
+schema_version: arqsim.magic-state-factory-catalog.v1
+
+profiles:
+  - id: cultivation-d5-d15-p1e3
+    label: Magic-state cultivation (d1=5, d2=15)
+    physical_error_probability: 1.0e-3
+    output:
+      states_per_batch: 1
+      error_probability: 1.9689128369672686e-9
+    implementation:
+      physical_qubits_per_copy: 463
+    timing:
+      # Official end-to-end artifact, complementary-gap cutoff 108:
+      # 20 cycles/attempt / 0.0091421 acceptance = 2187.68 mean cycles.
+      cycles_per_attempt: 20
+      expected_attempts_per_batch: 109.38404649818159
+      cycles_per_batch: 2187.680929963632
+      arrival_model: exponential
+    source:
+      paper: "Gidney, Shutty, and Jones, Magic state cultivation: growing T states as cheap as CNOT gates"
+      arxiv: "2409.17595"
+      artifact_doi: "10.5281/zenodo.13777072"
+      artifact_record: "end2end-inplace-distillation, d1=5, d2=15, p=0.001, complementary-gap cutoff=108"
+    assumptions:
+      target_regime: "artifact operating point: 1.9689e-9 T-error proxy at complementary-gap cutoff 108"
+      delivered_storage_patch: "resize escaped d=15 state to the computation's d=13 surface-code patch"
+      retry_model: "rounded mean interval; exponential sampling is a temporary evaluation model"
+
+  - id: litinski-15to1-17-7-7-p1e3
+    label: Litinski (15-to-1)_{17,7,7}
+    physical_error_probability: 1.0e-3
+    output:
+      states_per_batch: 1
+      error_probability: 4.5e-8
+    implementation:
+      physical_qubits_per_copy: 4620
+    timing:
+      # Table 1 reports the expected time 6*d_m/(1-p_fail)=42.6 cycles.
+      cycles_per_attempt: 42
+      expected_attempts_per_batch: 1.0142857142857142
+      cycles_per_batch: 42.6
+      arrival_model: exponential
+    source:
+      paper: "Litinski, Magic State Distillation: Not as Costly as You Think"
+      arxiv: "1905.06903"
+      location: "Table 1 and Section 3"
+    assumptions:
+      delivered_storage_patch: "resize the output logical state to the computation's d=13 surface-code patch"
+      table_distance_note: "Table values d=25 and d=29 normalize full-computation storage cost; they are not output-patch distances"
+
+  - id: litinski-15to1x20to4-13-5-5-23-11-13-p1e3
+    label: Litinski 6x(15-to-1)_{13,5,5} x (20-to-4)_{23,11,13}
+    physical_error_probability: 1.0e-3
+    output:
+      states_per_batch: 4
+      error_probability: 1.4e-10
+    implementation:
+      physical_qubits_per_copy: 43300
+    timing:
+      cycles_per_attempt: 130
+      expected_attempts_per_batch: 1
+      cycles_per_batch: 130
+      arrival_model: exponential
+    source:
+      paper: "Litinski, Magic State Distillation: Not as Costly as You Think"
+      arxiv: "1905.06903"
+      location: "Table 1 and Section 4"
+    assumptions:
+      delivered_storage_patch: "resize each output logical state to the computation's d=13 surface-code patch"
+      table_distance_note: "Table values d=29 and d=33 normalize full-computation storage cost; they are not output-patch distances"
+      batch_release: "conservatively expose all four states atomically at the 130-cycle batch completion; Litinski discusses staggered output consumption within the protocol"

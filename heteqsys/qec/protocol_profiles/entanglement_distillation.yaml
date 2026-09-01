@@ -1,0 +1,169 @@
+schema_version: arqsim.entanglement-distillation-catalog.v3
+
+# Uniform batch contract:
+#   cycles/output = qec_cycles_per_batch / logical_bell_pairs_per_batch
+#   T_batch = max(qec_cycles_per_batch * qec_cycle_time_s,
+#                 raw_bell_pairs_per_output * logical_bell_pairs_per_batch
+#                 / physical_bell_pair_rate)
+#   R_expected = logical_bell_pairs_per_batch / T_batch
+# "logical_bell_pairs_per_batch" is output multiplicity, not pairs/s.
+# The 10-kpair/s physical-link rate is a reference architecture operating
+# point, not an intrinsic protocol property.  Runtime sweeps may replace it.
+
+profiles:
+  - id: constant-rate-buffer10-pbell1e2
+    label: Constant-rate distillation (10-logical-qubit endpoint constraint)
+    family: constant_rate
+    input:
+      physical_bell_pair:
+        error_probability: 1.0e-2
+        fidelity: 0.99
+        # Camera-ready Table 1, 1% network-error column.  This includes the
+        # paper's state-injection rejection overhead.
+        pairs_per_logical_bell_pair: 22.44
+        reference_generation_rate_per_s: 1.0e4
+    output:
+      error_probability: 1.0e-12
+      fidelity: 0.999999999999
+      # K = product(k_i) = 1*1*1*4 = 4 for the camera-ready Fig. 6
+      # sequence.  This is output multiplicity, not a time-normalized rate.
+      logical_bell_pairs_per_batch: 4
+    implementation:
+      qec_code: null
+      code_distance: null
+      # Fig. 6's workspace recurrence gives M=10 logical qubits per endpoint.
+      logical_qubits_per_copy_per_endpoint: 10
+      # The camera-ready does not fix a physical encoding for this workspace;
+      # ArqSim lowers it with the selected architecture/QEC layout.
+      physical_qubits_per_copy_per_endpoint: null
+      physical_qubits_per_copy_total: null
+    timing:
+      model: two_bottleneck_rate
+      qec_cycle_time_s: 1.0e-3
+      # ArqSim atomic-batch approximation, not a paper-reported throughput:
+      # injection (1), [3,1,3] (2), two [2,1,2] stages (1+1), and the
+      # n-2 parity-code schedule for [[6,4,2]] (4).
+      qec_cycles_per_batch: 9.0
+      qec_cycles_per_output: 2.25
+      ideal_logical_bell_pair_rate_per_s: 444.4444444444444
+      saturation_physical_bell_pair_rate_per_s: 9973.333333333332
+      reference_expected_logical_bell_pair_rate_per_s: 444.4444444444444
+      reference_mean_logical_bell_pair_interval_s: 0.0022500000000000003
+      reference_mean_batch_interval_s: 0.009000000000000001
+      arrival_model: exponential
+    source:
+      paper: "Pattison et al., Constant-Rate Entanglement Distillation for Fast Quantum Interconnects"
+      doi: "10.1145/3695053.3731069"
+      fidelity_and_consumption: "Camera-ready Table 1, buffer=10 and 1% network error"
+      workspace_and_code_sequence: "Camera-ready Figure 6"
+      code_sequence: "[3,1,3]_X -> [2,1,2]_Y -> [2,1,2]_X -> [[6,4,2]]"
+    assumptions:
+      physical_operating_point: "1% network Bell-pair error; 1.25% after the cited injection model"
+      output_error: "conservative use of the paper's 1e-12 optimization target"
+      footprint: "10 logical workspaces per endpoint; physical footprint is lowered by the selected architecture/QEC layout"
+      qec_cycle: "cross-modality protocol uses the slower neutral-atom endpoint, 1 ms per QEC cycle"
+      cycle_derivation: >-
+        ArqSim local-critical-path approximation: one injection cycle;
+        n-1 cycles for each classical repetition-code stage; and the
+        camera-ready n-2 schedule for the final [[6,4,2]] parity-code
+        unencoding. Retry demand is represented by the source-reported
+        22.44 physical Bell pairs per output, not by scaling this local path.
+        The paper does not directly tabulate this 9-cycle batch latency.
+
+  - id: constant-rate-buffer30-pbell1e2
+    label: Constant-rate distillation (30-qubit endpoint constraint)
+    family: constant_rate
+    input:
+      physical_bell_pair:
+        error_probability: 1.0e-2
+        fidelity: 0.99
+        pairs_per_logical_bell_pair: 7.32
+        reference_generation_rate_per_s: 1.0e4
+    output:
+      error_probability: 1.0e-12
+      fidelity: 0.999999999999
+      # K = product(k_i) = 18 for the selected optimized sequence.
+      logical_bell_pairs_per_batch: 18
+    implementation:
+      qec_code: null
+      code_distance: null
+      # The <=30 camera-ready Fig. 6 point actually uses M=29 logical qubits.
+      logical_qubits_per_copy_per_endpoint: 29
+      physical_qubits_per_copy_per_endpoint: null
+      physical_qubits_per_copy_total: null
+    timing:
+      model: two_bottleneck_rate
+      qec_cycle_time_s: 1.0e-3
+      # ArqSim atomic-batch approximation: injection (1), two [2,1,2]
+      # stages (1+1), and the camera-ready 3n-2-k bound (61) for [[27,18,4]].
+      qec_cycles_per_batch: 64.0
+      qec_cycles_per_output: 3.5555555555555554
+      ideal_logical_bell_pair_rate_per_s: 281.25
+      saturation_physical_bell_pair_rate_per_s: 2058.75
+      reference_expected_logical_bell_pair_rate_per_s: 281.25
+      reference_mean_logical_bell_pair_interval_s: 0.0035555555555555557
+      reference_mean_batch_interval_s: 0.064
+      arrival_model: exponential
+    source:
+      paper: "Pattison et al., Constant-Rate Entanglement Distillation for Fast Quantum Interconnects"
+      doi: "10.1145/3695053.3731069"
+      fidelity_and_consumption: "Camera-ready Table 1, buffer=30 and 1% network error"
+      workspace_and_code_sequence: "Camera-ready Figure 6"
+      code_sequence: "[2,1,2]_X -> [2,1,2]_Y -> [[27,18,4]]"
+    assumptions:
+      physical_operating_point: "1% network Bell-pair error; 1.25% after the cited injection model"
+      output_error: "conservative use of the paper's 1e-12 optimization target"
+      footprint: "29 logical workspaces per endpoint; physical footprint is lowered by the selected architecture/QEC layout"
+      qec_cycle: "cross-modality protocol uses the slower neutral-atom endpoint, 1 ms per QEC cycle"
+      cycle_derivation: >-
+        ArqSim local-critical-path approximation: one injection cycle, one
+        cycle for each [2,1,2] stage, and the camera-ready generic
+        3n-2-k=61-cycle upper bound for [[27,18,4]]. Retry demand is
+        represented by the source-reported 7.32 physical Bell pairs per
+        output. The paper analyzes input-limited pipeline throughput and does
+        not directly tabulate this 64-cycle end-to-end total.
+
+  - id: boosting-dbell9-ds19-pbell1e2
+    label: Entanglement boosting (dBell=9, ds=19)
+    family: entanglement_boosting
+    input:
+      physical_bell_pair:
+        error_probability: 1.0e-2
+        fidelity: 0.99
+        pairs_per_logical_bell_pair: 85.86  # 81 pairs/attempt * 1.06 attempts
+        reference_generation_rate_per_s: 1.0e4
+    output:
+      error_probability: 1.0e-10
+      fidelity: 0.9999999999
+      logical_bell_pairs_per_batch: 1
+    implementation:
+      qec_code: rotated_surface_code
+      code_distance: 19
+      logical_qubits_per_copy_per_endpoint: 1
+      physical_qubits_per_copy_per_endpoint: 721  # 2*19^2 - 1
+      physical_qubits_per_copy_total: 1442         # two endpoints
+    timing:
+      model: two_bottleneck_rate
+      qec_cycle_time_s: 1.0e-3
+      qec_cycles_per_batch: 20.14  # 19 cycles/attempt * 1.06
+      qec_cycles_per_output: 20.14
+      ideal_logical_bell_pair_rate_per_s: 49.65243296921549
+      saturation_physical_bell_pair_rate_per_s: 4263.157894736842
+      reference_expected_logical_bell_pair_rate_per_s: 49.65243296921549
+      reference_mean_logical_bell_pair_interval_s: 0.02014
+      reference_mean_batch_interval_s: 0.02014
+      arrival_model: exponential
+    source:
+      paper: "Sunami et al., Entanglement boosting: Low-volume logical Bell pair preparation for distributed fault-tolerant quantum computation"
+      publication: "PRX Quantum 7, 033014 (2026)"
+      doi: "10.1103/tz8f-6xwk"
+      arxiv: "2511.10729v2"
+      location: "Figures 3--4 and Appendix C.2"
+      lightstim_implementation: "Research/LightStim/lightstim/protocols/entanglement_boosting.py"
+    assumptions:
+      local_physical_error_probability: 1.0e-3
+      idle_error_during_protocol: "omitted, matching the paper's main evaluation"
+      qec_cycle: "cross-modality protocol uses the slower neutral-atom endpoint, 1 ms per QEC cycle"
+      cycle_derivation: "source-reported 19 syndrome-extraction cycles per attempt times 1.06 expected attempts"
+      output_error: "conservative use of the paper's stated below-1e-10 result"
+      default_status: "ArqSim reference default; constant-rate profiles remain non-default sensitivity options because their end-to-end cycle counts are not source-reported"

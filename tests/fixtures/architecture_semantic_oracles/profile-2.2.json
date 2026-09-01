@@ -1,0 +1,1164 @@
+{
+  "architecture": {
+    "interconnects": [
+      {
+        "access": [
+          {
+            "local_submodules": [
+              "na_memory/store_load_buffer"
+            ],
+            "node": "na_memory_node",
+            "target_submodule": "memory_compute_link/bell_storage/bell_buffer"
+          },
+          {
+            "local_submodules": [
+              "sc_compute/store_load_buffer"
+            ],
+            "node": "sc_compute_node",
+            "target_submodule": "memory_compute_link/bell_storage/bell_buffer"
+          }
+        ],
+        "bell_state_model": {
+          "endpoint_halves_per_pair": 2,
+          "footprint_accounting": "one_half_per_endpoint",
+          "logical_qubit_states_total": 4,
+          "pair_capacity": 2,
+          "pair_token_identity": "single_shared_identity"
+        },
+        "endpoints": [
+          "na_memory_node",
+          "sc_compute_node"
+        ],
+        "id": "memory_compute_link",
+        "ownership": "shared_interconnect",
+        "submodules": [
+          {
+            "capacity": {
+              "copies": 2
+            },
+            "id": "pair_generator",
+            "payload": "bell_pair",
+            "resource_protocol": {
+              "id": "boosting-dbell9-ds19-pbell1e2"
+            },
+            "type": "engine"
+          },
+          {
+            "capacity": {
+              "logical_bell_pairs": 2
+            },
+            "id": "bell_buffer",
+            "payload": "bell_pair",
+            "slot_semantics": "identity_only",
+            "slots": [
+              {
+                "id": "memory_compute_link/bell_storage/bell_buffer/slot_0"
+              },
+              {
+                "id": "memory_compute_link/bell_storage/bell_buffer/slot_1"
+              }
+            ],
+            "type": "buffer"
+          }
+        ]
+      }
+    ],
+    "nodes": [
+      {
+        "connections": [],
+        "id": "na_memory_node",
+        "modality": "neutral_atom",
+        "modules": [
+          {
+            "id": "na_memory",
+            "submodules": [
+              {
+                "capacity": {
+                  "logical_patches": 2
+                },
+                "id": "memory_region",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "bb",
+                  "parameters": {
+                    "distance": 18,
+                    "k": 12,
+                    "n": 288
+                  }
+                },
+                "slot_semantics": "identity_only",
+                "slots": [
+                  {
+                    "id": "na_memory_node/na_memory/memory_region/slot_0"
+                  },
+                  {
+                    "id": "na_memory_node/na_memory/memory_region/slot_1"
+                  }
+                ],
+                "type": "region"
+              },
+              {
+                "capacity": {
+                  "logical_patches": 2
+                },
+                "id": "store_load_buffer",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slot_semantics": "identity_only",
+                "slots": [
+                  {
+                    "id": "na_memory_node/na_memory/store_load_buffer/slot_0"
+                  },
+                  {
+                    "id": "na_memory_node/na_memory/store_load_buffer/slot_1"
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "memory"
+          }
+        ]
+      },
+      {
+        "connections": [
+          {
+            "direction": "directed",
+            "endpoints": [
+              "sc_msf/magic_state_output_buffer",
+              "sc_compute/magic_state_input_buffer"
+            ],
+            "id": "sc_magic_bus",
+            "payload": "magic_state"
+          }
+        ],
+        "id": "sc_compute_node",
+        "modality": "superconducting",
+        "modules": [
+          {
+            "id": "sc_compute",
+            "submodules": [
+              {
+                "capacity": {
+                  "logical_patches": 2
+                },
+                "id": "compute_region",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "sc_compute_node/sc_compute/compute_region/slot_0",
+                    "logical_coordinate": [
+                      2,
+                      0
+                    ]
+                  },
+                  {
+                    "id": "sc_compute_node/sc_compute/compute_region/slot_1",
+                    "logical_coordinate": [
+                      4,
+                      0
+                    ]
+                  }
+                ],
+                "type": "region"
+              },
+              {
+                "capacity": {
+                  "logical_magic_states": 1
+                },
+                "id": "magic_state_input_buffer",
+                "payload": "magic_state",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "sc_compute_node/sc_compute/magic_state_input_buffer/slot_0",
+                    "logical_coordinate": [
+                      6,
+                      0
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              },
+              {
+                "capacity": {
+                  "logical_patches": 2
+                },
+                "id": "store_load_buffer",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "sc_compute_node/sc_compute/store_load_buffer/slot_0",
+                    "logical_coordinate": [
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "id": "sc_compute_node/sc_compute/store_load_buffer/slot_1",
+                    "logical_coordinate": [
+                      0,
+                      1
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "compute"
+          },
+          {
+            "id": "sc_msf",
+            "submodules": [
+              {
+                "capacity": {
+                  "copies": 1
+                },
+                "id": "factory_engine",
+                "payload": "magic_state",
+                "resource_protocol": {
+                  "id": "cultivation-d5-d15-p1e3"
+                },
+                "type": "engine"
+              },
+              {
+                "capacity": {
+                  "logical_magic_states": 1
+                },
+                "id": "magic_state_output_buffer",
+                "payload": "magic_state",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "sc_compute_node/sc_msf/magic_state_output_buffer/slot_0",
+                    "logical_coordinate": [
+                      8,
+                      0
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "resource_factory"
+          }
+        ]
+      }
+    ],
+    "profile_id": "2.2",
+    "resource_protocols": [
+      {
+        "copies": 2,
+        "logical_qubits_per_copy_per_endpoint": 1,
+        "logical_qubits_per_pair": 2,
+        "logical_qubits_total_per_endpoint": 2,
+        "outputs_per_copy_per_batch": 1,
+        "protocol_id": "boosting-dbell9-ds19-pbell1e2",
+        "resource_kind": "logical_bell_pair",
+        "shared_resource": true
+      },
+      {
+        "copies": 1,
+        "outputs_per_copy_per_batch": 1,
+        "protocol_id": "cultivation-d5-d15-p1e3",
+        "resource_kind": "magic_state"
+      }
+    ],
+    "workload": {
+      "logical_qubits": 4
+    }
+  },
+  "case_id": "six-profile-clifford-t",
+  "execution": {
+    "compiler": {
+      "mapping_backend": "row_major_checkerboard_sc",
+      "routing_backend": "greedy_steiner_sc"
+    },
+    "plan": {
+      "buffers": [
+        {
+          "capacity": 1,
+          "id": "magic_compute",
+          "owner": {
+            "module": "sc_compute_node/sc_compute",
+            "submodule": "sc_compute_node/sc_compute/magic_state_input_buffer"
+          },
+          "slots": [
+            "sc_compute_node/sc_compute/magic_state_input_buffer/slot_0"
+          ],
+          "token_kind": "magic_state"
+        },
+        {
+          "capacity": 1,
+          "id": "msf_output",
+          "owner": {
+            "module": "sc_compute_node/sc_msf",
+            "submodule": "sc_compute_node/sc_msf/magic_state_output_buffer"
+          },
+          "slots": [
+            "sc_compute_node/sc_msf/magic_state_output_buffer/slot_0"
+          ],
+          "token_kind": "magic_state"
+        },
+        {
+          "capacity": 2,
+          "id": "bell:memory_compute_link",
+          "owner": {
+            "module": "memory_compute_link/bell_storage",
+            "submodule": "memory_compute_link/bell_storage/bell_buffer"
+          },
+          "slots": [
+            "memory_compute_link/bell_storage/bell_buffer/slot_0",
+            "memory_compute_link/bell_storage/bell_buffer/slot_1"
+          ],
+          "token_kind": "logical_bell_pair"
+        }
+      ],
+      "engines": [
+        {
+          "capacity": 1,
+          "id": "compute:sc_compute_node/sc_compute",
+          "owner": {
+            "module": "sc_compute_node/sc_compute",
+            "submodule": "sc_compute_node/sc_compute/compute_region"
+          }
+        },
+        {
+          "capacity": 2,
+          "id": "bell_engine:memory_compute_link",
+          "owner": {
+            "module": null,
+            "submodule": null
+          }
+        },
+        {
+          "capacity": 2,
+          "id": "program_move",
+          "owner": {
+            "module": "sc_compute_node/sc_compute",
+            "submodule": null
+          }
+        },
+        {
+          "capacity": 2,
+          "id": "store_load_buffer",
+          "owner": {
+            "module": "sc_compute_node/sc_compute",
+            "submodule": null
+          }
+        },
+        {
+          "capacity": 1,
+          "id": "msf:sc_compute_node/sc_msf",
+          "owner": {
+            "module": "sc_compute_node/sc_msf",
+            "submodule": "sc_compute_node/sc_msf/factory_engine"
+          }
+        },
+        {
+          "capacity": 1,
+          "id": "resource_move",
+          "owner": {
+            "module": "sc_compute_node/sc_msf",
+            "submodule": null
+          }
+        }
+      ],
+      "program": [
+        {
+          "consumes": {},
+          "duration_s": 2.6e-05,
+          "engines": {
+            "compute:sc_compute_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [],
+          "produces": {},
+          "signature": "L0:EXECUTE_COMPUTE:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L0:EXECUTE_COMPUTE:q0,1"
+          ],
+          "produces": {},
+          "signature": "L0:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {
+            "magic_compute": 1
+          },
+          "duration_s": 1.3e-05,
+          "engines": {
+            "compute:sc_compute_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L0:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L1:EXECUTE_COMPUTE:q0",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L1:EXECUTE_COMPUTE:q0"
+          ],
+          "produces": {},
+          "signature": "L1:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 1.3e-05,
+          "engines": {
+            "compute:sc_compute_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L1:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L2:EXECUTE_COMPUTE:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L2:EXECUTE_COMPUTE:q0,1"
+          ],
+          "produces": {},
+          "signature": "L2:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 1.3e-05,
+          "engines": {
+            "program_move": 2
+          },
+          "forwards": {},
+          "opcode": "MOVE_QUBITS",
+          "predecessors": [
+            "L2:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L3:MOVE_QUBITS:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {
+            "bell:memory_compute_link": 2
+          },
+          "duration_s": 0.002,
+          "engines": {},
+          "forwards": {},
+          "opcode": "TELEPORT_QUBITS",
+          "predecessors": [
+            "L3:MOVE_QUBITS:q0,1"
+          ],
+          "produces": {},
+          "signature": "L3:TELEPORT_QUBITS:q0,1",
+          "target_links": [
+            "memory_compute_link"
+          ],
+          "target_modules": [
+            "na_memory_node/na_memory",
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.018000000000000002,
+          "engines": {
+            "store_load_buffer": 2
+          },
+          "forwards": {},
+          "opcode": "STORE_QUBITS",
+          "predecessors": [
+            "L3:TELEPORT_QUBITS:q0,1"
+          ],
+          "produces": {},
+          "signature": "L3:STORE_QUBITS:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "na_memory_node/na_memory",
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.018000000000000002,
+          "engines": {
+            "store_load_buffer": 2
+          },
+          "forwards": {},
+          "opcode": "LOAD_QUBITS",
+          "predecessors": [
+            "L3:STORE_QUBITS:q0,1"
+          ],
+          "produces": {},
+          "signature": "L3:LOAD_QUBITS:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "na_memory_node/na_memory",
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {
+            "bell:memory_compute_link": 2
+          },
+          "duration_s": 0.002,
+          "engines": {},
+          "forwards": {},
+          "opcode": "TELEPORT_QUBITS",
+          "predecessors": [
+            "L3:LOAD_QUBITS:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:TELEPORT_QUBITS:q2,3",
+          "target_links": [
+            "memory_compute_link"
+          ],
+          "target_modules": [
+            "na_memory_node/na_memory",
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 1.3e-05,
+          "engines": {
+            "program_move": 2
+          },
+          "forwards": {},
+          "opcode": "MOVE_QUBITS",
+          "predecessors": [
+            "L3:TELEPORT_QUBITS:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:MOVE_QUBITS:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 2.6e-05,
+          "engines": {
+            "compute:sc_compute_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L3:MOVE_QUBITS:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:EXECUTE_COMPUTE:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L3:EXECUTE_COMPUTE:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {
+            "magic_compute": 1
+          },
+          "duration_s": 1.3e-05,
+          "engines": {
+            "compute:sc_compute_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L3:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L4:EXECUTE_COMPUTE:q2",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L4:EXECUTE_COMPUTE:q2"
+          ],
+          "produces": {},
+          "signature": "L4:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 1.3e-05,
+          "engines": {
+            "compute:sc_compute_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L4:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L5:EXECUTE_COMPUTE:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L5:EXECUTE_COMPUTE:q2,3"
+          ],
+          "produces": {},
+          "signature": "L5:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        }
+      ],
+      "program_opcode_counts": {
+        "EXECUTE_COMPUTE": 6,
+        "FENCE": 6,
+        "LOAD_QUBITS": 1,
+        "MOVE_QUBITS": 2,
+        "STORE_QUBITS": 1,
+        "TELEPORT_QUBITS": 2
+      },
+      "resource_processes": [
+        {
+          "arrival_distribution": {
+            "initial_delay_s": 0.0,
+            "initial_delay_samples": 0,
+            "kind": "deterministic",
+            "mean_interval_s": 0.001,
+            "repeat_trace": true,
+            "success_probability": 1.0,
+            "trace_intervals_s": []
+          },
+          "consumes": {},
+          "dispatch_policy": "single",
+          "duration_s": 0.0,
+          "engines": {
+            "msf:sc_compute_node/sc_msf": 1
+          },
+          "forwards": {},
+          "id": "prepare_magic",
+          "opcode": "PREPARE_MAGIC_STATE",
+          "output_overflow_policy": "discard_excess",
+          "parallelism": 1,
+          "produces": {
+            "msf_output": 1
+          },
+          "protocol": "cultivation-d5-d15-p1e3",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_msf"
+          ]
+        },
+        {
+          "arrival_distribution": null,
+          "consumes": {
+            "msf_output": 1
+          },
+          "dispatch_policy": "eager_available",
+          "duration_s": 0.0,
+          "engines": {
+            "resource_move": 1
+          },
+          "forwards": {
+            "msf_output": "magic_compute"
+          },
+          "id": "deliver_magic_local",
+          "opcode": "MOVE_QUBITS",
+          "output_overflow_policy": "block",
+          "parallelism": 1,
+          "produces": {
+            "magic_compute": 1
+          },
+          "protocol": "local_magic_delivery",
+          "target_links": [],
+          "target_modules": [
+            "sc_compute_node/sc_compute",
+            "sc_compute_node/sc_msf"
+          ]
+        },
+        {
+          "arrival_distribution": {
+            "initial_delay_s": 0.0,
+            "initial_delay_samples": 0,
+            "kind": "deterministic",
+            "mean_interval_s": 0.001,
+            "repeat_trace": true,
+            "success_probability": 1.0,
+            "trace_intervals_s": []
+          },
+          "consumes": {},
+          "dispatch_policy": "single",
+          "duration_s": 0.0,
+          "engines": {
+            "bell_engine:memory_compute_link": 1
+          },
+          "forwards": {},
+          "id": "prepare_logical_bell:memory_compute_link",
+          "opcode": "PREPARE_LOGICAL_BELL",
+          "output_overflow_policy": "discard_excess",
+          "parallelism": 2,
+          "produces": {
+            "bell:memory_compute_link": 1
+          },
+          "protocol": "boosting-dbell9-ds19-pbell1e2",
+          "target_links": [
+            "memory_compute_link"
+          ],
+          "target_modules": []
+        }
+      ]
+    },
+    "trace": {
+      "all_invariants_hold": true,
+      "buffer_peaks": {
+        "bell:memory_compute_link": 2,
+        "magic_compute": 1,
+        "msf_output": 1
+      },
+      "buffer_tokens_consumed": {
+        "bell:memory_compute_link": 4,
+        "magic_compute": 2,
+        "msf_output": 3
+      },
+      "buffer_tokens_produced": {
+        "bell:memory_compute_link": 6,
+        "magic_compute": 3,
+        "msf_output": 3
+      },
+      "completed_opcode_counts": {
+        "EXECUTE_COMPUTE": 6,
+        "FENCE": 6,
+        "LOAD_QUBITS": 1,
+        "MOVE_QUBITS": 5,
+        "PREPARE_LOGICAL_BELL": 6,
+        "PREPARE_MAGIC_STATE": 3,
+        "STORE_QUBITS": 1,
+        "TELEPORT_QUBITS": 2
+      },
+      "completed_program_instructions": 18,
+      "completed_work_s_by_opcode": {
+        "EXECUTE_COMPUTE": 0.00010399999999999647,
+        "FENCE": 0.0,
+        "LOAD_QUBITS": 0.018000000000000002,
+        "MOVE_QUBITS": 6.499999999999822e-05,
+        "PREPARE_LOGICAL_BELL": 0.006000000000000002,
+        "PREPARE_MAGIC_STATE": 0.003,
+        "STORE_QUBITS": 0.018000000000000002,
+        "TELEPORT_QUBITS": 0.004000000000000002
+      },
+      "completion_schedule": [
+        {
+          "duration_s": 2.6e-05,
+          "end_s": 2.6e-05,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L0:EXECUTE_COMPUTE:q0,1",
+          "plane": "program",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.001,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.001,
+          "opcode": "PREPARE_LOGICAL_BELL",
+          "operation": "prepare_logical_bell:memory_compute_link",
+          "plane": "resource",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.001,
+          "opcode": "PREPARE_LOGICAL_BELL",
+          "operation": "prepare_logical_bell:memory_compute_link",
+          "plane": "resource",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 2.6e-05,
+          "opcode": "FENCE",
+          "operation": "L0:FENCE:q-",
+          "plane": "program",
+          "start_s": 2.6e-05
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.001013,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.001
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.002,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.001
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.001026,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L1:EXECUTE_COMPUTE:q0",
+          "plane": "program",
+          "start_s": 0.001013
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.001026,
+          "opcode": "FENCE",
+          "operation": "L1:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.001026
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.001039,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L2:EXECUTE_COMPUTE:q0,1",
+          "plane": "program",
+          "start_s": 0.001026
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.001039,
+          "opcode": "FENCE",
+          "operation": "L2:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.001039
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.001052,
+          "opcode": "MOVE_QUBITS",
+          "operation": "L3:MOVE_QUBITS:q0,1",
+          "plane": "program",
+          "start_s": 0.001039
+        },
+        {
+          "duration_s": 0.002,
+          "end_s": 0.003052,
+          "opcode": "TELEPORT_QUBITS",
+          "operation": "L3:TELEPORT_QUBITS:q0,1",
+          "plane": "program",
+          "start_s": 0.001052
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.002052,
+          "opcode": "PREPARE_LOGICAL_BELL",
+          "operation": "prepare_logical_bell:memory_compute_link",
+          "plane": "resource",
+          "start_s": 0.001052
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.002052,
+          "opcode": "PREPARE_LOGICAL_BELL",
+          "operation": "prepare_logical_bell:memory_compute_link",
+          "plane": "resource",
+          "start_s": 0.001052
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.002013,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.002
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.003,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.002
+        },
+        {
+          "duration_s": 0.018000000000000002,
+          "end_s": 0.021052,
+          "opcode": "STORE_QUBITS",
+          "operation": "L3:STORE_QUBITS:q0,1",
+          "plane": "program",
+          "start_s": 0.003052
+        },
+        {
+          "duration_s": 0.018000000000000002,
+          "end_s": 0.039052,
+          "opcode": "LOAD_QUBITS",
+          "operation": "L3:LOAD_QUBITS:q2,3",
+          "plane": "program",
+          "start_s": 0.021052
+        },
+        {
+          "duration_s": 0.0020000000000000018,
+          "end_s": 0.041052000000000005,
+          "opcode": "TELEPORT_QUBITS",
+          "operation": "L3:TELEPORT_QUBITS:q2,3",
+          "plane": "program",
+          "start_s": 0.039052
+        },
+        {
+          "duration_s": 0.0010000000000000009,
+          "end_s": 0.040052000000000004,
+          "opcode": "PREPARE_LOGICAL_BELL",
+          "operation": "prepare_logical_bell:memory_compute_link",
+          "plane": "resource",
+          "start_s": 0.039052
+        },
+        {
+          "duration_s": 0.0010000000000000009,
+          "end_s": 0.040052000000000004,
+          "opcode": "PREPARE_LOGICAL_BELL",
+          "operation": "prepare_logical_bell:memory_compute_link",
+          "plane": "resource",
+          "start_s": 0.039052
+        },
+        {
+          "duration_s": 1.2999999999999123e-05,
+          "end_s": 0.041065000000000004,
+          "opcode": "MOVE_QUBITS",
+          "operation": "L3:MOVE_QUBITS:q2,3",
+          "plane": "program",
+          "start_s": 0.041052000000000005
+        },
+        {
+          "duration_s": 2.5999999999998247e-05,
+          "end_s": 0.041091,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L3:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
+          "start_s": 0.041065000000000004
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.041091,
+          "opcode": "FENCE",
+          "operation": "L3:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.041091
+        },
+        {
+          "duration_s": 1.2999999999999123e-05,
+          "end_s": 0.041104,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L4:EXECUTE_COMPUTE:q2",
+          "plane": "program",
+          "start_s": 0.041091
+        },
+        {
+          "duration_s": 1.2999999999999123e-05,
+          "end_s": 0.041104,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.041091
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.041104,
+          "opcode": "FENCE",
+          "operation": "L4:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.041104
+        },
+        {
+          "duration_s": 1.2999999999999123e-05,
+          "end_s": 0.041117,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L5:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
+          "start_s": 0.041104
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.041117,
+          "opcode": "FENCE",
+          "operation": "L5:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.041117
+        }
+      ],
+      "inflight_resource_events_at_program_completion": 1,
+      "producer_blocked_s": {
+        "deliver_magic_local": 0.039091,
+        "prepare_logical_bell:memory_compute_link": 0.038117,
+        "prepare_magic": 0.038091
+      },
+      "program_state_blocked_s": 0.000987,
+      "resource_items_started": {
+        "deliver_magic_local": 3,
+        "prepare_logical_bell:memory_compute_link": 6,
+        "prepare_magic": 4
+      },
+      "terminal_buffer_tokens": {
+        "bell:memory_compute_link": [
+          "logical_bell_pair:4",
+          "logical_bell_pair:5"
+        ],
+        "magic_compute": [
+          "magic_state:2"
+        ],
+        "msf_output": []
+      },
+      "total_latency_s": 0.041117
+    }
+  },
+  "results": {
+    "footprint": {
+      "bell_endpoint_components": [
+        {
+          "kind": "engine",
+          "modality": "neutral_atom",
+          "physical_qubits": 1442.0,
+          "quantity": 2.0
+        },
+        {
+          "kind": "buffer_half",
+          "modality": "neutral_atom",
+          "physical_qubits": 674.0,
+          "quantity": 2.0
+        },
+        {
+          "kind": "engine",
+          "modality": "superconducting",
+          "physical_qubits": 1442.0,
+          "quantity": 2.0
+        },
+        {
+          "kind": "buffer_half",
+          "modality": "superconducting",
+          "physical_qubits": 2696.0,
+          "quantity": 2.0
+        }
+      ],
+      "interconnects": [
+        {
+          "endpoints": [
+            {
+              "component_count": 2,
+              "endpoint": "na_memory_node",
+              "logical_qubit_states": 2,
+              "modality": "neutral_atom",
+              "physical_qubits": 2116.0
+            },
+            {
+              "component_count": 2,
+              "endpoint": "sc_compute_node",
+              "logical_qubit_states": 2,
+              "modality": "superconducting",
+              "physical_qubits": 4138.0
+            }
+          ],
+          "id": "memory_compute_link",
+          "shared_pair_capacity": 2
+        }
+      ],
+      "model_id": "reference-space-v1",
+      "total_physical_qubits": 16213.0
+    }
+  },
+  "schema_version": "arqsim.architecture-semantic-oracle.v1"
+}

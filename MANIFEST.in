@@ -1,0 +1,18 @@
+include LICENSE
+include README.md
+include pyproject.toml
+
+recursive-include heteqsys *.py *.yaml
+recursive-include docs *
+recursive-include examples *
+recursive-include tests *
+include system_cases/__init__.py
+recursive-include system_cases/finite_runtime_injection_demo *
+
+prune build
+prune dist
+prune .pytest_cache
+prune heteqsys.egg-info
+global-exclude *.py[cod]
+global-exclude __pycache__
+global-exclude .DS_Store

@@ -1,0 +1,3582 @@
+{
+  "artifacts": {
+    "execution_plan": {
+      "architectural_state": {
+        "buffers": [
+          {
+            "capacity": 1,
+            "id": "magic_compute",
+            "initial_contents": [],
+            "module": "na_node/na_compute",
+            "slots": [
+              "na_node/na_compute/magic_state_input_buffer/slot_0"
+            ],
+            "submodule": "na_node/na_compute/magic_state_input_buffer",
+            "token_kind": "magic_state"
+          },
+          {
+            "capacity": 1,
+            "id": "msf_output",
+            "initial_contents": [],
+            "module": "na_node/na_msf",
+            "slots": [
+              "na_node/na_msf/magic_state_output_buffer/slot_0"
+            ],
+            "submodule": "na_node/na_msf/magic_state_output_buffer",
+            "token_kind": "magic_state"
+          }
+        ],
+        "engines": [
+          {
+            "capacity": 1,
+            "id": "compute:na_node/na_compute",
+            "module": "na_node/na_compute",
+            "submodule": "na_node/na_compute/compute_region"
+          },
+          {
+            "capacity": 1,
+            "id": "msf:na_node/na_msf",
+            "module": "na_node/na_msf",
+            "submodule": "na_node/na_msf/factory_engine"
+          },
+          {
+            "capacity": 1,
+            "id": "resource_move",
+            "module": "na_node/na_msf"
+          }
+        ],
+        "initial_locations": {
+          "q:0": "na_node/na_compute"
+        }
+      },
+      "architecture_hash": "14fea342a876c65a68d322a4659062eb111e310323b4c16db301b64f838ca21b",
+      "latency_profile_hash": "8a71625c2979c92e606bea4e954c97de394c0cab8b86d809ddacb52966399cfa",
+      "plan_hash": "cd7ea40137b7bfe1747ae4062e1e77a903d2083ba6cf165b74eb0bc57b1d4595",
+      "policy": {
+        "magic_state_consumption": "bulk_wave",
+        "max_events": 10000000,
+        "resource_fill_policy": "greedy_fill_to_capacity",
+        "runtime_injection_mode": "finite_state_injection_v1",
+        "seed": 0,
+        "selected_layers": [],
+        "store_load_policy": "dependency_aware_overlap",
+        "trace_level": "full"
+      },
+      "program_dag": {
+        "instructions": [
+          {
+            "completion_locations": {},
+            "consumes": {
+              "magic_compute": 1
+            },
+            "deferred_dispatch": {
+              "data_mapping": {
+                "0": "na_node/na_compute/compute_region/slot_0"
+              },
+              "kind": "joint_magic_route",
+              "operation_indices": [
+                0
+              ],
+              "schema_version": "arqsim.deferred-dispatch-recipe.v1"
+            },
+            "duration_s": 0.002,
+            "engines": {
+              "compute:na_node/na_compute": 1
+            },
+            "forwards": {},
+            "id": 0,
+            "implementation_recipes": [
+              {
+                "compute_engine": "compute:na_node/na_compute",
+                "compute_location": "na_node/na_compute",
+                "convention": "cx_data_magic_measure_magic_z_v1",
+                "correction_duration_s": 0.002,
+                "data_mapping": {
+                  "0": "na_node/na_compute/compute_region/slot_0"
+                },
+                "invocation_id": "instruction:0:source:0:operation:0",
+                "kind": "finite_state_injection",
+                "qubits": [
+                  0
+                ],
+                "reaction_duration_s": 0.0005,
+                "recipe_id": "surface_code.t_injection.v1",
+                "schema_version": "arqsim.injection-recipe.v1",
+                "source_layer_index": 0,
+                "source_operation_index": 0,
+                "stages": [
+                  {
+                    "attempt_duration_s": 0.002,
+                    "failure_correction": "s",
+                    "index": 0,
+                    "resource": {
+                      "buffer_id": "magic_compute",
+                      "quantity": 1,
+                      "ref_id": "t_magic_state",
+                      "state_kind": "t_magic",
+                      "token_kind": "magic_state"
+                    }
+                  }
+                ]
+              }
+            ],
+            "layer": 0,
+            "metadata": {
+              "batch_magic_demand": 1,
+              "compute_partition": 0,
+              "compute_partition_count": 1,
+              "duration_components_s": {
+                "compiler_routing": 0.0,
+                "primitive_service": 0.002
+              },
+              "gates": {
+                "t": [
+                  0
+                ]
+              },
+              "magic_batch": 0,
+              "magic_batch_count": 1,
+              "magic_consumption_policy": "bulk_wave",
+              "magic_demand": 1,
+              "magic_remaining_after_batch": 0,
+              "operated_qubits": [
+                0
+              ],
+              "partition_magic_demand": 1,
+              "resident_qubits": [
+                0
+              ],
+              "resource_policy": "consume_ready_magic_states_at_dispatch",
+              "route_hash": "54c8087142e3729e9bb1d59abaf37d5292e1c1bbb1d27b3c46d86f668cc5d262",
+              "route_metrics": {},
+              "route_steps": [],
+              "source_layer": 0,
+              "syndrome_protocol": {
+                "cycle_time_s": 0.001,
+                "id": "gbc_transversal",
+                "provenance": {
+                  "assumption": "one_round_correlated_decoding"
+                },
+                "round_mode": "fixed",
+                "rounds": 1,
+                "service_s": 0.001
+              }
+            },
+            "opcode": "EXECUTE_COMPUTE",
+            "predecessors": [],
+            "produces": {},
+            "qubits": [
+              0
+            ],
+            "required_locations": {
+              "q:0": "na_node/na_compute"
+            },
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute"
+            ]
+          },
+          {
+            "completion_locations": {},
+            "consumes": {},
+            "duration_s": 0.0,
+            "engines": {},
+            "forwards": {},
+            "id": 1,
+            "layer": 0,
+            "metadata": {
+              "scope": "dag_derived_circuit_layer",
+              "source_layer": 0
+            },
+            "opcode": "FENCE",
+            "predecessors": [
+              0
+            ],
+            "produces": {},
+            "qubits": [],
+            "required_locations": {},
+            "target_links": [],
+            "target_modules": []
+          }
+        ]
+      },
+      "provenance": {
+        "compilation_hash": "112e78c291a1b450de82c5b5299eb8e73767ed7d3d0fda770e8178bb5b5a6989",
+        "compiler_spec_hash": "7dffd518e0ebe480fcbcb1fa8654080d705653c772bae7dfe84289c0e3a51877",
+        "derived_engine_sources": {
+          "resource_move": {
+            "id": "na_node/na_magic_bus",
+            "scope": "local_connection"
+          }
+        },
+        "initialization": "cold_start",
+        "plan_builder_version": "arqsim-plan-builder-v4",
+        "program_dependency": "dag_derived_ft_layers",
+        "program_resource_move_contention": "separate_domains",
+        "resource_delivery_channels": 1,
+        "resource_delivery_channels_footprint_model": "derived_from_architecture_buffers",
+        "resource_delivery_concurrency_source": "buffer_available_concurrency",
+        "resource_policy": "greedy_fill_to_capacity",
+        "resource_protocol_bindings": {
+          "bindings": {
+            "magic_state": {
+              "arrival_source": "protocol_profile",
+              "assumptions": {
+                "delivered_storage_patch": "resize escaped d=15 state to the computation's d=13 surface-code patch",
+                "retry_model": "rounded mean interval; exponential sampling is a temporary evaluation model",
+                "target_regime": "artifact operating point: 1.9689e-9 T-error proxy at complementary-gap cutoff 108"
+              },
+              "base_arrival_distribution": {
+                "initial_delay_s": 0.0,
+                "initial_delay_samples": 0,
+                "kind": "exponential",
+                "mean_interval_s": 2.187680929963632,
+                "repeat_trace": true,
+                "success_probability": 1.0,
+                "trace_intervals_s": []
+              },
+              "binding_hash": "881a9e08e4e9de9e44ed225d79cc932f3d58d8c14f1b2a5b881d4a08b8f29bca",
+              "copies": 1,
+              "effective_arrival_distribution": {
+                "initial_delay_s": 0.0,
+                "initial_delay_samples": 0,
+                "kind": "exponential",
+                "mean_interval_s": 2.187680929963632,
+                "repeat_trace": true,
+                "success_probability": 1.0,
+                "trace_intervals_s": []
+              },
+              "operating_point": {
+                "aggregate_mean_output_rate_per_s": 0.4571050495999999,
+                "factory_modality": "neutral_atom",
+                "mean_batch_interval_s_per_copy": 2.187680929963632,
+                "qec_cycle_time_s": 0.001,
+                "qec_cycles_per_batch": 2187.680929963632
+              },
+              "output_error_probability": 1.9689128369672686e-09,
+              "output_fidelity": 0.9999999980310872,
+              "outputs_per_copy_per_batch": 1,
+              "physical_footprint": {
+                "physical_qubits_per_copy": 463,
+                "physical_qubits_total": 463
+              },
+              "protocol_family": "magic_state_factory",
+              "protocol_id": "cultivation-d5-d15-p1e3",
+              "protocol_profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e",
+              "provenance": {
+                "architecture_hash": "14fea342a876c65a68d322a4659062eb111e310323b4c16db301b64f838ca21b",
+                "arrival_resolution": {
+                  "base_arrival_hash": "d137c8e47cd3356e7f287f5506c2a37067b51f4a7fedf02f4a750940720b3afb",
+                  "effective_arrival_hash": "d137c8e47cd3356e7f287f5506c2a37067b51f4a7fedf02f4a750940720b3afb",
+                  "source": "protocol_profile"
+                },
+                "catalog_schema_version": "arqsim.magic-state-factory-catalog.v1",
+                "engine": "na_node/na_msf/factory_engine"
+              },
+              "requested_protocol_id": "cultivation-d5-d15-p1e3",
+              "resource_kind": "magic_state",
+              "schema_version": "arqsim.resolved-resource-protocol-binding.v1",
+              "source": {
+                "artifact_doi": "10.5281/zenodo.13777072",
+                "artifact_record": "end2end-inplace-distillation, d1=5, d2=15, p=0.001, complementary-gap cutoff=108",
+                "arxiv": "2409.17595",
+                "paper": "Gidney, Shutty, and Jones, Magic state cultivation: growing T states as cheap as CNOT gates"
+              }
+            }
+          },
+          "bindings_hash": "10193bfc5f57bc5a25c1e95044e0c7e15e7f9db2ae37823b0967f3ef3d0d3bf0",
+          "schema_version": "arqsim.resolved-resource-protocol-bindings.v1"
+        },
+        "resource_protocol_bindings_hash": "10193bfc5f57bc5a25c1e95044e0c7e15e7f9db2ae37823b0967f3ef3d0d3bf0",
+        "runtime_injection_recipe_mode": "finite_state_injection_v1",
+        "runtime_manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06"
+      },
+      "resource_dag": {
+        "fill_policy": "greedy_fill_to_capacity",
+        "processes": [
+          {
+            "arrival_distribution": {
+              "initial_delay_s": 0.0,
+              "initial_delay_samples": 0,
+              "kind": "exponential",
+              "mean_interval_s": 2.187680929963632,
+              "repeat_trace": true,
+              "success_probability": 1.0,
+              "trace_intervals_s": []
+            },
+            "consumes": {},
+            "dispatch_policy": "single",
+            "duration_s": 0.0,
+            "engines": {
+              "msf:na_node/na_msf": 1
+            },
+            "forwards": {},
+            "id": "prepare_magic",
+            "metadata": {
+              "outputs_per_batch": 1
+            },
+            "opcode": "PREPARE_MAGIC_STATE",
+            "output_overflow_policy": "discard_excess",
+            "parallelism": 1,
+            "produces": {
+              "msf_output": 1
+            },
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_msf"
+            ]
+          },
+          {
+            "arrival_distribution": null,
+            "consumes": {
+              "msf_output": 1
+            },
+            "deferred_dispatch": {
+              "entity_kind": "magic_state",
+              "kind": "state_bound_resource_move",
+              "schema_version": "arqsim.deferred-dispatch-recipe.v1"
+            },
+            "dispatch_policy": "eager_available",
+            "duration_s": 0.0,
+            "engines": {
+              "resource_move": 1
+            },
+            "forwards": {
+              "msf_output": "magic_compute"
+            },
+            "id": "deliver_magic_local",
+            "metadata": {},
+            "opcode": "MOVE_QUBITS",
+            "output_overflow_policy": "block",
+            "parallelism": 1,
+            "produces": {
+              "magic_compute": 1
+            },
+            "protocol": "local_magic_delivery",
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute",
+              "na_node/na_msf"
+            ]
+          }
+        ]
+      },
+      "runtime_components": {
+        "components": {
+          "execution_backend": {
+            "component_hash": "6466bc476c96a0b5f6d8ef297f317a9e092fe881bf317d349ad87041fa04a481",
+            "component_id": "backend.profile.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "timing_source": "candidate_implementation"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "execution_backend",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "outcome_model": {
+            "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
+            "component_id": "outcome.seeded_bernoulli.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "distribution": "independent_bernoulli_half",
+              "seed_identity": "program_work_lineage"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "outcome_model",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "runtime_realizer": {
+            "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
+            "component_id": "runtime_realizer.state_bound.v2",
+            "contract_version": "1",
+            "effective_config": {
+              "binding": "fifo_first_free",
+              "continuation": "finite_injection_recipe_v1",
+              "deferred_program": "joint_magic_route",
+              "deferred_resource": "state_bound_resource_move"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "runtime_realizer",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "scheduler": {
+            "component_hash": "60304b909a42e50cb511ed1cb9eb403744d951476717660580a8ba6247685226",
+            "component_id": "scheduler.program_first_eager.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "program_order": "ascending_instruction_id",
+              "resource_order": "resource_dag_insertion_order"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "scheduler",
+            "schema_version": "arqsim.runtime-component.v3"
+          }
+        },
+        "event_engine": {
+          "component_hash": "a653143af6817731cbf56982a48da087fe60ed2a891cc67afe52e0049c26198b",
+          "component_id": "event_engine.transactional_dynamic_frontier.v2",
+          "contract_version": "1",
+          "effective_config": {
+            "commit_granularity": "single_candidate",
+            "continuation_order": "activation_order_then_monotonic_schedule_id",
+            "dispatch": "eager_when_ready",
+            "program_continuations": "finite_injection_recipe_v1",
+            "program_horizon": "stop_without_resource_drain",
+            "resource_fitting": "typed_dispatch_receipt_v1",
+            "timestamp_phases": [
+              "complete_all",
+              "program_plane_first",
+              "same_time_fixed_point",
+              "advance"
+            ]
+          },
+          "implementation_version": "1",
+          "provider": "arqsim",
+          "role": "event_engine",
+          "schema_version": "arqsim.runtime-component.v3"
+        },
+        "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+        "schema_version": "arqsim.runtime-manifest.v3"
+      },
+      "schema_version": "arqsim.execution-plan.v6",
+      "source": {
+        "circuit_hash": "d67e2bfb1010b222045921a27ba6e923c73316951cdd074274687dba557a820c"
+      }
+    },
+    "execution_trace": {
+      "initial_state": {
+        "active_reservation_ids": [],
+        "buffers": {
+          "magic_compute": [],
+          "msf_output": []
+        },
+        "engine_usage": {
+          "compute:na_node/na_compute": 0,
+          "msf:na_node/na_msf": 0,
+          "resource_move": 0
+        },
+        "locations": {
+          "q:0": "na_node/na_compute"
+        },
+        "next_reservation_id": 0,
+        "pending_incoming": {
+          "magic_compute": 0,
+          "msf_output": 0
+        },
+        "reserved_output_slots": {
+          "magic_compute": [],
+          "msf_output": []
+        },
+        "state_version": 0,
+        "token_sequence": {},
+        "token_slots": {}
+      },
+      "plan_hash": "cd7ea40137b7bfe1747ae4062e1e77a903d2083ba6cf165b74eb0bc57b1d4595",
+      "schema_version": "arqsim.execution-trace.v3",
+      "seed": 0,
+      "terminal_inflight": [
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:prepare_magic:1",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 7.173922639678898,
+          "engines": {
+            "msf:na_node/na_msf": 1
+          },
+          "event_id": 2,
+          "forwards": {},
+          "instance": 1,
+          "instruction_id": null,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "attempted_outputs": {
+              "msf_output": 1
+            },
+            "batch_amount": 1,
+            "buffered_outputs": {
+              "msf_output": 1
+            },
+            "discarded_outputs": {},
+            "dispatch_policy": "single",
+            "engines": {
+              "msf:na_node/na_msf": 1
+            },
+            "outputs_per_batch": 1,
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_msf"
+            ]
+          },
+          "opcode": "PREPARE_MAGIC_STATE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 1,
+            "msf_output": 1
+          },
+          "plane": "resource",
+          "process_id": "prepare_magic",
+          "produced_slots": {
+            "msf_output": [
+              "na_node/na_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {},
+          "produces": {
+            "msf_output": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 2,
+          "start_s": 4.070414695032115,
+          "state_version_after": 4,
+          "state_version_before": 3,
+          "time_s": 4.070414695032115,
+          "token_sequence_after": {},
+          "transition_id": 3,
+          "wait_reasons": []
+        }
+      ],
+      "terminal_state": {
+        "active_reservation_ids": [
+          2
+        ],
+        "buffers": {
+          "magic_compute": [],
+          "msf_output": []
+        },
+        "engine_usage": {
+          "compute:na_node/na_compute": 0,
+          "msf:na_node/na_msf": 1,
+          "resource_move": 0
+        },
+        "locations": {
+          "q:0": "na_node/na_compute"
+        },
+        "next_reservation_id": 7,
+        "pending_incoming": {
+          "magic_compute": 0,
+          "msf_output": 1
+        },
+        "reserved_output_slots": {
+          "magic_compute": [],
+          "msf_output": [
+            "na_node/na_msf/magic_state_output_buffer/slot_0"
+          ]
+        },
+        "state_version": 13,
+        "token_sequence": {
+          "magic_state": 1
+        },
+        "token_slots": {}
+      },
+      "total_latency_s": 4.075907676712547,
+      "trace_hash": "8404763079389532559158292e1ac2f4cd0f126e1297c83abb0cd5761d9ba701",
+      "transitions": [
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:prepare_magic:0",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 4.070414695032115,
+          "engines": {
+            "msf:na_node/na_msf": 1
+          },
+          "event_id": 0,
+          "forwards": {},
+          "instance": 0,
+          "instruction_id": null,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "attempted_outputs": {
+              "msf_output": 1
+            },
+            "batch_amount": 1,
+            "buffered_outputs": {
+              "msf_output": 1
+            },
+            "discarded_outputs": {},
+            "dispatch_policy": "single",
+            "engines": {
+              "msf:na_node/na_msf": 1
+            },
+            "outputs_per_batch": 1,
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_msf"
+            ]
+          },
+          "opcode": "PREPARE_MAGIC_STATE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "resource",
+          "process_id": "prepare_magic",
+          "produced_slots": {
+            "msf_output": [
+              "na_node/na_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {},
+          "produces": {
+            "msf_output": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 0,
+          "start_s": 0.0,
+          "state_version_after": 1,
+          "state_version_before": 0,
+          "time_s": 0.0,
+          "token_sequence_after": {},
+          "transition_id": 0,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "candidate_id": "resource:prepare_magic:0",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 4.070414695032115,
+          "engines": {
+            "msf:na_node/na_msf": 1
+          },
+          "event_id": 0,
+          "forwards": {},
+          "instance": 0,
+          "instruction_id": null,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "attempted_outputs": {
+              "msf_output": 1
+            },
+            "batch_amount": 1,
+            "buffered_outputs": {
+              "msf_output": 1
+            },
+            "discarded_outputs": {},
+            "dispatch_policy": "single",
+            "engines": {
+              "msf:na_node/na_msf": 1
+            },
+            "outputs_per_batch": 1,
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_msf"
+            ]
+          },
+          "opcode": "PREPARE_MAGIC_STATE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "plane": "resource",
+          "process_id": "prepare_magic",
+          "produced_slots": {
+            "msf_output": [
+              "na_node/na_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {
+            "msf_output": [
+              "magic_state:0"
+            ]
+          },
+          "produces": {
+            "msf_output": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 0,
+          "start_s": 0.0,
+          "state_version_after": 2,
+          "state_version_before": 1,
+          "time_s": 4.070414695032115,
+          "token_sequence_after": {
+            "magic_state": 1
+          },
+          "transition_id": 1,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:deliver_magic_local:0",
+          "completion_locations": {},
+          "consumed_slots": {
+            "msf_output": [
+              "na_node/na_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "consumed_tokens": {
+            "msf_output": [
+              "magic_state:0"
+            ]
+          },
+          "consumes": {
+            "msf_output": 1
+          },
+          "continuation": null,
+          "end_s": 4.071274125949818,
+          "engines": {
+            "resource_move": 1
+          },
+          "event_id": 1,
+          "forwards": {
+            "msf_output": "magic_compute"
+          },
+          "instance": 0,
+          "instruction_id": null,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "batch_amount": 1,
+            "buffer_endpoint_policy": "canonical_absolute_slot",
+            "collective_groups": [
+              [
+                0
+              ]
+            ],
+            "destination_coordinates": {
+              "0": [
+                2.0,
+                0.0
+              ]
+            },
+            "dispatch_policy": "eager_available",
+            "engines": {
+              "resource_move": 1
+            },
+            "group_duration_us": [
+              859.4309177036628
+            ],
+            "move_backend": "aod_collective_one_way",
+            "move_compiler": "arqsim-move-compiler-v2",
+            "move_duration_us": 859.4309177036628,
+            "movement_profile_hash": "b41e5b982fb40eda15812dd4ebffdfd9798292b08c3f66b5a6d0895857693b37",
+            "movement_profile_schema": "arqsim.neutral-atom-movement-profile.v1",
+            "num_aod": 4,
+            "protocol": "local_magic_delivery",
+            "source_coordinates": {
+              "0": [
+                100.0,
+                40.0
+              ]
+            },
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute",
+              "na_node/na_msf"
+            ],
+            "timing_model": {
+              "distance_metric": "euclidean",
+              "distance_scale": 1.0,
+              "gate_duration_us": 0.0,
+              "reference_distance_um": 110.0,
+              "reference_move_duration_us": 200.0,
+              "transfer_duration_us": 8.0,
+              "x_spacing_um": 19.0,
+              "y_spacing_um": 15.0
+            }
+          },
+          "opcode": "MOVE_QUBITS",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 1,
+            "msf_output": 0
+          },
+          "plane": "resource",
+          "process_id": "deliver_magic_local",
+          "produced_slots": {
+            "magic_compute": [
+              "na_node/na_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {},
+          "produces": {
+            "magic_compute": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 1,
+          "start_s": 4.070414695032115,
+          "state_version_after": 3,
+          "state_version_before": 2,
+          "time_s": 4.070414695032115,
+          "token_sequence_after": {},
+          "transition_id": 2,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:prepare_magic:1",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 7.173922639678898,
+          "engines": {
+            "msf:na_node/na_msf": 1
+          },
+          "event_id": 2,
+          "forwards": {},
+          "instance": 1,
+          "instruction_id": null,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "attempted_outputs": {
+              "msf_output": 1
+            },
+            "batch_amount": 1,
+            "buffered_outputs": {
+              "msf_output": 1
+            },
+            "discarded_outputs": {},
+            "dispatch_policy": "single",
+            "engines": {
+              "msf:na_node/na_msf": 1
+            },
+            "outputs_per_batch": 1,
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_msf"
+            ]
+          },
+          "opcode": "PREPARE_MAGIC_STATE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 1,
+            "msf_output": 1
+          },
+          "plane": "resource",
+          "process_id": "prepare_magic",
+          "produced_slots": {
+            "msf_output": [
+              "na_node/na_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {},
+          "produces": {
+            "msf_output": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 2,
+          "start_s": 4.070414695032115,
+          "state_version_after": 4,
+          "state_version_before": 3,
+          "time_s": 4.070414695032115,
+          "token_sequence_after": {},
+          "transition_id": 3,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 1,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:deliver_magic_local:0",
+          "completion_locations": {},
+          "consumed_slots": {
+            "msf_output": [
+              "na_node/na_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "consumed_tokens": {
+            "msf_output": [
+              "magic_state:0"
+            ]
+          },
+          "consumes": {
+            "msf_output": 1
+          },
+          "continuation": null,
+          "end_s": 4.071274125949818,
+          "engines": {
+            "resource_move": 1
+          },
+          "event_id": 1,
+          "forwards": {
+            "msf_output": "magic_compute"
+          },
+          "instance": 0,
+          "instruction_id": null,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "batch_amount": 1,
+            "buffer_endpoint_policy": "canonical_absolute_slot",
+            "collective_groups": [
+              [
+                0
+              ]
+            ],
+            "destination_coordinates": {
+              "0": [
+                2.0,
+                0.0
+              ]
+            },
+            "dispatch_policy": "eager_available",
+            "engines": {
+              "resource_move": 1
+            },
+            "group_duration_us": [
+              859.4309177036628
+            ],
+            "move_backend": "aod_collective_one_way",
+            "move_compiler": "arqsim-move-compiler-v2",
+            "move_duration_us": 859.4309177036628,
+            "movement_profile_hash": "b41e5b982fb40eda15812dd4ebffdfd9798292b08c3f66b5a6d0895857693b37",
+            "movement_profile_schema": "arqsim.neutral-atom-movement-profile.v1",
+            "num_aod": 4,
+            "protocol": "local_magic_delivery",
+            "source_coordinates": {
+              "0": [
+                100.0,
+                40.0
+              ]
+            },
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute",
+              "na_node/na_msf"
+            ],
+            "timing_model": {
+              "distance_metric": "euclidean",
+              "distance_scale": 1.0,
+              "gate_duration_us": 0.0,
+              "reference_distance_um": 110.0,
+              "reference_move_duration_us": 200.0,
+              "transfer_duration_us": 8.0,
+              "x_spacing_um": 19.0,
+              "y_spacing_um": 15.0
+            }
+          },
+          "opcode": "MOVE_QUBITS",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "resource",
+          "process_id": "deliver_magic_local",
+          "produced_slots": {
+            "magic_compute": [
+              "na_node/na_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {
+            "magic_compute": [
+              "magic_state:0"
+            ]
+          },
+          "produces": {
+            "magic_compute": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 1,
+          "start_s": 4.070414695032115,
+          "state_version_after": 5,
+          "state_version_before": 4,
+          "time_s": 4.071274125949818,
+          "token_sequence_after": {},
+          "transition_id": 4,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:0",
+          "completion_locations": {},
+          "consumed_slots": {
+            "magic_compute": [
+              "na_node/na_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "consumed_tokens": {
+            "magic_compute": [
+              "magic_state:0"
+            ]
+          },
+          "consumes": {
+            "magic_compute": 1
+          },
+          "continuation": null,
+          "end_s": 4.073407676712548,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "event_id": 3,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 0,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 1,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.00013355076272905173,
+              "primitive_service": 0.002
+            },
+            "engines": {
+              "compute:na_node/na_compute": 1
+            },
+            "gates": {
+              "t": [
+                0
+              ]
+            },
+            "layer": 0,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 1,
+            "magic_remaining_after_batch": 0,
+            "operated_qubits": [
+              0
+            ],
+            "partition_magic_demand": 1,
+            "program_ready_s": 0.0,
+            "qubits": [
+              0
+            ],
+            "resident_qubits": [
+              0
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 4.071274125949818,
+            "route_hash": "53b54d89d091addcb43d2f43faf077c2494792c7f6754142fc64613835436b47",
+            "route_metrics": {
+              "aod_pipeline_duration_us": 133.55076272905174,
+              "aod_pipeline_savings_us": 0.0,
+              "aod_round_trip_barrier_duration_us": 133.55076272905174,
+              "approach_movement_count": 0,
+              "layer_timing": [
+                {
+                  "layer": 0,
+                  "pipeline_duration_us": 133.55076272905174,
+                  "pipeline_savings_us": 0.0,
+                  "round_trip_barrier_duration_us": 133.55076272905174,
+                  "stage_count": 1
+                }
+              ],
+              "magic_state_movement_count": 1,
+              "movement_count": 1,
+              "movement_manhattan_distance": 2.0,
+              "return_movement_count": 0,
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "na_round_trip_movement",
+                "metadata": {
+                  "aod_schedule": {
+                    "dependency_edges": [],
+                    "duration_us": 133.55076272905174,
+                    "forward_barrier_duration_us": 133.55076272905174,
+                    "gate_duration_us": 0.0,
+                    "num_aod": 4,
+                    "pipeline_savings_us": 0.0,
+                    "policy": "forward_first",
+                    "round_trip_barrier_duration_us": 133.55076272905174,
+                    "tasks": [
+                      {
+                        "aod": 0,
+                        "duration_us": 133.55076272905174,
+                        "end_us": 133.55076272905174,
+                        "group": 0,
+                        "id": "approach:g0",
+                        "movement_ids": [
+                          "l0:op0:na_node/na_compute/magic_state_input_buffer/slot_0:delivery"
+                        ],
+                        "phase": "approach",
+                        "start_us": 0.0
+                      }
+                    ]
+                  },
+                  "magic_state_assignments": [
+                    {
+                      "source_slot": "na_node/na_compute/magic_state_input_buffer/slot_0",
+                      "target_logical_qubit": 0
+                    }
+                  ],
+                  "pipeline_duration_us": 133.55076272905174,
+                  "pipeline_policy": "forward_first",
+                  "pipeline_savings_us": 0.0,
+                  "return_home": true,
+                  "round_trip_barrier_duration_us": 133.55076272905174,
+                  "routing_scope": "logical_layer"
+                },
+                "movement_count": 1,
+                "operation_count": 1,
+                "path_edge_count": 0,
+                "path_node_count": 0,
+                "terminal_slots": [
+                  "na_node/na_compute/magic_state_input_buffer/slot_0"
+                ]
+              }
+            ],
+            "runtime_route_cache_key": "4cbbda6721f6e2ca6ad9bd0db84a547cff086e513dfac127da674374e38eb11c",
+            "runtime_route_resolution": "dispatch_time_joint_compilation",
+            "source_layer": 0,
+            "syndrome_protocol": {
+              "cycle_time_s": 0.001,
+              "id": "gbc_transversal",
+              "provenance": {
+                "assumption": "one_round_correlated_decoding"
+              },
+              "round_mode": "fixed",
+              "rounds": 1,
+              "service_s": 0.001
+            },
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 0,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:0"
+          },
+          "required_locations": {
+            "q:0": "na_node/na_compute"
+          },
+          "reservation_id": 3,
+          "start_s": 4.071274125949818,
+          "state_version_after": 6,
+          "state_version_before": 5,
+          "time_s": 4.071274125949818,
+          "token_sequence_after": {},
+          "transition_id": 5,
+          "wait_reasons": [
+            "buffer_empty:magic_compute:0/1"
+          ]
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:0",
+          "completion_locations": {},
+          "consumed_slots": {
+            "magic_compute": [
+              "na_node/na_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "consumed_tokens": {
+            "magic_compute": [
+              "magic_state:0"
+            ]
+          },
+          "consumes": {
+            "magic_compute": 1
+          },
+          "continuation": {
+            "activated_work_ids": [
+              "program:0:recipe:instruction:0:source:0:operation:0:stage:0:reaction"
+            ],
+            "kind": "activate"
+          },
+          "end_s": 4.073407676712548,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "event_id": 3,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 0,
+          "kind": "completion",
+          "measurements": {
+            "instruction:0:source:0:operation:0:stage:0:bit": 1
+          },
+          "metadata": {
+            "batch_magic_demand": 1,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.00013355076272905173,
+              "primitive_service": 0.002
+            },
+            "engines": {
+              "compute:na_node/na_compute": 1
+            },
+            "gates": {
+              "t": [
+                0
+              ]
+            },
+            "layer": 0,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 1,
+            "magic_remaining_after_batch": 0,
+            "operated_qubits": [
+              0
+            ],
+            "partition_magic_demand": 1,
+            "program_ready_s": 0.0,
+            "qubits": [
+              0
+            ],
+            "resident_qubits": [
+              0
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 4.071274125949818,
+            "route_hash": "53b54d89d091addcb43d2f43faf077c2494792c7f6754142fc64613835436b47",
+            "route_metrics": {
+              "aod_pipeline_duration_us": 133.55076272905174,
+              "aod_pipeline_savings_us": 0.0,
+              "aod_round_trip_barrier_duration_us": 133.55076272905174,
+              "approach_movement_count": 0,
+              "layer_timing": [
+                {
+                  "layer": 0,
+                  "pipeline_duration_us": 133.55076272905174,
+                  "pipeline_savings_us": 0.0,
+                  "round_trip_barrier_duration_us": 133.55076272905174,
+                  "stage_count": 1
+                }
+              ],
+              "magic_state_movement_count": 1,
+              "movement_count": 1,
+              "movement_manhattan_distance": 2.0,
+              "return_movement_count": 0,
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "na_round_trip_movement",
+                "metadata": {
+                  "aod_schedule": {
+                    "dependency_edges": [],
+                    "duration_us": 133.55076272905174,
+                    "forward_barrier_duration_us": 133.55076272905174,
+                    "gate_duration_us": 0.0,
+                    "num_aod": 4,
+                    "pipeline_savings_us": 0.0,
+                    "policy": "forward_first",
+                    "round_trip_barrier_duration_us": 133.55076272905174,
+                    "tasks": [
+                      {
+                        "aod": 0,
+                        "duration_us": 133.55076272905174,
+                        "end_us": 133.55076272905174,
+                        "group": 0,
+                        "id": "approach:g0",
+                        "movement_ids": [
+                          "l0:op0:na_node/na_compute/magic_state_input_buffer/slot_0:delivery"
+                        ],
+                        "phase": "approach",
+                        "start_us": 0.0
+                      }
+                    ]
+                  },
+                  "magic_state_assignments": [
+                    {
+                      "source_slot": "na_node/na_compute/magic_state_input_buffer/slot_0",
+                      "target_logical_qubit": 0
+                    }
+                  ],
+                  "pipeline_duration_us": 133.55076272905174,
+                  "pipeline_policy": "forward_first",
+                  "pipeline_savings_us": 0.0,
+                  "return_home": true,
+                  "round_trip_barrier_duration_us": 133.55076272905174,
+                  "routing_scope": "logical_layer"
+                },
+                "movement_count": 1,
+                "operation_count": 1,
+                "path_edge_count": 0,
+                "path_node_count": 0,
+                "terminal_slots": [
+                  "na_node/na_compute/magic_state_input_buffer/slot_0"
+                ]
+              }
+            ],
+            "runtime_route_cache_key": "4cbbda6721f6e2ca6ad9bd0db84a547cff086e513dfac127da674374e38eb11c",
+            "runtime_route_resolution": "dispatch_time_joint_compilation",
+            "source_layer": 0,
+            "syndrome_protocol": {
+              "cycle_time_s": 0.001,
+              "id": "gbc_transversal",
+              "provenance": {
+                "assumption": "one_round_correlated_decoding"
+              },
+              "round_mode": "fixed",
+              "rounds": 1,
+              "service_s": 0.001
+            },
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {
+            "measurements": [
+              {
+                "bit": 1,
+                "register_id": "instruction:0:source:0:operation:0:stage:0:bit"
+              }
+            ],
+            "metadata": {},
+            "values": {}
+          },
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 0,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:0"
+          },
+          "required_locations": {
+            "q:0": "na_node/na_compute"
+          },
+          "reservation_id": 3,
+          "start_s": 4.071274125949818,
+          "state_version_after": 7,
+          "state_version_before": 6,
+          "time_s": 4.073407676712548,
+          "token_sequence_after": {},
+          "transition_id": 6,
+          "wait_reasons": [
+            "buffer_empty:magic_compute:0/1"
+          ]
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:reaction",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 4.0739076767125475,
+          "engines": {},
+          "event_id": 4,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 0,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 0,
+            "program_ready_s": 4.073407676712548,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute"
+            ]
+          },
+          "opcode": "CLASSICAL_REACTION",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": 3,
+            "recipe_id": "surface_code.t_injection.v1",
+            "recipe_invocation_id": "instruction:0:source:0:operation:0",
+            "source_instruction_id": 0,
+            "stage_index": 0,
+            "step": "reaction",
+            "work_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:reaction"
+          },
+          "required_locations": {},
+          "reservation_id": 4,
+          "start_s": 4.073407676712548,
+          "state_version_after": 8,
+          "state_version_before": 7,
+          "time_s": 4.073407676712548,
+          "token_sequence_after": {},
+          "transition_id": 7,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:reaction",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [
+              "program:0:recipe:instruction:0:source:0:operation:0:stage:0:correction"
+            ],
+            "kind": "activate"
+          },
+          "end_s": 4.0739076767125475,
+          "engines": {},
+          "event_id": 4,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 0,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 0,
+            "program_ready_s": 4.073407676712548,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute"
+            ]
+          },
+          "opcode": "CLASSICAL_REACTION",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": 3,
+            "recipe_id": "surface_code.t_injection.v1",
+            "recipe_invocation_id": "instruction:0:source:0:operation:0",
+            "source_instruction_id": 0,
+            "stage_index": 0,
+            "step": "reaction",
+            "work_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:reaction"
+          },
+          "required_locations": {},
+          "reservation_id": 4,
+          "start_s": 4.073407676712548,
+          "state_version_after": 9,
+          "state_version_before": 8,
+          "time_s": 4.0739076767125475,
+          "token_sequence_after": {},
+          "transition_id": 8,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:correction",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 4.075907676712547,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "event_id": 5,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 0,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "engines": {
+              "compute:na_node/na_compute": 1
+            },
+            "gates": {
+              "s": [
+                0
+              ]
+            },
+            "layer": 0,
+            "program_ready_s": 4.0739076767125475,
+            "qubits": [
+              0
+            ],
+            "resource_wait_s": 0.0,
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": 4,
+            "recipe_id": "surface_code.t_injection.v1",
+            "recipe_invocation_id": "instruction:0:source:0:operation:0",
+            "source_instruction_id": 0,
+            "stage_index": 0,
+            "step": "correction",
+            "work_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:correction"
+          },
+          "required_locations": {
+            "q:0": "na_node/na_compute"
+          },
+          "reservation_id": 5,
+          "start_s": 4.0739076767125475,
+          "state_version_after": 10,
+          "state_version_before": 9,
+          "time_s": 4.0739076767125475,
+          "token_sequence_after": {},
+          "transition_id": 9,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:correction",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 4.075907676712547,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "event_id": 5,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 0,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "engines": {
+              "compute:na_node/na_compute": 1
+            },
+            "gates": {
+              "s": [
+                0
+              ]
+            },
+            "layer": 0,
+            "program_ready_s": 4.0739076767125475,
+            "qubits": [
+              0
+            ],
+            "resource_wait_s": 0.0,
+            "target_links": [],
+            "target_modules": [
+              "na_node/na_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": 4,
+            "recipe_id": "surface_code.t_injection.v1",
+            "recipe_invocation_id": "instruction:0:source:0:operation:0",
+            "source_instruction_id": 0,
+            "stage_index": 0,
+            "step": "correction",
+            "work_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:correction"
+          },
+          "required_locations": {
+            "q:0": "na_node/na_compute"
+          },
+          "reservation_id": 5,
+          "start_s": 4.0739076767125475,
+          "state_version_after": 11,
+          "state_version_before": 10,
+          "time_s": 4.075907676712547,
+          "token_sequence_after": {},
+          "transition_id": 10,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:1",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 4.075907676712547,
+          "engines": {},
+          "event_id": 6,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 1,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 0,
+            "program_ready_s": 4.075907676712547,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 0,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 1,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:1"
+          },
+          "required_locations": {},
+          "reservation_id": 6,
+          "start_s": 4.075907676712547,
+          "state_version_after": 12,
+          "state_version_before": 11,
+          "time_s": 4.075907676712547,
+          "token_sequence_after": {},
+          "transition_id": 11,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:1",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 4.075907676712547,
+          "engines": {},
+          "event_id": 6,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 1,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 0,
+            "program_ready_s": 4.075907676712547,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 0,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 1,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:1"
+          },
+          "required_locations": {},
+          "reservation_id": 6,
+          "start_s": 4.075907676712547,
+          "state_version_after": 13,
+          "state_version_before": 12,
+          "time_s": 4.075907676712547,
+          "token_sequence_after": {},
+          "transition_id": 12,
+          "wait_reasons": []
+        }
+      ]
+    },
+    "logical_compilation": {
+      "compilation_hash": "112e78c291a1b450de82c5b5299eb8e73767ed7d3d0fda770e8178bb5b5a6989",
+      "compiler": {
+        "compiler_hash": "7dffd518e0ebe480fcbcb1fa8654080d705653c772bae7dfe84289c0e3a51877",
+        "instruction_set": "heteqsys.hqisa.v1",
+        "issue_policy": "conservative_layers",
+        "mapping": {
+          "backend": "sabre_na",
+          "options": {
+            "seed": 42
+          }
+        },
+        "routing": {
+          "backend": "powermove_na",
+          "options": {
+            "distance_metric": "euclidean"
+          }
+        },
+        "schema_version": "heteqsys.logical-compiler-spec.v1"
+      },
+      "compute_units": [
+        {
+          "mapping": {
+            "0": "na_node/na_compute/compute_region/slot_0"
+          },
+          "route": {
+            "dispatch_deferred": true,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 0.002
+            },
+            "route_hash": "54c8087142e3729e9bb1d59abaf37d5292e1c1bbb1d27b3c46d86f668cc5d262",
+            "route_metrics": {},
+            "route_steps": [],
+            "syndrome_protocol": {
+              "cycle_time_s": 0.001,
+              "id": "gbc_transversal",
+              "provenance": {
+                "assumption": "one_round_correlated_decoding"
+              },
+              "round_mode": "fixed",
+              "rounds": 1
+            }
+          },
+          "source": {
+            "batch": 0,
+            "batch_count": 1,
+            "magic_count": 1,
+            "operated_qubits": [
+              0
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition": {
+              "active_qubits": [
+                0
+              ],
+              "layer": 0,
+              "magic_count": 1,
+              "operation_indices": [
+                0
+              ],
+              "partition": 0,
+              "partition_count": 1
+            }
+          }
+        }
+      ],
+      "deferred_capacity_mapping": false,
+      "initial_mapping": {
+        "0": "na_node/na_compute/compute_region/slot_0"
+      },
+      "magic_state_consumption": "bulk_wave",
+      "schema_version": "heteqsys.logical-compilation-result.v1",
+      "source": {
+        "architecture_hash": "14fea342a876c65a68d322a4659062eb111e310323b4c16db301b64f838ca21b",
+        "circuit_hash": "d67e2bfb1010b222045921a27ba6e923c73316951cdd074274687dba557a820c",
+        "latency_profile_hash": "8a71625c2979c92e606bea4e954c97de394c0cab8b86d809ddacb52966399cfa"
+      }
+    }
+  },
+  "report_hash": "8df9fd097c3f45cc46f76c07ecbdb362ad61eee70efbabf456637677635b30f9",
+  "request": {
+    "config": {
+      "compiler_spec": {
+        "preset": "canonical"
+      },
+      "evaluation_policy": {
+        "magic_state_consumption": "bulk_wave",
+        "max_events": 10000000,
+        "resource_fill_policy": "greedy_fill_to_capacity",
+        "runtime_injection_mode": "finite_state_injection_v1",
+        "seed": 0,
+        "selected_layers": [],
+        "store_load_policy": "dependency_aware_overlap",
+        "trace_level": "full"
+      },
+      "fidelity_profile": null,
+      "footprint_model": {
+        "preset": "protocol_aware_reference_v1"
+      },
+      "latency_profile": {
+        "bell_pair_arrival": null,
+        "compute_protocol_by_modality": {
+          "neutral_atom": "gbc_transversal",
+          "superconducting": "pbc_lattice_surgery"
+        },
+        "gate_duration_s": {
+          "neutral_atom": 0.001,
+          "superconducting": 1e-06
+        },
+        "link_item_s": 0.001,
+        "local_magic_delivery_s": 0.0,
+        "magic_state_arrival": null,
+        "neutral_atom_movement": {
+          "aod_count": 4,
+          "provenance": {},
+          "reference_distance_um": 110.0,
+          "reference_move_duration_us": 200.0,
+          "schema_version": "arqsim.neutral-atom-movement-profile.v1",
+          "transfer_duration_us": 8.0,
+          "x_spacing_um": 19.0,
+          "y_spacing_um": 15.0
+        },
+        "provenance": {
+          "reaction_latency_profile": "reference_reaction_latency_profile_v1",
+          "reaction_latency_source": "reference classical-control assumptions"
+        },
+        "reaction_latency_by_modality_s": {
+          "neutral_atom": 0.0005,
+          "superconducting": 1e-05
+        },
+        "store_load_protocol": "bb_surface_transfer",
+        "syndrome_profiles": {
+          "bb_surface_transfer": {
+            "cycle_time_s": 0.001,
+            "distance_module_role": "memory",
+            "provenance": {
+              "assumption": "qldpc_distance_adapter_measurement"
+            },
+            "round_mode": "qec_distance"
+          },
+          "gbc_transversal": {
+            "cycle_time_s": 0.001,
+            "provenance": {
+              "assumption": "one_round_correlated_decoding"
+            },
+            "round_mode": "fixed",
+            "rounds": 1
+          },
+          "pbc_lattice_surgery": {
+            "cycle_time_s": 1e-06,
+            "distance_module_role": "compute",
+            "provenance": {
+              "assumption": "surface_distance_merged_measurement"
+            },
+            "round_mode": "qec_distance"
+          }
+        }
+      },
+      "layout_policy_overrides": {},
+      "profile_id": "1.1",
+      "runtime_components": {
+        "components": {
+          "execution_backend": {
+            "component_hash": "6466bc476c96a0b5f6d8ef297f317a9e092fe881bf317d349ad87041fa04a481",
+            "component_id": "backend.profile.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "timing_source": "candidate_implementation"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "execution_backend",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "outcome_model": {
+            "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
+            "component_id": "outcome.seeded_bernoulli.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "distribution": "independent_bernoulli_half",
+              "seed_identity": "program_work_lineage"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "outcome_model",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "runtime_realizer": {
+            "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
+            "component_id": "runtime_realizer.state_bound.v2",
+            "contract_version": "1",
+            "effective_config": {
+              "binding": "fifo_first_free",
+              "continuation": "finite_injection_recipe_v1",
+              "deferred_program": "joint_magic_route",
+              "deferred_resource": "state_bound_resource_move"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "runtime_realizer",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "scheduler": {
+            "component_hash": "60304b909a42e50cb511ed1cb9eb403744d951476717660580a8ba6247685226",
+            "component_id": "scheduler.program_first_eager.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "program_order": "ascending_instruction_id",
+              "resource_order": "resource_dag_insertion_order"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "scheduler",
+            "schema_version": "arqsim.runtime-component.v3"
+          }
+        },
+        "event_engine": {
+          "component_hash": "a653143af6817731cbf56982a48da087fe60ed2a891cc67afe52e0049c26198b",
+          "component_id": "event_engine.transactional_dynamic_frontier.v2",
+          "contract_version": "1",
+          "effective_config": {
+            "commit_granularity": "single_candidate",
+            "continuation_order": "activation_order_then_monotonic_schedule_id",
+            "dispatch": "eager_when_ready",
+            "program_continuations": "finite_injection_recipe_v1",
+            "program_horizon": "stop_without_resource_drain",
+            "resource_fitting": "typed_dispatch_receipt_v1",
+            "timestamp_phases": [
+              "complete_all",
+              "program_plane_first",
+              "same_time_fixed_point",
+              "advance"
+            ]
+          },
+          "implementation_version": "1",
+          "provider": "arqsim",
+          "role": "event_engine",
+          "schema_version": "arqsim.runtime-component.v3"
+        },
+        "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+        "schema_version": "arqsim.runtime-manifest.v3"
+      },
+      "schema_version": "arqsim.evaluation-config.v1",
+      "workflow_id": "report-v2-dynamic-t-fixture"
+    },
+    "magic_sizing_workload": null,
+    "workload": {
+      "layers": [
+        {
+          "active_qubits": [
+            0
+          ],
+          "index": 0,
+          "operations": [
+            {
+              "classical_bits": [],
+              "kind": "gate",
+              "name": "t",
+              "parameters": [],
+              "qubits": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "num_clbits": 0,
+      "num_qubits": 1,
+      "provenance": {
+        "fixture": "dynamic-t-full"
+      },
+      "representation": "clifford_t",
+      "schema_version": "heteqsys.ft-workload.v2",
+      "semantic_hash": "d67e2bfb1010b222045921a27ba6e923c73316951cdd074274687dba557a820c"
+    }
+  },
+  "resolved_inputs": {
+    "architecture": {
+      "architecture_hash": "14fea342a876c65a68d322a4659062eb111e310323b4c16db301b64f838ca21b",
+      "interconnects": [],
+      "nodes": [
+        {
+          "connections": [
+            {
+              "direction": "directed",
+              "endpoints": [
+                "na_msf/magic_state_output_buffer",
+                "na_compute/magic_state_input_buffer"
+              ],
+              "id": "na_magic_bus"
+            }
+          ],
+          "id": "na_node",
+          "modality": "neutral_atom",
+          "modules": [
+            {
+              "id": "na_compute",
+              "submodules": [
+                {
+                  "capacity": 1,
+                  "grid_shape": {
+                    "columns": 1,
+                    "rows": 1
+                  },
+                  "id": "compute_region",
+                  "logical_origin": [
+                    0,
+                    0
+                  ],
+                  "payload": "logical_qubit",
+                  "qec": {
+                    "code": "surface",
+                    "parameters": {
+                      "distance": 13
+                    }
+                  },
+                  "slots": [
+                    {
+                      "coordinate": [
+                        0,
+                        0
+                      ],
+                      "id": "slot_0"
+                    }
+                  ],
+                  "type": "region"
+                },
+                {
+                  "capacity": 1,
+                  "id": "magic_state_input_buffer",
+                  "logical_origin": [
+                    2,
+                    0
+                  ],
+                  "payload": "magic_state",
+                  "qec": {
+                    "code": "surface",
+                    "parameters": {
+                      "distance": 13
+                    }
+                  },
+                  "slots": [
+                    {
+                      "coordinate": [
+                        0,
+                        0
+                      ],
+                      "id": "slot_0"
+                    }
+                  ],
+                  "type": "buffer"
+                }
+              ],
+              "type": "compute"
+            },
+            {
+              "id": "na_msf",
+              "submodules": [
+                {
+                  "capacity": 1,
+                  "id": "factory_engine",
+                  "payload": "magic_state",
+                  "resource_protocol": {
+                    "id": "cultivation-d5-d15-p1e3",
+                    "profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e"
+                  },
+                  "type": "engine"
+                },
+                {
+                  "capacity": 1,
+                  "id": "magic_state_output_buffer",
+                  "logical_origin": [
+                    100,
+                    40
+                  ],
+                  "payload": "magic_state",
+                  "qec": {
+                    "code": "surface",
+                    "parameters": {
+                      "distance": 13
+                    }
+                  },
+                  "slots": [
+                    {
+                      "coordinate": [
+                        0,
+                        0
+                      ],
+                      "id": "slot_0"
+                    }
+                  ],
+                  "type": "buffer"
+                }
+              ],
+              "type": "resource_factory"
+            }
+          ]
+        }
+      ],
+      "schema_version": "arqsim.architecture-specification.v3"
+    },
+    "fidelity_profile": null,
+    "footprint_model": {
+      "bb_code_qubit_multiplier": {
+        "neutral_atom": 2.0,
+        "superconducting": 2.0
+      },
+      "bb_controller_qubits_per_block": {
+        "neutral_atom": 158.0,
+        "superconducting": 158.0
+      },
+      "factory_qubits_per_copy": {
+        "neutral_atom": 463.0,
+        "superconducting": 463.0
+      },
+      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "model_id": "reference-space-v1",
+      "provenance": {
+        "bb_rule": "ceil(logical_patches/k) * (2*n + 158)",
+        "factory_rule": "pinned QEC resource protocol; legacy model field is consistency-checked for report-v1 codec parity",
+        "kind": "legacy_compatibility",
+        "source": "heteqsys.evaluation.footprint.estimate_physical_footprint",
+        "surface_rule": "(2*d^2 - 1) with modality multiplier"
+      },
+      "schema_version": "heteqsys.physical-footprint-model.v1",
+      "surface_capacity_multiplier": {
+        "communication_qubits": 1.0,
+        "logical_bell_pairs": 1.0,
+        "logical_magic_states": 1.0,
+        "logical_patches": 1.0
+      },
+      "surface_modality_multiplier": {
+        "neutral_atom": 1.0,
+        "superconducting": 4.0
+      },
+      "surface_patch_coefficient": 2.0
+    },
+    "latency_profile": {
+      "bell_pair_arrival": null,
+      "compute_protocol_by_modality": {
+        "neutral_atom": "gbc_transversal",
+        "superconducting": "pbc_lattice_surgery"
+      },
+      "gate_duration_s": {
+        "neutral_atom": 0.001,
+        "superconducting": 1e-06
+      },
+      "link_item_s": 0.001,
+      "local_magic_delivery_s": 0.0,
+      "magic_state_arrival": {
+        "initial_delay_s": 0.0,
+        "initial_delay_samples": 0,
+        "kind": "exponential",
+        "mean_interval_s": 2.187680929963632,
+        "repeat_trace": true,
+        "success_probability": 1.0,
+        "trace_intervals_s": []
+      },
+      "neutral_atom_movement": {
+        "aod_count": 4,
+        "provenance": {},
+        "reference_distance_um": 110.0,
+        "reference_move_duration_us": 200.0,
+        "schema_version": "arqsim.neutral-atom-movement-profile.v1",
+        "transfer_duration_us": 8.0,
+        "x_spacing_um": 19.0,
+        "y_spacing_um": 15.0
+      },
+      "provenance": {
+        "reaction_latency_profile": "reference_reaction_latency_profile_v1",
+        "reaction_latency_source": "reference classical-control assumptions",
+        "resource_arrival_sources": {
+          "magic_state": "protocol_profile"
+        },
+        "resource_protocol_bindings_hash": "10193bfc5f57bc5a25c1e95044e0c7e15e7f9db2ae37823b0967f3ef3d0d3bf0"
+      },
+      "reaction_latency_by_modality_s": {
+        "neutral_atom": 0.0005,
+        "superconducting": 1e-05
+      },
+      "store_load_protocol": "bb_surface_transfer",
+      "syndrome_profiles": {
+        "bb_surface_transfer": {
+          "cycle_time_s": 0.001,
+          "distance_module_role": "memory",
+          "provenance": {
+            "assumption": "qldpc_distance_adapter_measurement"
+          },
+          "round_mode": "qec_distance"
+        },
+        "gbc_transversal": {
+          "cycle_time_s": 0.001,
+          "provenance": {
+            "assumption": "one_round_correlated_decoding"
+          },
+          "round_mode": "fixed",
+          "rounds": 1
+        },
+        "pbc_lattice_surgery": {
+          "cycle_time_s": 1e-06,
+          "distance_module_role": "compute",
+          "provenance": {
+            "assumption": "surface_distance_merged_measurement"
+          },
+          "round_mode": "qec_distance"
+        }
+      }
+    }
+  },
+  "results": {
+    "analysis": {
+      "buffer_occupancy": {
+        "magic_compute": {
+          "capacity": 1.0,
+          "committed_full_fraction": 0.00021085632596973917,
+          "committed_utilization": 0.00021085632596973917,
+          "mean_committed": 0.00021085632596973917,
+          "mean_ready": 0.0,
+          "ready_empty_fraction": 1.0,
+          "ready_utilization": 0.0
+        },
+        "msf_output": {
+          "capacity": 1.0,
+          "committed_full_fraction": 1.0,
+          "committed_utilization": 1.0,
+          "mean_committed": 1.0,
+          "mean_ready": 0.0,
+          "ready_empty_fraction": 1.0,
+          "ready_utilization": 0.0
+        }
+      },
+      "engine_utilization": {
+        "compute:na_node/na_compute": 0.0010141423924653486,
+        "msf:na_node/na_msf": 1.0,
+        "resource_move": 0.00021085632596973917
+      },
+      "exclusive_time_s": {
+        "classical_reaction": 0.0004999999999997229,
+        "compute": 0.0041335507627291435,
+        "magic_state_supply_stall": 4.071274125949818
+      },
+      "fidelity_negative_log_success": null,
+      "physical_space_qubits": {
+        "compute": 337.0,
+        "magic_input_buffer": 337.0,
+        "magic_output_buffer": 337.0,
+        "magic_state_factory": 463.0
+      },
+      "unavailable": {
+        "fidelity": "No fidelity profile was selected."
+      }
+    },
+    "fidelity": null,
+    "footprint": {
+      "architecture_hash": "14fea342a876c65a68d322a4659062eb111e310323b4c16db301b64f838ca21b",
+      "checks": {
+        "all_capacity_entries_accounted": true,
+        "all_component_costs_non_negative": true,
+        "component_keys_unique": true,
+        "finite_positive_total": true
+      },
+      "components": [
+        {
+          "capacity": 1.0,
+          "details": {
+            "base_patch_physical_qubits": 337.0,
+            "capacity_unit": "logical_patches",
+            "distance": 13.0,
+            "physical_qubits_per_unit": 337.0
+          },
+          "modality": "neutral_atom",
+          "module": "na_compute",
+          "module_type": "compute",
+          "owner": "na_node",
+          "payload": "logical_qubit",
+          "physical_qubits": 337.0,
+          "qec_code": "surface",
+          "rule": "surface_patch",
+          "submodule": "compute_region",
+          "submodule_type": "region"
+        },
+        {
+          "capacity": 1.0,
+          "details": {
+            "base_patch_physical_qubits": 337.0,
+            "capacity_unit": "logical_magic_states",
+            "distance": 13.0,
+            "physical_qubits_per_unit": 337.0
+          },
+          "modality": "neutral_atom",
+          "module": "na_compute",
+          "module_type": "compute",
+          "owner": "na_node",
+          "payload": "magic_state",
+          "physical_qubits": 337.0,
+          "qec_code": "surface",
+          "rule": "surface_patch",
+          "submodule": "magic_state_input_buffer",
+          "submodule_type": "buffer"
+        },
+        {
+          "capacity": 1.0,
+          "details": {
+            "capacity_unit": "copies",
+            "physical_qubits_per_copy": 463,
+            "physical_qubits_source": "pinned_qec_resource_protocol",
+            "protocol": "cultivation-d5-d15-p1e3",
+            "protocol_profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e"
+          },
+          "modality": "neutral_atom",
+          "module": "na_msf",
+          "module_type": "resource_factory",
+          "owner": "na_node",
+          "payload": "magic_state",
+          "physical_qubits": 463.0,
+          "qec_code": null,
+          "rule": "factory_copy",
+          "submodule": "factory_engine",
+          "submodule_type": "engine"
+        },
+        {
+          "capacity": 1.0,
+          "details": {
+            "base_patch_physical_qubits": 337.0,
+            "capacity_unit": "logical_magic_states",
+            "distance": 13.0,
+            "physical_qubits_per_unit": 337.0
+          },
+          "modality": "neutral_atom",
+          "module": "na_msf",
+          "module_type": "resource_factory",
+          "owner": "na_node",
+          "payload": "magic_state",
+          "physical_qubits": 337.0,
+          "qec_code": "surface",
+          "rule": "surface_patch",
+          "submodule": "magic_state_output_buffer",
+          "submodule_type": "buffer"
+        }
+      ],
+      "estimate_hash": "ecc7c141a1849bd4d0132eeb884b86129bbc30d53d75cacf416b463b37df6ec2",
+      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "model_id": "reference-space-v1",
+      "schema_version": "arqsim.physical-footprint-estimate.v2",
+      "total_physical_qubits": 1474.0
+    },
+    "observations": {
+      "discrete_time_log": [
+        {
+          "architecture_state_after": {
+            "buffers": {
+              "magic_compute": {
+                "pending_incoming": 0,
+                "ready": 0
+              },
+              "msf_output": {
+                "pending_incoming": 1,
+                "ready": 0
+              }
+            },
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 0
+              },
+              "msf:na_node/na_msf": {
+                "capacity": 1,
+                "used": 1
+              },
+              "resource_move": {
+                "capacity": 1,
+                "used": 0
+              }
+            },
+            "state_version": 1
+          },
+          "architecture_state_delta": {
+            "buffers": {
+              "msf_output": {
+                "pending_delta": 1,
+                "pending_incoming": 1,
+                "ready": 0,
+                "ready_delta": 0
+              }
+            },
+            "engines": {
+              "msf:na_node/na_msf": {
+                "capacity": 1,
+                "used": 1,
+                "used_delta": 1
+              }
+            }
+          },
+          "completed": [],
+          "dispatched": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "resource:prepare_magic:0",
+              "end_s": 4.070414695032115,
+              "event_id": 0,
+              "instance": 0,
+              "instruction_id": null,
+              "metadata": {
+                "attempted_outputs": {
+                  "msf_output": 1
+                },
+                "batch_amount": 1,
+                "buffered_outputs": {
+                  "msf_output": 1
+                },
+                "discarded_outputs": {},
+                "dispatch_policy": "single",
+                "engines": {
+                  "msf:na_node/na_msf": 1
+                },
+                "outputs_per_batch": 1,
+                "protocol": "cultivation-d5-d15-p1e3",
+                "target_links": [],
+                "target_modules": [
+                  "na_node/na_msf"
+                ]
+              },
+              "opcode": "PREPARE_MAGIC_STATE",
+              "plane": "resource",
+              "process_id": "prepare_magic",
+              "program_ready": null,
+              "reservation": {
+                "consumed_slots": {},
+                "consumed_tokens": {},
+                "engines": {
+                  "msf:na_node/na_msf": 1
+                },
+                "produced_slots": {
+                  "msf_output": [
+                    "na_node/na_msf/magic_state_output_buffer/slot_0"
+                  ]
+                },
+                "reservation_id": 0,
+                "state_version_after": 1,
+                "state_version_before": 0
+              },
+              "resource_ready": true,
+              "start_s": 0.0
+            }
+          ],
+          "frontier_after": {
+            "completed_now": [],
+            "running": [
+              {
+                "candidate_id": "resource:prepare_magic:0",
+                "completes_s": 4.070414695032115,
+                "event_id": 0,
+                "instance": 0,
+                "instruction_id": null,
+                "opcode": "PREPARE_MAGIC_STATE",
+                "plane": "resource",
+                "process_id": "prepare_magic",
+                "reservation_id": 0,
+                "started_s": 0.0
+              }
+            ],
+            "waiting": [
+              {
+                "instruction_id": 0,
+                "opcode": "EXECUTE_COMPUTE",
+                "program_ready": true,
+                "program_ready_s": 0.0,
+                "resource_blockers": [
+                  "buffer_empty:magic_compute:0/1"
+                ],
+                "resource_ready": false
+              }
+            ]
+          },
+          "program_ready_now": [
+            0
+          ],
+          "time_s": 0.0
+        },
+        {
+          "architecture_state_after": {
+            "buffers": {
+              "magic_compute": {
+                "pending_incoming": 1,
+                "ready": 0
+              },
+              "msf_output": {
+                "pending_incoming": 1,
+                "ready": 0
+              }
+            },
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 0
+              },
+              "msf:na_node/na_msf": {
+                "capacity": 1,
+                "used": 1
+              },
+              "resource_move": {
+                "capacity": 1,
+                "used": 1
+              }
+            },
+            "state_version": 4
+          },
+          "architecture_state_delta": {
+            "buffers": {
+              "magic_compute": {
+                "pending_delta": 1,
+                "pending_incoming": 1,
+                "ready": 0,
+                "ready_delta": 0
+              }
+            },
+            "engines": {
+              "resource_move": {
+                "capacity": 1,
+                "used": 1,
+                "used_delta": 1
+              }
+            }
+          },
+          "completed": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "resource:prepare_magic:0",
+              "end_s": 4.070414695032115,
+              "event_id": 0,
+              "instance": 0,
+              "instruction_id": null,
+              "opcode": "PREPARE_MAGIC_STATE",
+              "outcome": {},
+              "plane": "resource",
+              "process_id": "prepare_magic",
+              "produced_tokens": {
+                "msf_output": [
+                  "magic_state:0"
+                ]
+              },
+              "reservation_id": 0,
+              "start_s": 0.0,
+              "state_version_after": 2,
+              "state_version_before": 1
+            }
+          ],
+          "dispatched": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "resource:deliver_magic_local:0",
+              "end_s": 4.071274125949818,
+              "event_id": 1,
+              "instance": 0,
+              "instruction_id": null,
+              "metadata": {
+                "batch_amount": 1,
+                "buffer_endpoint_policy": "canonical_absolute_slot",
+                "collective_groups": [
+                  [
+                    0
+                  ]
+                ],
+                "destination_coordinates": {
+                  "0": [
+                    2.0,
+                    0.0
+                  ]
+                },
+                "dispatch_policy": "eager_available",
+                "engines": {
+                  "resource_move": 1
+                },
+                "group_duration_us": [
+                  859.4309177036628
+                ],
+                "move_backend": "aod_collective_one_way",
+                "move_compiler": "arqsim-move-compiler-v2",
+                "move_duration_us": 859.4309177036628,
+                "movement_profile_hash": "b41e5b982fb40eda15812dd4ebffdfd9798292b08c3f66b5a6d0895857693b37",
+                "movement_profile_schema": "arqsim.neutral-atom-movement-profile.v1",
+                "num_aod": 4,
+                "protocol": "local_magic_delivery",
+                "source_coordinates": {
+                  "0": [
+                    100.0,
+                    40.0
+                  ]
+                },
+                "target_links": [],
+                "target_modules": [
+                  "na_node/na_compute",
+                  "na_node/na_msf"
+                ],
+                "timing_model": {
+                  "distance_metric": "euclidean",
+                  "distance_scale": 1.0,
+                  "gate_duration_us": 0.0,
+                  "reference_distance_um": 110.0,
+                  "reference_move_duration_us": 200.0,
+                  "transfer_duration_us": 8.0,
+                  "x_spacing_um": 19.0,
+                  "y_spacing_um": 15.0
+                }
+              },
+              "opcode": "MOVE_QUBITS",
+              "plane": "resource",
+              "process_id": "deliver_magic_local",
+              "program_ready": null,
+              "reservation": {
+                "consumed_slots": {
+                  "msf_output": [
+                    "na_node/na_msf/magic_state_output_buffer/slot_0"
+                  ]
+                },
+                "consumed_tokens": {
+                  "msf_output": [
+                    "magic_state:0"
+                  ]
+                },
+                "engines": {
+                  "resource_move": 1
+                },
+                "produced_slots": {
+                  "magic_compute": [
+                    "na_node/na_compute/magic_state_input_buffer/slot_0"
+                  ]
+                },
+                "reservation_id": 1,
+                "state_version_after": 3,
+                "state_version_before": 2
+              },
+              "resource_ready": true,
+              "start_s": 4.070414695032115
+            },
+            {
+              "backend_artifact": {},
+              "candidate_id": "resource:prepare_magic:1",
+              "end_s": 7.173922639678898,
+              "event_id": 2,
+              "instance": 1,
+              "instruction_id": null,
+              "metadata": {
+                "attempted_outputs": {
+                  "msf_output": 1
+                },
+                "batch_amount": 1,
+                "buffered_outputs": {
+                  "msf_output": 1
+                },
+                "discarded_outputs": {},
+                "dispatch_policy": "single",
+                "engines": {
+                  "msf:na_node/na_msf": 1
+                },
+                "outputs_per_batch": 1,
+                "protocol": "cultivation-d5-d15-p1e3",
+                "target_links": [],
+                "target_modules": [
+                  "na_node/na_msf"
+                ]
+              },
+              "opcode": "PREPARE_MAGIC_STATE",
+              "plane": "resource",
+              "process_id": "prepare_magic",
+              "program_ready": null,
+              "reservation": {
+                "consumed_slots": {},
+                "consumed_tokens": {},
+                "engines": {
+                  "msf:na_node/na_msf": 1
+                },
+                "produced_slots": {
+                  "msf_output": [
+                    "na_node/na_msf/magic_state_output_buffer/slot_0"
+                  ]
+                },
+                "reservation_id": 2,
+                "state_version_after": 4,
+                "state_version_before": 3
+              },
+              "resource_ready": true,
+              "start_s": 4.070414695032115
+            }
+          ],
+          "frontier_after": {
+            "completed_now": [
+              0
+            ],
+            "running": [
+              {
+                "candidate_id": "resource:deliver_magic_local:0",
+                "completes_s": 4.071274125949818,
+                "event_id": 1,
+                "instance": 0,
+                "instruction_id": null,
+                "opcode": "MOVE_QUBITS",
+                "plane": "resource",
+                "process_id": "deliver_magic_local",
+                "reservation_id": 1,
+                "started_s": 4.070414695032115
+              },
+              {
+                "candidate_id": "resource:prepare_magic:1",
+                "completes_s": 7.173922639678898,
+                "event_id": 2,
+                "instance": 1,
+                "instruction_id": null,
+                "opcode": "PREPARE_MAGIC_STATE",
+                "plane": "resource",
+                "process_id": "prepare_magic",
+                "reservation_id": 2,
+                "started_s": 4.070414695032115
+              }
+            ],
+            "waiting": [
+              {
+                "instruction_id": 0,
+                "opcode": "EXECUTE_COMPUTE",
+                "program_ready": true,
+                "program_ready_s": 0.0,
+                "resource_blockers": [
+                  "buffer_empty:magic_compute:0/1"
+                ],
+                "resource_ready": false
+              }
+            ]
+          },
+          "program_ready_now": [],
+          "time_s": 4.070414695032115
+        },
+        {
+          "architecture_state_after": {
+            "buffers": {
+              "magic_compute": {
+                "pending_incoming": 0,
+                "ready": 0
+              },
+              "msf_output": {
+                "pending_incoming": 1,
+                "ready": 0
+              }
+            },
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 1
+              },
+              "msf:na_node/na_msf": {
+                "capacity": 1,
+                "used": 1
+              },
+              "resource_move": {
+                "capacity": 1,
+                "used": 0
+              }
+            },
+            "state_version": 6
+          },
+          "architecture_state_delta": {
+            "buffers": {
+              "magic_compute": {
+                "pending_delta": -1,
+                "pending_incoming": 0,
+                "ready": 0,
+                "ready_delta": 0
+              }
+            },
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 1,
+                "used_delta": 1
+              },
+              "resource_move": {
+                "capacity": 1,
+                "used": 0,
+                "used_delta": -1
+              }
+            }
+          },
+          "completed": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "resource:deliver_magic_local:0",
+              "end_s": 4.071274125949818,
+              "event_id": 1,
+              "instance": 0,
+              "instruction_id": null,
+              "opcode": "MOVE_QUBITS",
+              "outcome": {},
+              "plane": "resource",
+              "process_id": "deliver_magic_local",
+              "produced_tokens": {
+                "magic_compute": [
+                  "magic_state:0"
+                ]
+              },
+              "reservation_id": 1,
+              "start_s": 4.070414695032115,
+              "state_version_after": 5,
+              "state_version_before": 4
+            }
+          ],
+          "dispatched": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "program:0",
+              "end_s": 4.073407676712548,
+              "event_id": 3,
+              "instance": null,
+              "instruction_id": 0,
+              "metadata": {
+                "batch_magic_demand": 1,
+                "compute_partition": 0,
+                "compute_partition_count": 1,
+                "duration_components_s": {
+                  "compiler_routing": 0.00013355076272905173,
+                  "primitive_service": 0.002
+                },
+                "engines": {
+                  "compute:na_node/na_compute": 1
+                },
+                "gates": {
+                  "t": [
+                    0
+                  ]
+                },
+                "layer": 0,
+                "magic_batch": 0,
+                "magic_batch_count": 1,
+                "magic_consumption_policy": "bulk_wave",
+                "magic_demand": 1,
+                "magic_remaining_after_batch": 0,
+                "operated_qubits": [
+                  0
+                ],
+                "partition_magic_demand": 1,
+                "program_ready_s": 0.0,
+                "qubits": [
+                  0
+                ],
+                "resident_qubits": [
+                  0
+                ],
+                "resource_policy": "consume_ready_magic_states_at_dispatch",
+                "resource_wait_s": 4.071274125949818,
+                "route_hash": "53b54d89d091addcb43d2f43faf077c2494792c7f6754142fc64613835436b47",
+                "route_metrics": {
+                  "aod_pipeline_duration_us": 133.55076272905174,
+                  "aod_pipeline_savings_us": 0.0,
+                  "aod_round_trip_barrier_duration_us": 133.55076272905174,
+                  "approach_movement_count": 0,
+                  "layer_timing": [
+                    {
+                      "layer": 0,
+                      "pipeline_duration_us": 133.55076272905174,
+                      "pipeline_savings_us": 0.0,
+                      "round_trip_barrier_duration_us": 133.55076272905174,
+                      "stage_count": 1
+                    }
+                  ],
+                  "magic_state_movement_count": 1,
+                  "movement_count": 1,
+                  "movement_manhattan_distance": 2.0,
+                  "return_movement_count": 0,
+                  "route_steps": 1
+                },
+                "route_steps": [
+                  {
+                    "group": 0,
+                    "kind": "na_round_trip_movement",
+                    "metadata": {
+                      "aod_schedule": {
+                        "dependency_edges": [],
+                        "duration_us": 133.55076272905174,
+                        "forward_barrier_duration_us": 133.55076272905174,
+                        "gate_duration_us": 0.0,
+                        "num_aod": 4,
+                        "pipeline_savings_us": 0.0,
+                        "policy": "forward_first",
+                        "round_trip_barrier_duration_us": 133.55076272905174,
+                        "tasks": [
+                          {
+                            "aod": 0,
+                            "duration_us": 133.55076272905174,
+                            "end_us": 133.55076272905174,
+                            "group": 0,
+                            "id": "approach:g0",
+                            "movement_ids": [
+                              "l0:op0:na_node/na_compute/magic_state_input_buffer/slot_0:delivery"
+                            ],
+                            "phase": "approach",
+                            "start_us": 0.0
+                          }
+                        ]
+                      },
+                      "magic_state_assignments": [
+                        {
+                          "source_slot": "na_node/na_compute/magic_state_input_buffer/slot_0",
+                          "target_logical_qubit": 0
+                        }
+                      ],
+                      "pipeline_duration_us": 133.55076272905174,
+                      "pipeline_policy": "forward_first",
+                      "pipeline_savings_us": 0.0,
+                      "return_home": true,
+                      "round_trip_barrier_duration_us": 133.55076272905174,
+                      "routing_scope": "logical_layer"
+                    },
+                    "movement_count": 1,
+                    "operation_count": 1,
+                    "path_edge_count": 0,
+                    "path_node_count": 0,
+                    "terminal_slots": [
+                      "na_node/na_compute/magic_state_input_buffer/slot_0"
+                    ]
+                  }
+                ],
+                "runtime_route_cache_key": "4cbbda6721f6e2ca6ad9bd0db84a547cff086e513dfac127da674374e38eb11c",
+                "runtime_route_resolution": "dispatch_time_joint_compilation",
+                "source_layer": 0,
+                "syndrome_protocol": {
+                  "cycle_time_s": 0.001,
+                  "id": "gbc_transversal",
+                  "provenance": {
+                    "assumption": "one_round_correlated_decoding"
+                  },
+                  "round_mode": "fixed",
+                  "rounds": 1,
+                  "service_s": 0.001
+                },
+                "target_links": [],
+                "target_modules": [
+                  "na_node/na_compute"
+                ]
+              },
+              "opcode": "EXECUTE_COMPUTE",
+              "plane": "program",
+              "process_id": null,
+              "program_ready": true,
+              "reservation": {
+                "consumed_slots": {
+                  "magic_compute": [
+                    "na_node/na_compute/magic_state_input_buffer/slot_0"
+                  ]
+                },
+                "consumed_tokens": {
+                  "magic_compute": [
+                    "magic_state:0"
+                  ]
+                },
+                "engines": {
+                  "compute:na_node/na_compute": 1
+                },
+                "produced_slots": {},
+                "reservation_id": 3,
+                "state_version_after": 6,
+                "state_version_before": 5
+              },
+              "resource_ready": true,
+              "start_s": 4.071274125949818
+            }
+          ],
+          "frontier_after": {
+            "completed_now": [
+              1
+            ],
+            "running": [
+              {
+                "candidate_id": "program:0",
+                "completes_s": 4.073407676712548,
+                "event_id": 3,
+                "instance": null,
+                "instruction_id": 0,
+                "opcode": "EXECUTE_COMPUTE",
+                "plane": "program",
+                "process_id": null,
+                "reservation_id": 3,
+                "started_s": 4.071274125949818
+              },
+              {
+                "candidate_id": "resource:prepare_magic:1",
+                "completes_s": 7.173922639678898,
+                "event_id": 2,
+                "instance": 1,
+                "instruction_id": null,
+                "opcode": "PREPARE_MAGIC_STATE",
+                "plane": "resource",
+                "process_id": "prepare_magic",
+                "reservation_id": 2,
+                "started_s": 4.070414695032115
+              }
+            ],
+            "waiting": []
+          },
+          "program_ready_now": [],
+          "time_s": 4.071274125949818
+        },
+        {
+          "architecture_state_after": {
+            "buffers": {
+              "magic_compute": {
+                "pending_incoming": 0,
+                "ready": 0
+              },
+              "msf_output": {
+                "pending_incoming": 1,
+                "ready": 0
+              }
+            },
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 0
+              },
+              "msf:na_node/na_msf": {
+                "capacity": 1,
+                "used": 1
+              },
+              "resource_move": {
+                "capacity": 1,
+                "used": 0
+              }
+            },
+            "state_version": 8
+          },
+          "architecture_state_delta": {
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 0,
+                "used_delta": -1
+              }
+            }
+          },
+          "completed": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "program:0",
+              "end_s": 4.073407676712548,
+              "event_id": 3,
+              "instance": null,
+              "instruction_id": 0,
+              "opcode": "EXECUTE_COMPUTE",
+              "outcome": {
+                "measurements": [
+                  {
+                    "bit": 1,
+                    "register_id": "instruction:0:source:0:operation:0:stage:0:bit"
+                  }
+                ],
+                "metadata": {},
+                "values": {}
+              },
+              "plane": "program",
+              "process_id": null,
+              "produced_tokens": {},
+              "reservation_id": 3,
+              "start_s": 4.071274125949818,
+              "state_version_after": 7,
+              "state_version_before": 6
+            }
+          ],
+          "dispatched": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:reaction",
+              "end_s": 4.0739076767125475,
+              "event_id": 4,
+              "instance": null,
+              "instruction_id": 0,
+              "metadata": {
+                "engines": {},
+                "layer": 0,
+                "program_ready_s": 4.073407676712548,
+                "qubits": [],
+                "resource_wait_s": 0.0,
+                "target_links": [],
+                "target_modules": [
+                  "na_node/na_compute"
+                ]
+              },
+              "opcode": "CLASSICAL_REACTION",
+              "plane": "program",
+              "process_id": null,
+              "program_ready": true,
+              "reservation": {
+                "consumed_slots": {},
+                "consumed_tokens": {},
+                "engines": {},
+                "produced_slots": {},
+                "reservation_id": 4,
+                "state_version_after": 8,
+                "state_version_before": 7
+              },
+              "resource_ready": true,
+              "start_s": 4.073407676712548
+            }
+          ],
+          "frontier_after": {
+            "completed_now": [
+              3
+            ],
+            "running": [
+              {
+                "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:reaction",
+                "completes_s": 4.0739076767125475,
+                "event_id": 4,
+                "instance": null,
+                "instruction_id": 0,
+                "opcode": "CLASSICAL_REACTION",
+                "plane": "program",
+                "process_id": null,
+                "reservation_id": 4,
+                "started_s": 4.073407676712548
+              },
+              {
+                "candidate_id": "resource:prepare_magic:1",
+                "completes_s": 7.173922639678898,
+                "event_id": 2,
+                "instance": 1,
+                "instruction_id": null,
+                "opcode": "PREPARE_MAGIC_STATE",
+                "plane": "resource",
+                "process_id": "prepare_magic",
+                "reservation_id": 2,
+                "started_s": 4.070414695032115
+              }
+            ],
+            "waiting": []
+          },
+          "program_ready_now": [
+            2
+          ],
+          "time_s": 4.073407676712548
+        },
+        {
+          "architecture_state_after": {
+            "buffers": {
+              "magic_compute": {
+                "pending_incoming": 0,
+                "ready": 0
+              },
+              "msf_output": {
+                "pending_incoming": 1,
+                "ready": 0
+              }
+            },
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 1
+              },
+              "msf:na_node/na_msf": {
+                "capacity": 1,
+                "used": 1
+              },
+              "resource_move": {
+                "capacity": 1,
+                "used": 0
+              }
+            },
+            "state_version": 10
+          },
+          "architecture_state_delta": {
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 1,
+                "used_delta": 1
+              }
+            }
+          },
+          "completed": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:reaction",
+              "end_s": 4.0739076767125475,
+              "event_id": 4,
+              "instance": null,
+              "instruction_id": 0,
+              "opcode": "CLASSICAL_REACTION",
+              "outcome": {},
+              "plane": "program",
+              "process_id": null,
+              "produced_tokens": {},
+              "reservation_id": 4,
+              "start_s": 4.073407676712548,
+              "state_version_after": 9,
+              "state_version_before": 8
+            }
+          ],
+          "dispatched": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:correction",
+              "end_s": 4.075907676712547,
+              "event_id": 5,
+              "instance": null,
+              "instruction_id": 0,
+              "metadata": {
+                "engines": {
+                  "compute:na_node/na_compute": 1
+                },
+                "gates": {
+                  "s": [
+                    0
+                  ]
+                },
+                "layer": 0,
+                "program_ready_s": 4.0739076767125475,
+                "qubits": [
+                  0
+                ],
+                "resource_wait_s": 0.0,
+                "target_links": [],
+                "target_modules": [
+                  "na_node/na_compute"
+                ]
+              },
+              "opcode": "EXECUTE_COMPUTE",
+              "plane": "program",
+              "process_id": null,
+              "program_ready": true,
+              "reservation": {
+                "consumed_slots": {},
+                "consumed_tokens": {},
+                "engines": {
+                  "compute:na_node/na_compute": 1
+                },
+                "produced_slots": {},
+                "reservation_id": 5,
+                "state_version_after": 10,
+                "state_version_before": 9
+              },
+              "resource_ready": true,
+              "start_s": 4.0739076767125475
+            }
+          ],
+          "frontier_after": {
+            "completed_now": [
+              4
+            ],
+            "running": [
+              {
+                "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:correction",
+                "completes_s": 4.075907676712547,
+                "event_id": 5,
+                "instance": null,
+                "instruction_id": 0,
+                "opcode": "EXECUTE_COMPUTE",
+                "plane": "program",
+                "process_id": null,
+                "reservation_id": 5,
+                "started_s": 4.0739076767125475
+              },
+              {
+                "candidate_id": "resource:prepare_magic:1",
+                "completes_s": 7.173922639678898,
+                "event_id": 2,
+                "instance": 1,
+                "instruction_id": null,
+                "opcode": "PREPARE_MAGIC_STATE",
+                "plane": "resource",
+                "process_id": "prepare_magic",
+                "reservation_id": 2,
+                "started_s": 4.070414695032115
+              }
+            ],
+            "waiting": []
+          },
+          "program_ready_now": [
+            3
+          ],
+          "time_s": 4.0739076767125475
+        },
+        {
+          "architecture_state_after": {
+            "buffers": {
+              "magic_compute": {
+                "pending_incoming": 0,
+                "ready": 0
+              },
+              "msf_output": {
+                "pending_incoming": 1,
+                "ready": 0
+              }
+            },
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 0
+              },
+              "msf:na_node/na_msf": {
+                "capacity": 1,
+                "used": 1
+              },
+              "resource_move": {
+                "capacity": 1,
+                "used": 0
+              }
+            },
+            "state_version": 13
+          },
+          "architecture_state_delta": {
+            "engines": {
+              "compute:na_node/na_compute": {
+                "capacity": 1,
+                "used": 0,
+                "used_delta": -1
+              }
+            }
+          },
+          "completed": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "program:0:recipe:instruction:0:source:0:operation:0:stage:0:correction",
+              "end_s": 4.075907676712547,
+              "event_id": 5,
+              "instance": null,
+              "instruction_id": 0,
+              "opcode": "EXECUTE_COMPUTE",
+              "outcome": {},
+              "plane": "program",
+              "process_id": null,
+              "produced_tokens": {},
+              "reservation_id": 5,
+              "start_s": 4.0739076767125475,
+              "state_version_after": 11,
+              "state_version_before": 10
+            },
+            {
+              "backend_artifact": {},
+              "candidate_id": "program:1",
+              "end_s": 4.075907676712547,
+              "event_id": 6,
+              "instance": null,
+              "instruction_id": 1,
+              "opcode": "FENCE",
+              "outcome": {},
+              "plane": "program",
+              "process_id": null,
+              "produced_tokens": {},
+              "reservation_id": 6,
+              "start_s": 4.075907676712547,
+              "state_version_after": 13,
+              "state_version_before": 12
+            }
+          ],
+          "dispatched": [
+            {
+              "backend_artifact": {},
+              "candidate_id": "program:1",
+              "end_s": 4.075907676712547,
+              "event_id": 6,
+              "instance": null,
+              "instruction_id": 1,
+              "metadata": {
+                "engines": {},
+                "layer": 0,
+                "program_ready_s": 4.075907676712547,
+                "qubits": [],
+                "resource_wait_s": 0.0,
+                "scope": "dag_derived_circuit_layer",
+                "source_layer": 0,
+                "target_links": [],
+                "target_modules": []
+              },
+              "opcode": "FENCE",
+              "plane": "program",
+              "process_id": null,
+              "program_ready": true,
+              "reservation": {
+                "consumed_slots": {},
+                "consumed_tokens": {},
+                "engines": {},
+                "produced_slots": {},
+                "reservation_id": 6,
+                "state_version_after": 12,
+                "state_version_before": 11
+              },
+              "resource_ready": true,
+              "start_s": 4.075907676712547
+            }
+          ],
+          "frontier_after": {
+            "completed_now": [
+              5,
+              6
+            ],
+            "running": [
+              {
+                "candidate_id": "resource:prepare_magic:1",
+                "completes_s": 7.173922639678898,
+                "event_id": 2,
+                "instance": 1,
+                "instruction_id": null,
+                "opcode": "PREPARE_MAGIC_STATE",
+                "plane": "resource",
+                "process_id": "prepare_magic",
+                "reservation_id": 2,
+                "started_s": 4.070414695032115
+              }
+            ],
+            "waiting": []
+          },
+          "program_ready_now": [
+            1
+          ],
+          "time_s": 4.075907676712547
+        }
+      ]
+    },
+    "summary": {
+      "completed_program_instructions": 2,
+      "event_count": 6,
+      "fidelity_complete_coverage": null,
+      "invariant_checks": {
+        "active_reservations_account_for_engine_usage": true,
+        "active_reservations_account_for_output_slots": true,
+        "active_reservations_match_running_events": true,
+        "all_program_instructions_completed": true,
+        "buffer_capacities_respected": true,
+        "buffer_slots_consistent": true,
+        "engine_capacities_respected": true,
+        "nonnegative_latency": true,
+        "pending_output_slots_consistent": true,
+        "pending_outputs_nonnegative": true,
+        "qubit_exposure_conflict_free": true,
+        "qubit_exposure_time_conserved": true,
+        "token_locations_consistent": true,
+        "transaction_versions_consistent": true
+      },
+      "success_probability": null,
+      "total_latency_s": 4.075907676712547,
+      "total_physical_qubits": 1474.0
+    }
+  },
+  "schema_version": "arqsim.evaluation-report.v2",
+  "workflow_id": "report-v2-dynamic-t-fixture"
+}

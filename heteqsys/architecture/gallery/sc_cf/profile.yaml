@@ -1,0 +1,35 @@
+schema_version: arqsim.architecture-profile.v3
+id: "1.2"
+name: SC-CF
+description: Homogeneous superconducting system with colocated compute and magic-state supply.
+
+nodes:
+  sc_node:
+    modality: superconducting
+    modules:
+      sc_compute:
+        type: compute
+        submodules:
+          compute_region:
+            type: region
+            payload: logical_qubit
+          magic_state_input_buffer:
+            type: buffer
+            payload: magic_state
+      sc_msf:
+        type: resource_factory
+        submodules:
+          factory_engine:
+            type: engine
+            payload: magic_state
+          magic_state_output_buffer:
+            type: buffer
+            payload: magic_state
+    connections:
+      sc_magic_bus:
+        direction: directed
+        endpoints:
+          - sc_msf/magic_state_output_buffer
+          - sc_compute/magic_state_input_buffer
+
+interconnects: {}

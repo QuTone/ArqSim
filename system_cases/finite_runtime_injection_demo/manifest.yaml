@@ -1,0 +1,62 @@
+schema_version: arqsim.system-case.v1
+id: finite_runtime_injection_demo
+title: Finite T-injection runtime vertical slice
+purpose: >-
+  Make ArqSim's finite runtime-injection and location-aware fidelity
+  contracts reviewable in one small, deterministic, independently replayable
+  profile-2.3 System Case without changing black-box default semantics.
+
+ownership:
+  source: arqsim_owned_toy_circuit
+  license: Apache-2.0
+  contributors: [ArqSim authors]
+
+workload:
+  path: workload/clifford_t_toy.qasm
+  representation: clifford_t
+  sha256: 9bc60ca9aed83e8446ee82a13e5a2ca4a1c389bb3986287a50a6371da10d1280
+  expected:
+    num_qubits: 4
+    depth: 6
+    operation_count: 8
+    t_count: 2
+
+architecture:
+  profile_id: "2.3"
+  architecture_name: NA-MC + SC-F
+
+evaluation:
+  workflow_id: finite_runtime_injection_demo:clifford_t_toy__2.3
+  seed: 5
+  trace_level: full
+  runtime_injection_mode: finite_state_injection_v1
+  reaction_profile: reference_reaction_latency_profile_v1
+  fidelity_preset: canonical_reference_v1
+
+outputs:
+  request_schema: arqsim.system-case-request.v1
+  report_schema: arqsim.evaluation-report.v2
+  receipt_schema: arqsim.system-case-receipt.v1
+
+reference:
+  mutation_policy: immutable_create_successor_do_not_overwrite
+  files:
+    request:
+      path: reference/request.v1.json
+      sha256: 62f1e06b20c28b46b92b45edda4ec383dc20a890a74cff0bde5ea5cf40f836b5
+    report:
+      path: reference/report.v2.json
+      sha256: 68c43276535680678c540575eb03e1b90a10aa762bd390f4721b678d55b751e6
+    receipt:
+      path: reference/receipt.v1.json
+      sha256: c098d2490579a18255400de1a30de484fea9072d1c44e74cd5b00ff26b138ee7
+
+acceptance:
+  expected_recipe_count: 2
+  expected_outcomes: [1, 0]
+  expected_reaction_count: 2
+  expected_logical_s_correction_count: 1
+  require_all_invariants: true
+  require_fidelity_complete_coverage: true
+  require_logical_idle_fidelity: true
+  require_resource_idle_fidelity: true

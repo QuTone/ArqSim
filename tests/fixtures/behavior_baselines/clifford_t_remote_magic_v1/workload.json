@@ -1,0 +1,63 @@
+{
+  "layers": [
+    {
+      "active_qubits": [
+        0
+      ],
+      "index": 0,
+      "operations": [
+        {
+          "classical_bits": [],
+          "kind": "gate",
+          "name": "h",
+          "parameters": [],
+          "qubits": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "active_qubits": [
+        0,
+        1
+      ],
+      "index": 1,
+      "operations": [
+        {
+          "classical_bits": [],
+          "kind": "gate",
+          "name": "cx",
+          "parameters": [],
+          "qubits": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "active_qubits": [
+        1
+      ],
+      "index": 2,
+      "operations": [
+        {
+          "classical_bits": [],
+          "kind": "gate",
+          "name": "t",
+          "parameters": [],
+          "qubits": [
+            1
+          ]
+        }
+      ]
+    }
+  ],
+  "num_clbits": 0,
+  "num_qubits": 2,
+  "provenance": {},
+  "representation": "clifford_t",
+  "schema_version": "heteqsys.ft-workload.v2",
+  "semantic_hash": "c4f34e1c4fa0f6c8dda83aed05ed5a2f0b76a63345413da6c589d7eb42a7c4d6"
+}

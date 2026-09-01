@@ -1,0 +1,52 @@
+# Python caches and build products
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+.eggs/
+
+# Python environments
+.venv/
+venv/
+env/
+.Python
+.tox/
+.nox/
+.hypothesis/
+
+# Local credentials and environment overrides
+.env
+.env.*
+!.env.example
+
+# Node and frontend build products
+node_modules/
+*.tsbuildinfo
+dist-ssr/
+
+# Runtime output and local analysis
+results/
+processing/
+logs/
+.mplconfig/
+.matplotlib/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Private local workspaces are never release assets
+Archive/
+private/
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

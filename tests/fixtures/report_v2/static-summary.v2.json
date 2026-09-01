@@ -1,0 +1,4432 @@
+{
+  "artifacts": {
+    "execution_plan": {
+      "architectural_state": {
+        "buffers": [
+          {
+            "capacity": 1,
+            "id": "magic_compute",
+            "initial_contents": [],
+            "module": "sc_node/sc_compute",
+            "slots": [
+              "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+            ],
+            "submodule": "sc_node/sc_compute/magic_state_input_buffer",
+            "token_kind": "magic_state"
+          },
+          {
+            "capacity": 1,
+            "id": "msf_output",
+            "initial_contents": [],
+            "module": "sc_node/sc_msf",
+            "slots": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+            ],
+            "submodule": "sc_node/sc_msf/magic_state_output_buffer",
+            "token_kind": "magic_state"
+          }
+        ],
+        "engines": [
+          {
+            "capacity": 1,
+            "id": "compute:sc_node/sc_compute",
+            "module": "sc_node/sc_compute",
+            "submodule": "sc_node/sc_compute/compute_region"
+          },
+          {
+            "capacity": 1,
+            "id": "msf:sc_node/sc_msf",
+            "module": "sc_node/sc_msf",
+            "submodule": "sc_node/sc_msf/factory_engine"
+          },
+          {
+            "capacity": 1,
+            "id": "resource_move",
+            "module": "sc_node/sc_msf"
+          }
+        ],
+        "initial_locations": {
+          "q:0": "sc_node/sc_compute",
+          "q:1": "sc_node/sc_compute"
+        }
+      },
+      "architecture_hash": "1fe860dd815dea30818ef10ee31cf903c76ac1752232d606fb3962c79901b7b3",
+      "latency_profile_hash": "82e18b0bb464b032eadcd78123dcf65b5f58e026419ad485d34dba2f1cfbbcb0",
+      "plan_hash": "775e1bddfffc3b4205fdf579ba503e477b11b7746c29f56cbcfa006299a42c60",
+      "policy": {
+        "magic_state_consumption": "bulk_wave",
+        "max_events": 10000000,
+        "resource_fill_policy": "greedy_fill_to_capacity",
+        "runtime_injection_mode": "black_box",
+        "seed": 7,
+        "selected_layers": [],
+        "store_load_policy": "dependency_aware_overlap",
+        "trace_level": "summary"
+      },
+      "program_dag": {
+        "instructions": [
+          {
+            "completion_locations": {},
+            "consumes": {},
+            "duration_s": 1.3e-05,
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "forwards": {},
+            "id": 0,
+            "layer": 0,
+            "metadata": {
+              "batch_magic_demand": 0,
+              "compute_partition": 0,
+              "compute_partition_count": 1,
+              "duration_components_s": {
+                "compiler_routing": 0.0,
+                "primitive_service": 1.3e-05
+              },
+              "gates": {
+                "h": [
+                  0
+                ]
+              },
+              "magic_batch": 0,
+              "magic_batch_count": 1,
+              "magic_consumption_policy": "bulk_wave",
+              "magic_demand": 0,
+              "magic_remaining_after_batch": 0,
+              "mapping": {
+                "0": "sc_node/sc_compute/compute_region/slot_0",
+                "1": "sc_node/sc_compute/compute_region/slot_1"
+              },
+              "operated_qubits": [
+                0
+              ],
+              "operation_indices": [
+                0
+              ],
+              "partition_magic_demand": 0,
+              "resident_qubits": [
+                0,
+                1
+              ],
+              "resource_policy": "consume_ready_magic_states_at_dispatch",
+              "route_hash": "344a3c344f3de4f02f647e79f882383ce1d727c36c235da3e39ccf9cd29e74f6",
+              "route_metrics": {
+                "ancilla_nodes": 1,
+                "groups_per_layer": {
+                  "0": 1
+                },
+                "route_steps": 1
+              },
+              "route_steps": [
+                {
+                  "group": 0,
+                  "kind": "ancilla_tree",
+                  "metadata": {
+                    "guard_distance": 0,
+                    "magic_state_slot": null,
+                    "pauli": null,
+                    "terminal_count": 1
+                  },
+                  "movement_count": 0,
+                  "operation_count": 1,
+                  "path_edge_count": 0,
+                  "path_node_count": 1,
+                  "terminal_slots": [
+                    "sc_node/sc_compute/compute_region/slot_0"
+                  ]
+                }
+              ],
+              "source_layer": 0,
+              "syndrome_protocol": {
+                "cycle_time_s": 1e-06,
+                "distance": 13,
+                "distance_code": "surface",
+                "distance_module": "sc_compute",
+                "distance_module_role": "compute",
+                "id": "pbc_lattice_surgery",
+                "provenance": {
+                  "assumption": "surface_distance_merged_measurement"
+                },
+                "round_mode": "qec_distance",
+                "rounds": 13,
+                "service_s": 1.3e-05
+              }
+            },
+            "opcode": "EXECUTE_COMPUTE",
+            "predecessors": [],
+            "produces": {},
+            "qubits": [
+              0
+            ],
+            "required_locations": {
+              "q:0": "sc_node/sc_compute",
+              "q:1": "sc_node/sc_compute"
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          {
+            "completion_locations": {},
+            "consumes": {},
+            "duration_s": 0.0,
+            "engines": {},
+            "forwards": {},
+            "id": 1,
+            "layer": 0,
+            "metadata": {
+              "scope": "dag_derived_circuit_layer",
+              "source_layer": 0
+            },
+            "opcode": "FENCE",
+            "predecessors": [
+              0
+            ],
+            "produces": {},
+            "qubits": [],
+            "required_locations": {},
+            "target_links": [],
+            "target_modules": []
+          },
+          {
+            "completion_locations": {},
+            "consumes": {},
+            "duration_s": 1.3e-05,
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "forwards": {},
+            "id": 2,
+            "layer": 1,
+            "metadata": {
+              "batch_magic_demand": 0,
+              "compute_partition": 0,
+              "compute_partition_count": 1,
+              "duration_components_s": {
+                "compiler_routing": 0.0,
+                "primitive_service": 1.3e-05
+              },
+              "gates": {
+                "rz": [
+                  0
+                ]
+              },
+              "magic_batch": 0,
+              "magic_batch_count": 1,
+              "magic_consumption_policy": "bulk_wave",
+              "magic_demand": 0,
+              "magic_remaining_after_batch": 0,
+              "mapping": {
+                "0": "sc_node/sc_compute/compute_region/slot_0",
+                "1": "sc_node/sc_compute/compute_region/slot_1"
+              },
+              "operated_qubits": [
+                0
+              ],
+              "operation_indices": [
+                0
+              ],
+              "partition_magic_demand": 0,
+              "resident_qubits": [
+                0,
+                1
+              ],
+              "resource_policy": "consume_ready_magic_states_at_dispatch",
+              "route_hash": "344a3c344f3de4f02f647e79f882383ce1d727c36c235da3e39ccf9cd29e74f6",
+              "route_metrics": {
+                "ancilla_nodes": 1,
+                "groups_per_layer": {
+                  "0": 1
+                },
+                "route_steps": 1
+              },
+              "route_steps": [
+                {
+                  "group": 0,
+                  "kind": "ancilla_tree",
+                  "metadata": {
+                    "guard_distance": 0,
+                    "magic_state_slot": null,
+                    "pauli": null,
+                    "terminal_count": 1
+                  },
+                  "movement_count": 0,
+                  "operation_count": 1,
+                  "path_edge_count": 0,
+                  "path_node_count": 1,
+                  "terminal_slots": [
+                    "sc_node/sc_compute/compute_region/slot_0"
+                  ]
+                }
+              ],
+              "source_layer": 1,
+              "syndrome_protocol": {
+                "cycle_time_s": 1e-06,
+                "distance": 13,
+                "distance_code": "surface",
+                "distance_module": "sc_compute",
+                "distance_module_role": "compute",
+                "id": "pbc_lattice_surgery",
+                "provenance": {
+                  "assumption": "surface_distance_merged_measurement"
+                },
+                "round_mode": "qec_distance",
+                "rounds": 13,
+                "service_s": 1.3e-05
+              }
+            },
+            "opcode": "EXECUTE_COMPUTE",
+            "predecessors": [
+              1
+            ],
+            "produces": {},
+            "qubits": [
+              0
+            ],
+            "required_locations": {
+              "q:0": "sc_node/sc_compute",
+              "q:1": "sc_node/sc_compute"
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          {
+            "completion_locations": {},
+            "consumes": {},
+            "duration_s": 0.0,
+            "engines": {},
+            "forwards": {},
+            "id": 3,
+            "layer": 1,
+            "metadata": {
+              "scope": "dag_derived_circuit_layer",
+              "source_layer": 1
+            },
+            "opcode": "FENCE",
+            "predecessors": [
+              2
+            ],
+            "produces": {},
+            "qubits": [],
+            "required_locations": {},
+            "target_links": [],
+            "target_modules": []
+          },
+          {
+            "completion_locations": {},
+            "consumes": {},
+            "duration_s": 1.3e-05,
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "forwards": {},
+            "id": 4,
+            "layer": 2,
+            "metadata": {
+              "batch_magic_demand": 0,
+              "compute_partition": 0,
+              "compute_partition_count": 1,
+              "duration_components_s": {
+                "compiler_routing": 0.0,
+                "primitive_service": 1.3e-05
+              },
+              "gates": {
+                "cx": [
+                  [
+                    0,
+                    1
+                  ]
+                ]
+              },
+              "magic_batch": 0,
+              "magic_batch_count": 1,
+              "magic_consumption_policy": "bulk_wave",
+              "magic_demand": 0,
+              "magic_remaining_after_batch": 0,
+              "mapping": {
+                "0": "sc_node/sc_compute/compute_region/slot_0",
+                "1": "sc_node/sc_compute/compute_region/slot_1"
+              },
+              "operated_qubits": [
+                0,
+                1
+              ],
+              "operation_indices": [
+                0
+              ],
+              "partition_magic_demand": 0,
+              "resident_qubits": [
+                0,
+                1
+              ],
+              "resource_policy": "consume_ready_magic_states_at_dispatch",
+              "route_hash": "a3f84c76218e84321ac4f71c50625aa917e63e2571ad5e64a568ea28712eec80",
+              "route_metrics": {
+                "ancilla_nodes": 5,
+                "groups_per_layer": {
+                  "0": 1
+                },
+                "route_steps": 1
+              },
+              "route_steps": [
+                {
+                  "group": 0,
+                  "kind": "ancilla_tree",
+                  "metadata": {
+                    "guard_distance": 0,
+                    "magic_state_slot": null,
+                    "pauli": null,
+                    "terminal_count": 2
+                  },
+                  "movement_count": 0,
+                  "operation_count": 1,
+                  "path_edge_count": 4,
+                  "path_node_count": 5,
+                  "terminal_slots": [
+                    "sc_node/sc_compute/compute_region/slot_0",
+                    "sc_node/sc_compute/compute_region/slot_1"
+                  ]
+                }
+              ],
+              "source_layer": 2,
+              "syndrome_protocol": {
+                "cycle_time_s": 1e-06,
+                "distance": 13,
+                "distance_code": "surface",
+                "distance_module": "sc_compute",
+                "distance_module_role": "compute",
+                "id": "pbc_lattice_surgery",
+                "provenance": {
+                  "assumption": "surface_distance_merged_measurement"
+                },
+                "round_mode": "qec_distance",
+                "rounds": 13,
+                "service_s": 1.3e-05
+              }
+            },
+            "opcode": "EXECUTE_COMPUTE",
+            "predecessors": [
+              3
+            ],
+            "produces": {},
+            "qubits": [
+              0,
+              1
+            ],
+            "required_locations": {
+              "q:0": "sc_node/sc_compute",
+              "q:1": "sc_node/sc_compute"
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          {
+            "completion_locations": {},
+            "consumes": {},
+            "duration_s": 0.0,
+            "engines": {},
+            "forwards": {},
+            "id": 5,
+            "layer": 2,
+            "metadata": {
+              "scope": "dag_derived_circuit_layer",
+              "source_layer": 2
+            },
+            "opcode": "FENCE",
+            "predecessors": [
+              4
+            ],
+            "produces": {},
+            "qubits": [],
+            "required_locations": {},
+            "target_links": [],
+            "target_modules": []
+          },
+          {
+            "completion_locations": {},
+            "consumes": {
+              "magic_compute": 1
+            },
+            "deferred_dispatch": {
+              "data_mapping": {
+                "0": "sc_node/sc_compute/compute_region/slot_0",
+                "1": "sc_node/sc_compute/compute_region/slot_1"
+              },
+              "kind": "joint_magic_route",
+              "operation_indices": [
+                0
+              ],
+              "schema_version": "arqsim.deferred-dispatch-recipe.v1"
+            },
+            "duration_s": 1.3e-05,
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "forwards": {},
+            "id": 6,
+            "layer": 3,
+            "metadata": {
+              "batch_magic_demand": 1,
+              "compute_partition": 0,
+              "compute_partition_count": 1,
+              "duration_components_s": {
+                "compiler_routing": 0.0,
+                "primitive_service": 1.3e-05
+              },
+              "gates": {
+                "t": [
+                  1
+                ]
+              },
+              "magic_batch": 0,
+              "magic_batch_count": 1,
+              "magic_consumption_policy": "bulk_wave",
+              "magic_demand": 1,
+              "magic_remaining_after_batch": 0,
+              "operated_qubits": [
+                1
+              ],
+              "partition_magic_demand": 1,
+              "resident_qubits": [
+                0,
+                1
+              ],
+              "resource_policy": "consume_ready_magic_states_at_dispatch",
+              "route_hash": "0a920a7af54eb1567348f63a1a6490f106685f5b7007c9056b8f531471d6144b",
+              "route_metrics": {},
+              "route_steps": [],
+              "source_layer": 3,
+              "syndrome_protocol": {
+                "cycle_time_s": 1e-06,
+                "distance": 13,
+                "distance_code": "surface",
+                "distance_module": "sc_compute",
+                "distance_module_role": "compute",
+                "id": "pbc_lattice_surgery",
+                "provenance": {
+                  "assumption": "surface_distance_merged_measurement"
+                },
+                "round_mode": "qec_distance",
+                "rounds": 13,
+                "service_s": 1.3e-05
+              }
+            },
+            "opcode": "EXECUTE_COMPUTE",
+            "predecessors": [
+              5
+            ],
+            "produces": {},
+            "qubits": [
+              1
+            ],
+            "required_locations": {
+              "q:0": "sc_node/sc_compute",
+              "q:1": "sc_node/sc_compute"
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          {
+            "completion_locations": {},
+            "consumes": {},
+            "duration_s": 0.0,
+            "engines": {},
+            "forwards": {},
+            "id": 7,
+            "layer": 3,
+            "metadata": {
+              "scope": "dag_derived_circuit_layer",
+              "source_layer": 3
+            },
+            "opcode": "FENCE",
+            "predecessors": [
+              6
+            ],
+            "produces": {},
+            "qubits": [],
+            "required_locations": {},
+            "target_links": [],
+            "target_modules": []
+          }
+        ]
+      },
+      "provenance": {
+        "compilation_hash": "1a9b720b4058d8606fcf92d57174fba5a7a175fa2e44ee0737a9eb84c1e271be",
+        "compiler_spec_hash": "912eb0f02129a9c9bd87c2f38b8d3af3f4c90082d95eaef7b7f52f657cf6c64e",
+        "derived_engine_sources": {
+          "resource_move": {
+            "id": "sc_node/sc_magic_bus",
+            "scope": "local_connection"
+          }
+        },
+        "initialization": "cold_start",
+        "plan_builder_version": "arqsim-plan-builder-v4",
+        "program_dependency": "dag_derived_ft_layers",
+        "program_resource_move_contention": "separate_domains",
+        "resource_delivery_channels": 1,
+        "resource_delivery_channels_footprint_model": "derived_from_architecture_buffers",
+        "resource_delivery_concurrency_source": "buffer_available_concurrency",
+        "resource_policy": "greedy_fill_to_capacity",
+        "resource_protocol_bindings": {
+          "bindings": {
+            "magic_state": {
+              "arrival_source": "explicit_arrival_override",
+              "assumptions": {
+                "delivered_storage_patch": "resize escaped d=15 state to the computation's d=13 surface-code patch",
+                "retry_model": "rounded mean interval; exponential sampling is a temporary evaluation model",
+                "target_regime": "artifact operating point: 1.9689e-9 T-error proxy at complementary-gap cutoff 108"
+              },
+              "base_arrival_distribution": {
+                "initial_delay_s": 0.0,
+                "initial_delay_samples": 0,
+                "kind": "exponential",
+                "mean_interval_s": 0.0021876809299636317,
+                "repeat_trace": true,
+                "success_probability": 1.0,
+                "trace_intervals_s": []
+              },
+              "binding_hash": "cc10ffda76bbacd4fa6085d89ec11c3c0b3e332750db1033c2519f7ea4438bd2",
+              "copies": 1,
+              "effective_arrival_distribution": {
+                "initial_delay_s": 0.0,
+                "initial_delay_samples": 0,
+                "kind": "deterministic",
+                "mean_interval_s": 0.001,
+                "repeat_trace": true,
+                "success_probability": 1.0,
+                "trace_intervals_s": []
+              },
+              "operating_point": {
+                "aggregate_mean_output_rate_per_s": 457.1050496,
+                "factory_modality": "superconducting",
+                "mean_batch_interval_s_per_copy": 0.0021876809299636317,
+                "qec_cycle_time_s": 1e-06,
+                "qec_cycles_per_batch": 2187.680929963632
+              },
+              "output_error_probability": 1.9689128369672686e-09,
+              "output_fidelity": 0.9999999980310872,
+              "outputs_per_copy_per_batch": 1,
+              "physical_footprint": {
+                "physical_qubits_per_copy": 463,
+                "physical_qubits_total": 463
+              },
+              "protocol_family": "magic_state_factory",
+              "protocol_id": "cultivation-d5-d15-p1e3",
+              "protocol_profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e",
+              "provenance": {
+                "architecture_hash": "1fe860dd815dea30818ef10ee31cf903c76ac1752232d606fb3962c79901b7b3",
+                "arrival_resolution": {
+                  "base_arrival_hash": "e897f2a8404cca3a6b6d463f5ac80f08cddc7900963b148d9e52670f6f9072cc",
+                  "effective_arrival_hash": "f6370b94fe532e7c8145a943d8cbf445f571aaa80be1b545505c076106f3d1f8",
+                  "source": "explicit_arrival_override"
+                },
+                "catalog_schema_version": "arqsim.magic-state-factory-catalog.v1",
+                "engine": "sc_node/sc_msf/factory_engine"
+              },
+              "requested_protocol_id": "cultivation-d5-d15-p1e3",
+              "resource_kind": "magic_state",
+              "schema_version": "arqsim.resolved-resource-protocol-binding.v1",
+              "source": {
+                "artifact_doi": "10.5281/zenodo.13777072",
+                "artifact_record": "end2end-inplace-distillation, d1=5, d2=15, p=0.001, complementary-gap cutoff=108",
+                "arxiv": "2409.17595",
+                "paper": "Gidney, Shutty, and Jones, Magic state cultivation: growing T states as cheap as CNOT gates"
+              }
+            }
+          },
+          "bindings_hash": "4c27b59bd1e054bd1677849386651cea78b4708e4096d15f59fc6a0d4829517d",
+          "schema_version": "arqsim.resolved-resource-protocol-bindings.v1"
+        },
+        "resource_protocol_bindings_hash": "4c27b59bd1e054bd1677849386651cea78b4708e4096d15f59fc6a0d4829517d",
+        "runtime_injection_recipe_mode": "black_box",
+        "runtime_manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06"
+      },
+      "resource_dag": {
+        "fill_policy": "greedy_fill_to_capacity",
+        "processes": [
+          {
+            "arrival_distribution": {
+              "initial_delay_s": 0.0,
+              "initial_delay_samples": 0,
+              "kind": "deterministic",
+              "mean_interval_s": 0.001,
+              "repeat_trace": true,
+              "success_probability": 1.0,
+              "trace_intervals_s": []
+            },
+            "consumes": {},
+            "dispatch_policy": "single",
+            "duration_s": 0.0,
+            "engines": {
+              "msf:sc_node/sc_msf": 1
+            },
+            "forwards": {},
+            "id": "prepare_magic",
+            "metadata": {
+              "outputs_per_batch": 1
+            },
+            "opcode": "PREPARE_MAGIC_STATE",
+            "output_overflow_policy": "discard_excess",
+            "parallelism": 1,
+            "produces": {
+              "msf_output": 1
+            },
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_msf"
+            ]
+          },
+          {
+            "arrival_distribution": null,
+            "consumes": {
+              "msf_output": 1
+            },
+            "deferred_dispatch": {
+              "entity_kind": "magic_state",
+              "kind": "state_bound_resource_move",
+              "schema_version": "arqsim.deferred-dispatch-recipe.v1"
+            },
+            "dispatch_policy": "eager_available",
+            "duration_s": 0.0,
+            "engines": {
+              "resource_move": 1
+            },
+            "forwards": {
+              "msf_output": "magic_compute"
+            },
+            "id": "deliver_magic_local",
+            "metadata": {},
+            "opcode": "MOVE_QUBITS",
+            "output_overflow_policy": "block",
+            "parallelism": 1,
+            "produces": {
+              "magic_compute": 1
+            },
+            "protocol": "local_magic_delivery",
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute",
+              "sc_node/sc_msf"
+            ]
+          }
+        ]
+      },
+      "runtime_components": {
+        "components": {
+          "execution_backend": {
+            "component_hash": "6466bc476c96a0b5f6d8ef297f317a9e092fe881bf317d349ad87041fa04a481",
+            "component_id": "backend.profile.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "timing_source": "candidate_implementation"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "execution_backend",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "outcome_model": {
+            "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
+            "component_id": "outcome.seeded_bernoulli.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "distribution": "independent_bernoulli_half",
+              "seed_identity": "program_work_lineage"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "outcome_model",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "runtime_realizer": {
+            "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
+            "component_id": "runtime_realizer.state_bound.v2",
+            "contract_version": "1",
+            "effective_config": {
+              "binding": "fifo_first_free",
+              "continuation": "finite_injection_recipe_v1",
+              "deferred_program": "joint_magic_route",
+              "deferred_resource": "state_bound_resource_move"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "runtime_realizer",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "scheduler": {
+            "component_hash": "60304b909a42e50cb511ed1cb9eb403744d951476717660580a8ba6247685226",
+            "component_id": "scheduler.program_first_eager.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "program_order": "ascending_instruction_id",
+              "resource_order": "resource_dag_insertion_order"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "scheduler",
+            "schema_version": "arqsim.runtime-component.v3"
+          }
+        },
+        "event_engine": {
+          "component_hash": "a653143af6817731cbf56982a48da087fe60ed2a891cc67afe52e0049c26198b",
+          "component_id": "event_engine.transactional_dynamic_frontier.v2",
+          "contract_version": "1",
+          "effective_config": {
+            "commit_granularity": "single_candidate",
+            "continuation_order": "activation_order_then_monotonic_schedule_id",
+            "dispatch": "eager_when_ready",
+            "program_continuations": "finite_injection_recipe_v1",
+            "program_horizon": "stop_without_resource_drain",
+            "resource_fitting": "typed_dispatch_receipt_v1",
+            "timestamp_phases": [
+              "complete_all",
+              "program_plane_first",
+              "same_time_fixed_point",
+              "advance"
+            ]
+          },
+          "implementation_version": "1",
+          "provider": "arqsim",
+          "role": "event_engine",
+          "schema_version": "arqsim.runtime-component.v3"
+        },
+        "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+        "schema_version": "arqsim.runtime-manifest.v3"
+      },
+      "schema_version": "arqsim.execution-plan.v6",
+      "source": {
+        "circuit_hash": "75931e6927ab2b54101d8e5dc93cfac8d785e8de5253ca7364ea612d4e46ad05"
+      }
+    },
+    "execution_trace": {
+      "initial_state": {
+        "active_reservation_ids": [],
+        "buffers": {
+          "magic_compute": [],
+          "msf_output": []
+        },
+        "engine_usage": {
+          "compute:sc_node/sc_compute": 0,
+          "msf:sc_node/sc_msf": 0,
+          "resource_move": 0
+        },
+        "locations": {
+          "q:0": "sc_node/sc_compute",
+          "q:1": "sc_node/sc_compute"
+        },
+        "next_reservation_id": 0,
+        "pending_incoming": {
+          "magic_compute": 0,
+          "msf_output": 0
+        },
+        "reserved_output_slots": {
+          "magic_compute": [],
+          "msf_output": []
+        },
+        "state_version": 0,
+        "token_sequence": {},
+        "token_slots": {}
+      },
+      "plan_hash": "775e1bddfffc3b4205fdf579ba503e477b11b7746c29f56cbcfa006299a42c60",
+      "schema_version": "arqsim.execution-trace.v3",
+      "seed": 7,
+      "terminal_inflight": [
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:prepare_magic:1",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 0.002,
+          "engines": {
+            "msf:sc_node/sc_msf": 1
+          },
+          "event_id": 8,
+          "forwards": {},
+          "instance": 1,
+          "instruction_id": null,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "attempted_outputs": {
+              "msf_output": 1
+            },
+            "batch_amount": 1,
+            "buffered_outputs": {
+              "msf_output": 1
+            },
+            "discarded_outputs": {},
+            "dispatch_policy": "single",
+            "engines": {
+              "msf:sc_node/sc_msf": 1
+            },
+            "outputs_per_batch": 1,
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_msf"
+            ]
+          },
+          "opcode": "PREPARE_MAGIC_STATE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 1,
+            "msf_output": 1
+          },
+          "plane": "resource",
+          "process_id": "prepare_magic",
+          "produced_slots": {
+            "msf_output": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {},
+          "produces": {
+            "msf_output": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 8,
+          "start_s": 0.001,
+          "state_version_after": 16,
+          "state_version_before": 15,
+          "time_s": 0.001,
+          "token_sequence_after": {},
+          "transition_id": 15,
+          "wait_reasons": []
+        }
+      ],
+      "terminal_state": {
+        "active_reservation_ids": [
+          8
+        ],
+        "buffers": {
+          "magic_compute": [],
+          "msf_output": []
+        },
+        "engine_usage": {
+          "compute:sc_node/sc_compute": 0,
+          "msf:sc_node/sc_msf": 1,
+          "resource_move": 0
+        },
+        "locations": {
+          "q:0": "sc_node/sc_compute",
+          "q:1": "sc_node/sc_compute"
+        },
+        "next_reservation_id": 11,
+        "pending_incoming": {
+          "magic_compute": 0,
+          "msf_output": 1
+        },
+        "reserved_output_slots": {
+          "magic_compute": [],
+          "msf_output": [
+            "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+          ]
+        },
+        "state_version": 21,
+        "token_sequence": {
+          "magic_state": 1
+        },
+        "token_slots": {}
+      },
+      "total_latency_s": 0.001026,
+      "trace_hash": "55af91236c3a80f8c4f8097ada1a93400b34f8ec82533bcbac47f8245ac2d1a6",
+      "transitions": [
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:0",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 1.3e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "event_id": 0,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 0,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 0,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "gates": {
+              "h": [
+                0
+              ]
+            },
+            "layer": 0,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 0,
+            "magic_remaining_after_batch": 0,
+            "mapping": {
+              "0": "sc_node/sc_compute/compute_region/slot_0",
+              "1": "sc_node/sc_compute/compute_region/slot_1"
+            },
+            "operated_qubits": [
+              0
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition_magic_demand": 0,
+            "program_ready_s": 0.0,
+            "qubits": [
+              0
+            ],
+            "resident_qubits": [
+              0,
+              1
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 0.0,
+            "route_hash": "344a3c344f3de4f02f647e79f882383ce1d727c36c235da3e39ccf9cd29e74f6",
+            "route_metrics": {
+              "ancilla_nodes": 1,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 1
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 0,
+                "path_node_count": 1,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0"
+                ]
+              }
+            ],
+            "source_layer": 0,
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13,
+              "service_s": 1.3e-05
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 0,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:0"
+          },
+          "required_locations": {
+            "q:0": "sc_node/sc_compute",
+            "q:1": "sc_node/sc_compute"
+          },
+          "reservation_id": 0,
+          "start_s": 0.0,
+          "state_version_after": 1,
+          "state_version_before": 0,
+          "time_s": 0.0,
+          "token_sequence_after": {},
+          "transition_id": 0,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:prepare_magic:0",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 0.001,
+          "engines": {
+            "msf:sc_node/sc_msf": 1
+          },
+          "event_id": 1,
+          "forwards": {},
+          "instance": 0,
+          "instruction_id": null,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "attempted_outputs": {
+              "msf_output": 1
+            },
+            "batch_amount": 1,
+            "buffered_outputs": {
+              "msf_output": 1
+            },
+            "discarded_outputs": {},
+            "dispatch_policy": "single",
+            "engines": {
+              "msf:sc_node/sc_msf": 1
+            },
+            "outputs_per_batch": 1,
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_msf"
+            ]
+          },
+          "opcode": "PREPARE_MAGIC_STATE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "resource",
+          "process_id": "prepare_magic",
+          "produced_slots": {
+            "msf_output": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {},
+          "produces": {
+            "msf_output": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 1,
+          "start_s": 0.0,
+          "state_version_after": 2,
+          "state_version_before": 1,
+          "time_s": 0.0,
+          "token_sequence_after": {},
+          "transition_id": 1,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:0",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 1.3e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "event_id": 0,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 0,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 0,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "gates": {
+              "h": [
+                0
+              ]
+            },
+            "layer": 0,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 0,
+            "magic_remaining_after_batch": 0,
+            "mapping": {
+              "0": "sc_node/sc_compute/compute_region/slot_0",
+              "1": "sc_node/sc_compute/compute_region/slot_1"
+            },
+            "operated_qubits": [
+              0
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition_magic_demand": 0,
+            "program_ready_s": 0.0,
+            "qubits": [
+              0
+            ],
+            "resident_qubits": [
+              0,
+              1
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 0.0,
+            "route_hash": "344a3c344f3de4f02f647e79f882383ce1d727c36c235da3e39ccf9cd29e74f6",
+            "route_metrics": {
+              "ancilla_nodes": 1,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 1
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 0,
+                "path_node_count": 1,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0"
+                ]
+              }
+            ],
+            "source_layer": 0,
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13,
+              "service_s": 1.3e-05
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 0,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:0"
+          },
+          "required_locations": {
+            "q:0": "sc_node/sc_compute",
+            "q:1": "sc_node/sc_compute"
+          },
+          "reservation_id": 0,
+          "start_s": 0.0,
+          "state_version_after": 3,
+          "state_version_before": 2,
+          "time_s": 1.3e-05,
+          "token_sequence_after": {},
+          "transition_id": 2,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:1",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 1.3e-05,
+          "engines": {},
+          "event_id": 2,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 1,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 0,
+            "program_ready_s": 1.3e-05,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 0,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 1,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:1"
+          },
+          "required_locations": {},
+          "reservation_id": 2,
+          "start_s": 1.3e-05,
+          "state_version_after": 4,
+          "state_version_before": 3,
+          "time_s": 1.3e-05,
+          "token_sequence_after": {},
+          "transition_id": 3,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:1",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 1.3e-05,
+          "engines": {},
+          "event_id": 2,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 1,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 0,
+            "program_ready_s": 1.3e-05,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 0,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 1,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:1"
+          },
+          "required_locations": {},
+          "reservation_id": 2,
+          "start_s": 1.3e-05,
+          "state_version_after": 5,
+          "state_version_before": 4,
+          "time_s": 1.3e-05,
+          "token_sequence_after": {},
+          "transition_id": 4,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:2",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 2.6e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "event_id": 3,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 2,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 0,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "gates": {
+              "rz": [
+                0
+              ]
+            },
+            "layer": 1,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 0,
+            "magic_remaining_after_batch": 0,
+            "mapping": {
+              "0": "sc_node/sc_compute/compute_region/slot_0",
+              "1": "sc_node/sc_compute/compute_region/slot_1"
+            },
+            "operated_qubits": [
+              0
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition_magic_demand": 0,
+            "program_ready_s": 1.3e-05,
+            "qubits": [
+              0
+            ],
+            "resident_qubits": [
+              0,
+              1
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 0.0,
+            "route_hash": "344a3c344f3de4f02f647e79f882383ce1d727c36c235da3e39ccf9cd29e74f6",
+            "route_metrics": {
+              "ancilla_nodes": 1,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 1
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 0,
+                "path_node_count": 1,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0"
+                ]
+              }
+            ],
+            "source_layer": 1,
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13,
+              "service_s": 1.3e-05
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 2,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:2"
+          },
+          "required_locations": {
+            "q:0": "sc_node/sc_compute",
+            "q:1": "sc_node/sc_compute"
+          },
+          "reservation_id": 3,
+          "start_s": 1.3e-05,
+          "state_version_after": 6,
+          "state_version_before": 5,
+          "time_s": 1.3e-05,
+          "token_sequence_after": {},
+          "transition_id": 5,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:2",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 2.6e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "event_id": 3,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 2,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 0,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "gates": {
+              "rz": [
+                0
+              ]
+            },
+            "layer": 1,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 0,
+            "magic_remaining_after_batch": 0,
+            "mapping": {
+              "0": "sc_node/sc_compute/compute_region/slot_0",
+              "1": "sc_node/sc_compute/compute_region/slot_1"
+            },
+            "operated_qubits": [
+              0
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition_magic_demand": 0,
+            "program_ready_s": 1.3e-05,
+            "qubits": [
+              0
+            ],
+            "resident_qubits": [
+              0,
+              1
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 0.0,
+            "route_hash": "344a3c344f3de4f02f647e79f882383ce1d727c36c235da3e39ccf9cd29e74f6",
+            "route_metrics": {
+              "ancilla_nodes": 1,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 1
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 0,
+                "path_node_count": 1,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0"
+                ]
+              }
+            ],
+            "source_layer": 1,
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13,
+              "service_s": 1.3e-05
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 2,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:2"
+          },
+          "required_locations": {
+            "q:0": "sc_node/sc_compute",
+            "q:1": "sc_node/sc_compute"
+          },
+          "reservation_id": 3,
+          "start_s": 1.3e-05,
+          "state_version_after": 7,
+          "state_version_before": 6,
+          "time_s": 2.6e-05,
+          "token_sequence_after": {},
+          "transition_id": 6,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:3",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 2.6e-05,
+          "engines": {},
+          "event_id": 4,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 3,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 1,
+            "program_ready_s": 2.6e-05,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 1,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 3,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:3"
+          },
+          "required_locations": {},
+          "reservation_id": 4,
+          "start_s": 2.6e-05,
+          "state_version_after": 8,
+          "state_version_before": 7,
+          "time_s": 2.6e-05,
+          "token_sequence_after": {},
+          "transition_id": 7,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:3",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 2.6e-05,
+          "engines": {},
+          "event_id": 4,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 3,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 1,
+            "program_ready_s": 2.6e-05,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 1,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 3,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:3"
+          },
+          "required_locations": {},
+          "reservation_id": 4,
+          "start_s": 2.6e-05,
+          "state_version_after": 9,
+          "state_version_before": 8,
+          "time_s": 2.6e-05,
+          "token_sequence_after": {},
+          "transition_id": 8,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:4",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 3.9e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "event_id": 5,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 4,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 0,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "gates": {
+              "cx": [
+                [
+                  0,
+                  1
+                ]
+              ]
+            },
+            "layer": 2,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 0,
+            "magic_remaining_after_batch": 0,
+            "mapping": {
+              "0": "sc_node/sc_compute/compute_region/slot_0",
+              "1": "sc_node/sc_compute/compute_region/slot_1"
+            },
+            "operated_qubits": [
+              0,
+              1
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition_magic_demand": 0,
+            "program_ready_s": 2.6e-05,
+            "qubits": [
+              0,
+              1
+            ],
+            "resident_qubits": [
+              0,
+              1
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 0.0,
+            "route_hash": "a3f84c76218e84321ac4f71c50625aa917e63e2571ad5e64a568ea28712eec80",
+            "route_metrics": {
+              "ancilla_nodes": 5,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 2
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 4,
+                "path_node_count": 5,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0",
+                  "sc_node/sc_compute/compute_region/slot_1"
+                ]
+              }
+            ],
+            "source_layer": 2,
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13,
+              "service_s": 1.3e-05
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 4,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:4"
+          },
+          "required_locations": {
+            "q:0": "sc_node/sc_compute",
+            "q:1": "sc_node/sc_compute"
+          },
+          "reservation_id": 5,
+          "start_s": 2.6e-05,
+          "state_version_after": 10,
+          "state_version_before": 9,
+          "time_s": 2.6e-05,
+          "token_sequence_after": {},
+          "transition_id": 9,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:4",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 3.9e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "event_id": 5,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 4,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 0,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "gates": {
+              "cx": [
+                [
+                  0,
+                  1
+                ]
+              ]
+            },
+            "layer": 2,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 0,
+            "magic_remaining_after_batch": 0,
+            "mapping": {
+              "0": "sc_node/sc_compute/compute_region/slot_0",
+              "1": "sc_node/sc_compute/compute_region/slot_1"
+            },
+            "operated_qubits": [
+              0,
+              1
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition_magic_demand": 0,
+            "program_ready_s": 2.6e-05,
+            "qubits": [
+              0,
+              1
+            ],
+            "resident_qubits": [
+              0,
+              1
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 0.0,
+            "route_hash": "a3f84c76218e84321ac4f71c50625aa917e63e2571ad5e64a568ea28712eec80",
+            "route_metrics": {
+              "ancilla_nodes": 5,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 2
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 4,
+                "path_node_count": 5,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0",
+                  "sc_node/sc_compute/compute_region/slot_1"
+                ]
+              }
+            ],
+            "source_layer": 2,
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13,
+              "service_s": 1.3e-05
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 4,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:4"
+          },
+          "required_locations": {
+            "q:0": "sc_node/sc_compute",
+            "q:1": "sc_node/sc_compute"
+          },
+          "reservation_id": 5,
+          "start_s": 2.6e-05,
+          "state_version_after": 11,
+          "state_version_before": 10,
+          "time_s": 3.9e-05,
+          "token_sequence_after": {},
+          "transition_id": 10,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:5",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 3.9e-05,
+          "engines": {},
+          "event_id": 6,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 5,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 2,
+            "program_ready_s": 3.9e-05,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 2,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 5,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:5"
+          },
+          "required_locations": {},
+          "reservation_id": 6,
+          "start_s": 3.9e-05,
+          "state_version_after": 12,
+          "state_version_before": 11,
+          "time_s": 3.9e-05,
+          "token_sequence_after": {},
+          "transition_id": 11,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:5",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 3.9e-05,
+          "engines": {},
+          "event_id": 6,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 5,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 2,
+            "program_ready_s": 3.9e-05,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 2,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 5,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:5"
+          },
+          "required_locations": {},
+          "reservation_id": 6,
+          "start_s": 3.9e-05,
+          "state_version_after": 13,
+          "state_version_before": 12,
+          "time_s": 3.9e-05,
+          "token_sequence_after": {},
+          "transition_id": 12,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "candidate_id": "resource:prepare_magic:0",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 0.001,
+          "engines": {
+            "msf:sc_node/sc_msf": 1
+          },
+          "event_id": 1,
+          "forwards": {},
+          "instance": 0,
+          "instruction_id": null,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "attempted_outputs": {
+              "msf_output": 1
+            },
+            "batch_amount": 1,
+            "buffered_outputs": {
+              "msf_output": 1
+            },
+            "discarded_outputs": {},
+            "dispatch_policy": "single",
+            "engines": {
+              "msf:sc_node/sc_msf": 1
+            },
+            "outputs_per_batch": 1,
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_msf"
+            ]
+          },
+          "opcode": "PREPARE_MAGIC_STATE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "plane": "resource",
+          "process_id": "prepare_magic",
+          "produced_slots": {
+            "msf_output": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {
+            "msf_output": [
+              "magic_state:0"
+            ]
+          },
+          "produces": {
+            "msf_output": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 1,
+          "start_s": 0.0,
+          "state_version_after": 14,
+          "state_version_before": 13,
+          "time_s": 0.001,
+          "token_sequence_after": {
+            "magic_state": 1
+          },
+          "transition_id": 13,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:deliver_magic_local:0",
+          "completion_locations": {},
+          "consumed_slots": {
+            "msf_output": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "consumed_tokens": {
+            "msf_output": [
+              "magic_state:0"
+            ]
+          },
+          "consumes": {
+            "msf_output": 1
+          },
+          "continuation": null,
+          "end_s": 0.001013,
+          "engines": {
+            "resource_move": 1
+          },
+          "event_id": 7,
+          "forwards": {
+            "msf_output": "magic_compute"
+          },
+          "instance": 0,
+          "instruction_id": null,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "batch_amount": 1,
+            "buffer_endpoint_policy": "canonical_absolute_slot",
+            "cycle_time_s": 1e-06,
+            "dispatch_policy": "eager_available",
+            "engines": {
+              "resource_move": 1
+            },
+            "move_backend": "ppm_steiner_tree",
+            "move_compiler": "arqsim-move-compiler-v2",
+            "protocol": "local_magic_delivery",
+            "qec_distance": 13,
+            "rounds": 13,
+            "steiner_edges": [],
+            "steiner_nodes": [
+              "R7_0"
+            ],
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute",
+              "sc_node/sc_msf"
+            ],
+            "terminal_interfaces": [
+              "R7_0",
+              "R7_0"
+            ],
+            "terminal_slots": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0",
+              "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "opcode": "MOVE_QUBITS",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 1,
+            "msf_output": 0
+          },
+          "plane": "resource",
+          "process_id": "deliver_magic_local",
+          "produced_slots": {
+            "magic_compute": [
+              "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {},
+          "produces": {
+            "magic_compute": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 7,
+          "start_s": 0.001,
+          "state_version_after": 15,
+          "state_version_before": 14,
+          "time_s": 0.001,
+          "token_sequence_after": {},
+          "transition_id": 14,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:prepare_magic:1",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 0.002,
+          "engines": {
+            "msf:sc_node/sc_msf": 1
+          },
+          "event_id": 8,
+          "forwards": {},
+          "instance": 1,
+          "instruction_id": null,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "attempted_outputs": {
+              "msf_output": 1
+            },
+            "batch_amount": 1,
+            "buffered_outputs": {
+              "msf_output": 1
+            },
+            "discarded_outputs": {},
+            "dispatch_policy": "single",
+            "engines": {
+              "msf:sc_node/sc_msf": 1
+            },
+            "outputs_per_batch": 1,
+            "protocol": "cultivation-d5-d15-p1e3",
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_msf"
+            ]
+          },
+          "opcode": "PREPARE_MAGIC_STATE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 1,
+            "msf_output": 1
+          },
+          "plane": "resource",
+          "process_id": "prepare_magic",
+          "produced_slots": {
+            "msf_output": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {},
+          "produces": {
+            "msf_output": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 8,
+          "start_s": 0.001,
+          "state_version_after": 16,
+          "state_version_before": 15,
+          "time_s": 0.001,
+          "token_sequence_after": {},
+          "transition_id": 15,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 1,
+            "msf_output": 0
+          },
+          "candidate_id": "resource:deliver_magic_local:0",
+          "completion_locations": {},
+          "consumed_slots": {
+            "msf_output": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+            ]
+          },
+          "consumed_tokens": {
+            "msf_output": [
+              "magic_state:0"
+            ]
+          },
+          "consumes": {
+            "msf_output": 1
+          },
+          "continuation": null,
+          "end_s": 0.001013,
+          "engines": {
+            "resource_move": 1
+          },
+          "event_id": 7,
+          "forwards": {
+            "msf_output": "magic_compute"
+          },
+          "instance": 0,
+          "instruction_id": null,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "batch_amount": 1,
+            "buffer_endpoint_policy": "canonical_absolute_slot",
+            "cycle_time_s": 1e-06,
+            "dispatch_policy": "eager_available",
+            "engines": {
+              "resource_move": 1
+            },
+            "move_backend": "ppm_steiner_tree",
+            "move_compiler": "arqsim-move-compiler-v2",
+            "protocol": "local_magic_delivery",
+            "qec_distance": 13,
+            "rounds": 13,
+            "steiner_edges": [],
+            "steiner_nodes": [
+              "R7_0"
+            ],
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute",
+              "sc_node/sc_msf"
+            ],
+            "terminal_interfaces": [
+              "R7_0",
+              "R7_0"
+            ],
+            "terminal_slots": [
+              "sc_node/sc_msf/magic_state_output_buffer/slot_0",
+              "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "opcode": "MOVE_QUBITS",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "resource",
+          "process_id": "deliver_magic_local",
+          "produced_slots": {
+            "magic_compute": [
+              "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "produced_tokens": {
+            "magic_compute": [
+              "magic_state:0"
+            ]
+          },
+          "produces": {
+            "magic_compute": 1
+          },
+          "program_lineage": null,
+          "required_locations": {},
+          "reservation_id": 7,
+          "start_s": 0.001,
+          "state_version_after": 17,
+          "state_version_before": 16,
+          "time_s": 0.001013,
+          "token_sequence_after": {},
+          "transition_id": 16,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:6",
+          "completion_locations": {},
+          "consumed_slots": {
+            "magic_compute": [
+              "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "consumed_tokens": {
+            "magic_compute": [
+              "magic_state:0"
+            ]
+          },
+          "consumes": {
+            "magic_compute": 1
+          },
+          "continuation": null,
+          "end_s": 0.001026,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "event_id": 9,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 6,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 1,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "gates": {
+              "t": [
+                1
+              ]
+            },
+            "layer": 3,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 1,
+            "magic_remaining_after_batch": 0,
+            "operated_qubits": [
+              1
+            ],
+            "partition_magic_demand": 1,
+            "program_ready_s": 3.9e-05,
+            "qubits": [
+              1
+            ],
+            "resident_qubits": [
+              0,
+              1
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 0.000974,
+            "route_hash": "b1124fb6134a5e203dd81a5be23104fe6f5dd7a52288e8946a03d29ba9a1b34d",
+            "route_metrics": {
+              "ancilla_nodes": 5,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": "sc_node/sc_compute/magic_state_input_buffer/slot_0",
+                  "pauli": null,
+                  "terminal_count": 2
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 4,
+                "path_node_count": 5,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_1",
+                  "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+                ]
+              }
+            ],
+            "runtime_route_cache_key": "1ad393a5b02871152d56ae260716046029a0db7b91769a25f2c61122a334da3d",
+            "runtime_route_resolution": "dispatch_time_joint_compilation",
+            "source_layer": 3,
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13,
+              "service_s": 1.3e-05
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 6,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:6"
+          },
+          "required_locations": {
+            "q:0": "sc_node/sc_compute",
+            "q:1": "sc_node/sc_compute"
+          },
+          "reservation_id": 9,
+          "start_s": 0.001013,
+          "state_version_after": 18,
+          "state_version_before": 17,
+          "time_s": 0.001013,
+          "token_sequence_after": {},
+          "transition_id": 17,
+          "wait_reasons": [
+            "buffer_empty:magic_compute:0/1"
+          ]
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:6",
+          "completion_locations": {},
+          "consumed_slots": {
+            "magic_compute": [
+              "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+            ]
+          },
+          "consumed_tokens": {
+            "magic_compute": [
+              "magic_state:0"
+            ]
+          },
+          "consumes": {
+            "magic_compute": 1
+          },
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 0.001026,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "event_id": 9,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 6,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "batch_magic_demand": 1,
+            "compute_partition": 0,
+            "compute_partition_count": 1,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "engines": {
+              "compute:sc_node/sc_compute": 1
+            },
+            "gates": {
+              "t": [
+                1
+              ]
+            },
+            "layer": 3,
+            "magic_batch": 0,
+            "magic_batch_count": 1,
+            "magic_consumption_policy": "bulk_wave",
+            "magic_demand": 1,
+            "magic_remaining_after_batch": 0,
+            "operated_qubits": [
+              1
+            ],
+            "partition_magic_demand": 1,
+            "program_ready_s": 3.9e-05,
+            "qubits": [
+              1
+            ],
+            "resident_qubits": [
+              0,
+              1
+            ],
+            "resource_policy": "consume_ready_magic_states_at_dispatch",
+            "resource_wait_s": 0.000974,
+            "route_hash": "b1124fb6134a5e203dd81a5be23104fe6f5dd7a52288e8946a03d29ba9a1b34d",
+            "route_metrics": {
+              "ancilla_nodes": 5,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": "sc_node/sc_compute/magic_state_input_buffer/slot_0",
+                  "pauli": null,
+                  "terminal_count": 2
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 4,
+                "path_node_count": 5,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_1",
+                  "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+                ]
+              }
+            ],
+            "runtime_route_cache_key": "1ad393a5b02871152d56ae260716046029a0db7b91769a25f2c61122a334da3d",
+            "runtime_route_resolution": "dispatch_time_joint_compilation",
+            "source_layer": 3,
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13,
+              "service_s": 1.3e-05
+            },
+            "target_links": [],
+            "target_modules": [
+              "sc_node/sc_compute"
+            ]
+          },
+          "opcode": "EXECUTE_COMPUTE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 6,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:6"
+          },
+          "required_locations": {
+            "q:0": "sc_node/sc_compute",
+            "q:1": "sc_node/sc_compute"
+          },
+          "reservation_id": 9,
+          "start_s": 0.001013,
+          "state_version_after": 19,
+          "state_version_before": 18,
+          "time_s": 0.001026,
+          "token_sequence_after": {},
+          "transition_id": 18,
+          "wait_reasons": [
+            "buffer_empty:magic_compute:0/1"
+          ]
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:7",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": null,
+          "end_s": 0.001026,
+          "engines": {},
+          "event_id": 10,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 7,
+          "kind": "dispatch",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 3,
+            "program_ready_s": 0.001026,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 3,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 7,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:7"
+          },
+          "required_locations": {},
+          "reservation_id": 10,
+          "start_s": 0.001026,
+          "state_version_after": 20,
+          "state_version_before": 19,
+          "time_s": 0.001026,
+          "token_sequence_after": {},
+          "transition_id": 19,
+          "wait_reasons": []
+        },
+        {
+          "backend_artifact": {},
+          "buffer_occupancy_after": {
+            "magic_compute": 0,
+            "msf_output": 0
+          },
+          "candidate_id": "program:7",
+          "completion_locations": {},
+          "consumed_slots": {},
+          "consumed_tokens": {},
+          "consumes": {},
+          "continuation": {
+            "activated_work_ids": [],
+            "kind": "complete_source"
+          },
+          "end_s": 0.001026,
+          "engines": {},
+          "event_id": 10,
+          "forwards": {},
+          "instance": null,
+          "instruction_id": 7,
+          "kind": "completion",
+          "measurements": {},
+          "metadata": {
+            "engines": {},
+            "layer": 3,
+            "program_ready_s": 0.001026,
+            "qubits": [],
+            "resource_wait_s": 0.0,
+            "scope": "dag_derived_circuit_layer",
+            "source_layer": 3,
+            "target_links": [],
+            "target_modules": []
+          },
+          "opcode": "FENCE",
+          "outcome": {},
+          "pending_incoming_after": {
+            "magic_compute": 0,
+            "msf_output": 1
+          },
+          "plane": "program",
+          "process_id": null,
+          "produced_slots": {},
+          "produced_tokens": {},
+          "produces": {},
+          "program_lineage": {
+            "parent_event_id": null,
+            "recipe_id": null,
+            "recipe_invocation_id": null,
+            "source_instruction_id": 7,
+            "stage_index": null,
+            "step": "source",
+            "work_id": "program:7"
+          },
+          "required_locations": {},
+          "reservation_id": 10,
+          "start_s": 0.001026,
+          "state_version_after": 21,
+          "state_version_before": 20,
+          "time_s": 0.001026,
+          "token_sequence_after": {},
+          "transition_id": 20,
+          "wait_reasons": []
+        }
+      ]
+    },
+    "logical_compilation": {
+      "compilation_hash": "1a9b720b4058d8606fcf92d57174fba5a7a175fa2e44ee0737a9eb84c1e271be",
+      "compiler": {
+        "compiler_hash": "912eb0f02129a9c9bd87c2f38b8d3af3f4c90082d95eaef7b7f52f657cf6c64e",
+        "instruction_set": "heteqsys.hqisa.v1",
+        "issue_policy": "conservative_layers",
+        "mapping": {
+          "backend": "row_major_checkerboard_sc",
+          "options": {}
+        },
+        "routing": {
+          "backend": "greedy_steiner_sc",
+          "options": {
+            "guard_distance": 0
+          }
+        },
+        "schema_version": "heteqsys.logical-compiler-spec.v1"
+      },
+      "compute_units": [
+        {
+          "mapping": {
+            "0": "sc_node/sc_compute/compute_region/slot_0",
+            "1": "sc_node/sc_compute/compute_region/slot_1"
+          },
+          "route": {
+            "dispatch_deferred": false,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "route_hash": "344a3c344f3de4f02f647e79f882383ce1d727c36c235da3e39ccf9cd29e74f6",
+            "route_metrics": {
+              "ancilla_nodes": 1,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 1
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 0,
+                "path_node_count": 1,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0"
+                ]
+              }
+            ],
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13
+            }
+          },
+          "source": {
+            "batch": 0,
+            "batch_count": 1,
+            "magic_count": 0,
+            "operated_qubits": [
+              0
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition": {
+              "active_qubits": [
+                0
+              ],
+              "layer": 0,
+              "magic_count": 0,
+              "operation_indices": [
+                0
+              ],
+              "partition": 0,
+              "partition_count": 1
+            }
+          }
+        },
+        {
+          "mapping": {
+            "0": "sc_node/sc_compute/compute_region/slot_0",
+            "1": "sc_node/sc_compute/compute_region/slot_1"
+          },
+          "route": {
+            "dispatch_deferred": false,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "route_hash": "344a3c344f3de4f02f647e79f882383ce1d727c36c235da3e39ccf9cd29e74f6",
+            "route_metrics": {
+              "ancilla_nodes": 1,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 1
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 0,
+                "path_node_count": 1,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0"
+                ]
+              }
+            ],
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13
+            }
+          },
+          "source": {
+            "batch": 0,
+            "batch_count": 1,
+            "magic_count": 0,
+            "operated_qubits": [
+              0
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition": {
+              "active_qubits": [
+                0
+              ],
+              "layer": 1,
+              "magic_count": 0,
+              "operation_indices": [
+                0
+              ],
+              "partition": 0,
+              "partition_count": 1
+            }
+          }
+        },
+        {
+          "mapping": {
+            "0": "sc_node/sc_compute/compute_region/slot_0",
+            "1": "sc_node/sc_compute/compute_region/slot_1"
+          },
+          "route": {
+            "dispatch_deferred": false,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "route_hash": "a3f84c76218e84321ac4f71c50625aa917e63e2571ad5e64a568ea28712eec80",
+            "route_metrics": {
+              "ancilla_nodes": 5,
+              "groups_per_layer": {
+                "0": 1
+              },
+              "route_steps": 1
+            },
+            "route_steps": [
+              {
+                "group": 0,
+                "kind": "ancilla_tree",
+                "metadata": {
+                  "guard_distance": 0,
+                  "magic_state_slot": null,
+                  "pauli": null,
+                  "terminal_count": 2
+                },
+                "movement_count": 0,
+                "operation_count": 1,
+                "path_edge_count": 4,
+                "path_node_count": 5,
+                "terminal_slots": [
+                  "sc_node/sc_compute/compute_region/slot_0",
+                  "sc_node/sc_compute/compute_region/slot_1"
+                ]
+              }
+            ],
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13
+            }
+          },
+          "source": {
+            "batch": 0,
+            "batch_count": 1,
+            "magic_count": 0,
+            "operated_qubits": [
+              0,
+              1
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition": {
+              "active_qubits": [
+                0,
+                1
+              ],
+              "layer": 2,
+              "magic_count": 0,
+              "operation_indices": [
+                0
+              ],
+              "partition": 0,
+              "partition_count": 1
+            }
+          }
+        },
+        {
+          "mapping": {
+            "0": "sc_node/sc_compute/compute_region/slot_0",
+            "1": "sc_node/sc_compute/compute_region/slot_1"
+          },
+          "route": {
+            "dispatch_deferred": true,
+            "duration_components_s": {
+              "compiler_routing": 0.0,
+              "primitive_service": 1.3e-05
+            },
+            "route_hash": "0a920a7af54eb1567348f63a1a6490f106685f5b7007c9056b8f531471d6144b",
+            "route_metrics": {},
+            "route_steps": [],
+            "syndrome_protocol": {
+              "cycle_time_s": 1e-06,
+              "distance": 13,
+              "distance_code": "surface",
+              "distance_module": "sc_compute",
+              "distance_module_role": "compute",
+              "id": "pbc_lattice_surgery",
+              "provenance": {
+                "assumption": "surface_distance_merged_measurement"
+              },
+              "round_mode": "qec_distance",
+              "rounds": 13
+            }
+          },
+          "source": {
+            "batch": 0,
+            "batch_count": 1,
+            "magic_count": 1,
+            "operated_qubits": [
+              1
+            ],
+            "operation_indices": [
+              0
+            ],
+            "partition": {
+              "active_qubits": [
+                1
+              ],
+              "layer": 3,
+              "magic_count": 1,
+              "operation_indices": [
+                0
+              ],
+              "partition": 0,
+              "partition_count": 1
+            }
+          }
+        }
+      ],
+      "deferred_capacity_mapping": false,
+      "initial_mapping": {
+        "0": "sc_node/sc_compute/compute_region/slot_0",
+        "1": "sc_node/sc_compute/compute_region/slot_1"
+      },
+      "magic_state_consumption": "bulk_wave",
+      "schema_version": "heteqsys.logical-compilation-result.v1",
+      "source": {
+        "architecture_hash": "1fe860dd815dea30818ef10ee31cf903c76ac1752232d606fb3962c79901b7b3",
+        "circuit_hash": "75931e6927ab2b54101d8e5dc93cfac8d785e8de5253ca7364ea612d4e46ad05",
+        "latency_profile_hash": "82e18b0bb464b032eadcd78123dcf65b5f58e026419ad485d34dba2f1cfbbcb0"
+      }
+    }
+  },
+  "report_hash": "6dd5923938a11356b51efe2a8cf24694fd6046ecde9e10d119a43144a4858a43",
+  "request": {
+    "config": {
+      "compiler_spec": {
+        "preset": "canonical"
+      },
+      "evaluation_policy": {
+        "magic_state_consumption": "bulk_wave",
+        "max_events": 10000000,
+        "resource_fill_policy": "greedy_fill_to_capacity",
+        "runtime_injection_mode": "black_box",
+        "seed": 7,
+        "selected_layers": [],
+        "store_load_policy": "dependency_aware_overlap",
+        "trace_level": "summary"
+      },
+      "fidelity_profile": {
+        "preset": "canonical_reference_v1"
+      },
+      "footprint_model": {
+        "preset": "protocol_aware_reference_v1"
+      },
+      "latency_profile": {
+        "bell_pair_arrival": {
+          "initial_delay_s": 0.0,
+          "initial_delay_samples": 0,
+          "kind": "deterministic",
+          "mean_interval_s": 0.001,
+          "repeat_trace": true,
+          "success_probability": 1.0,
+          "trace_intervals_s": []
+        },
+        "compute_protocol_by_modality": {
+          "neutral_atom": "gbc_transversal",
+          "superconducting": "pbc_lattice_surgery"
+        },
+        "gate_duration_s": {
+          "neutral_atom": 0.001,
+          "superconducting": 1e-06
+        },
+        "link_item_s": 0.001,
+        "local_magic_delivery_s": 0.0,
+        "magic_state_arrival": {
+          "initial_delay_s": 0.0,
+          "initial_delay_samples": 0,
+          "kind": "deterministic",
+          "mean_interval_s": 0.001,
+          "repeat_trace": true,
+          "success_probability": 1.0,
+          "trace_intervals_s": []
+        },
+        "neutral_atom_movement": {
+          "aod_count": 4,
+          "provenance": {},
+          "reference_distance_um": 110.0,
+          "reference_move_duration_us": 200.0,
+          "schema_version": "arqsim.neutral-atom-movement-profile.v1",
+          "transfer_duration_us": 8.0,
+          "x_spacing_um": 19.0,
+          "y_spacing_um": 15.0
+        },
+        "provenance": {},
+        "reaction_latency_by_modality_s": {},
+        "store_load_protocol": "bb_surface_transfer",
+        "syndrome_profiles": {
+          "bb_surface_transfer": {
+            "cycle_time_s": 0.001,
+            "distance_module_role": "memory",
+            "provenance": {
+              "assumption": "qldpc_distance_adapter_measurement"
+            },
+            "round_mode": "qec_distance"
+          },
+          "gbc_transversal": {
+            "cycle_time_s": 0.001,
+            "provenance": {
+              "assumption": "one_round_correlated_decoding"
+            },
+            "round_mode": "fixed",
+            "rounds": 1
+          },
+          "pbc_lattice_surgery": {
+            "cycle_time_s": 1e-06,
+            "distance_module_role": "compute",
+            "provenance": {
+              "assumption": "surface_distance_merged_measurement"
+            },
+            "round_mode": "qec_distance"
+          }
+        }
+      },
+      "layout_policy_overrides": {},
+      "profile_id": "1.2",
+      "runtime_components": {
+        "components": {
+          "execution_backend": {
+            "component_hash": "6466bc476c96a0b5f6d8ef297f317a9e092fe881bf317d349ad87041fa04a481",
+            "component_id": "backend.profile.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "timing_source": "candidate_implementation"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "execution_backend",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "outcome_model": {
+            "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
+            "component_id": "outcome.seeded_bernoulli.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "distribution": "independent_bernoulli_half",
+              "seed_identity": "program_work_lineage"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "outcome_model",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "runtime_realizer": {
+            "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
+            "component_id": "runtime_realizer.state_bound.v2",
+            "contract_version": "1",
+            "effective_config": {
+              "binding": "fifo_first_free",
+              "continuation": "finite_injection_recipe_v1",
+              "deferred_program": "joint_magic_route",
+              "deferred_resource": "state_bound_resource_move"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "runtime_realizer",
+            "schema_version": "arqsim.runtime-component.v3"
+          },
+          "scheduler": {
+            "component_hash": "60304b909a42e50cb511ed1cb9eb403744d951476717660580a8ba6247685226",
+            "component_id": "scheduler.program_first_eager.v1",
+            "contract_version": "1",
+            "effective_config": {
+              "program_order": "ascending_instruction_id",
+              "resource_order": "resource_dag_insertion_order"
+            },
+            "implementation_version": "1",
+            "provider": "arqsim",
+            "role": "scheduler",
+            "schema_version": "arqsim.runtime-component.v3"
+          }
+        },
+        "event_engine": {
+          "component_hash": "a653143af6817731cbf56982a48da087fe60ed2a891cc67afe52e0049c26198b",
+          "component_id": "event_engine.transactional_dynamic_frontier.v2",
+          "contract_version": "1",
+          "effective_config": {
+            "commit_granularity": "single_candidate",
+            "continuation_order": "activation_order_then_monotonic_schedule_id",
+            "dispatch": "eager_when_ready",
+            "program_continuations": "finite_injection_recipe_v1",
+            "program_horizon": "stop_without_resource_drain",
+            "resource_fitting": "typed_dispatch_receipt_v1",
+            "timestamp_phases": [
+              "complete_all",
+              "program_plane_first",
+              "same_time_fixed_point",
+              "advance"
+            ]
+          },
+          "implementation_version": "1",
+          "provider": "arqsim",
+          "role": "event_engine",
+          "schema_version": "arqsim.runtime-component.v3"
+        },
+        "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+        "schema_version": "arqsim.runtime-manifest.v3"
+      },
+      "schema_version": "arqsim.evaluation-config.v1",
+      "workflow_id": "report-v2-static-fixture"
+    },
+    "magic_sizing_workload": null,
+    "workload": {
+      "layers": [
+        {
+          "active_qubits": [
+            0
+          ],
+          "index": 0,
+          "operations": [
+            {
+              "classical_bits": [],
+              "kind": "gate",
+              "name": "h",
+              "parameters": [],
+              "qubits": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "active_qubits": [
+            0
+          ],
+          "index": 1,
+          "operations": [
+            {
+              "classical_bits": [],
+              "kind": "gate",
+              "name": "rz",
+              "parameters": [
+                0.39269908169872414
+              ],
+              "qubits": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "active_qubits": [
+            0,
+            1
+          ],
+          "index": 2,
+          "operations": [
+            {
+              "classical_bits": [],
+              "kind": "gate",
+              "name": "cx",
+              "parameters": [],
+              "qubits": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "active_qubits": [
+            1
+          ],
+          "index": 3,
+          "operations": [
+            {
+              "classical_bits": [],
+              "kind": "gate",
+              "name": "t",
+              "parameters": [],
+              "qubits": [
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "num_clbits": 0,
+      "num_qubits": 2,
+      "provenance": {},
+      "representation": "clifford_t",
+      "schema_version": "heteqsys.ft-workload.v2",
+      "semantic_hash": "75931e6927ab2b54101d8e5dc93cfac8d785e8de5253ca7364ea612d4e46ad05"
+    }
+  },
+  "resolved_inputs": {
+    "architecture": {
+      "architecture_hash": "1fe860dd815dea30818ef10ee31cf903c76ac1752232d606fb3962c79901b7b3",
+      "interconnects": [],
+      "nodes": [
+        {
+          "connections": [
+            {
+              "direction": "directed",
+              "endpoints": [
+                "sc_msf/magic_state_output_buffer",
+                "sc_compute/magic_state_input_buffer"
+              ],
+              "id": "sc_magic_bus"
+            }
+          ],
+          "id": "sc_node",
+          "modality": "superconducting",
+          "modules": [
+            {
+              "id": "sc_compute",
+              "submodules": [
+                {
+                  "capacity": 2,
+                  "grid_shape": {
+                    "columns": 3,
+                    "rows": 1
+                  },
+                  "id": "compute_region",
+                  "logical_origin": [
+                    2,
+                    0
+                  ],
+                  "payload": "logical_qubit",
+                  "qec": {
+                    "code": "surface",
+                    "parameters": {
+                      "distance": 13
+                    }
+                  },
+                  "slots": [
+                    {
+                      "coordinate": [
+                        0,
+                        0
+                      ],
+                      "id": "slot_0"
+                    },
+                    {
+                      "coordinate": [
+                        2,
+                        0
+                      ],
+                      "id": "slot_1"
+                    }
+                  ],
+                  "type": "region"
+                },
+                {
+                  "capacity": 1,
+                  "id": "magic_state_input_buffer",
+                  "logical_origin": [
+                    6,
+                    0
+                  ],
+                  "payload": "magic_state",
+                  "qec": {
+                    "code": "surface",
+                    "parameters": {
+                      "distance": 13
+                    }
+                  },
+                  "slots": [
+                    {
+                      "coordinate": [
+                        0,
+                        0
+                      ],
+                      "id": "slot_0"
+                    }
+                  ],
+                  "type": "buffer"
+                }
+              ],
+              "type": "compute"
+            },
+            {
+              "id": "sc_msf",
+              "submodules": [
+                {
+                  "capacity": 1,
+                  "id": "factory_engine",
+                  "payload": "magic_state",
+                  "resource_protocol": {
+                    "id": "cultivation-d5-d15-p1e3",
+                    "profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e"
+                  },
+                  "type": "engine"
+                },
+                {
+                  "capacity": 1,
+                  "id": "magic_state_output_buffer",
+                  "logical_origin": [
+                    8,
+                    0
+                  ],
+                  "payload": "magic_state",
+                  "qec": {
+                    "code": "surface",
+                    "parameters": {
+                      "distance": 13
+                    }
+                  },
+                  "slots": [
+                    {
+                      "coordinate": [
+                        0,
+                        0
+                      ],
+                      "id": "slot_0"
+                    }
+                  ],
+                  "type": "buffer"
+                }
+              ],
+              "type": "resource_factory"
+            }
+          ]
+        }
+      ],
+      "schema_version": "arqsim.architecture-specification.v3"
+    },
+    "fidelity_profile": {
+      "idle_cycle_time_s": {
+        "sc_node/sc_compute": 1e-06
+      },
+      "idle_failure_probability_per_cycle": {
+        "sc_node/sc_compute": 2.645645400004027e-09
+      },
+      "idle_failure_rate_per_s": {},
+      "logical_operation_failure_models": {
+        "m_pauli": {
+          "distance": 13,
+          "kind": "unrotated_surface_ppm_parity",
+          "multi_patch_fit": {
+            "calibrated_distances": [
+              3,
+              5,
+              7
+            ],
+            "calibrated_weights": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              12,
+              16
+            ],
+            "delta_aic_raw_minus_paired": 62.96746601618361,
+            "log10_distance_coefficient": -0.535717275935929,
+            "log10_effective_weight_coefficient": 1.1728480909396906,
+            "log10_intercept": -1.2223865401600522,
+            "r_squared_log_cumulative_hazard": 0.9980585726241805
+          },
+          "weight_one_fit": {
+            "log10_distance_coefficient": -0.5692100384251828,
+            "log10_intercept": -1.0455168530404118,
+            "r_squared_log_cumulative_hazard": 0.9985396293194345,
+            "source_points": [
+              {
+                "distance": 3,
+                "operation_ler": 0.0017166666666666667
+              },
+              {
+                "distance": 5,
+                "operation_ler": 0.00013605442176870748
+              },
+              {
+                "distance": 7,
+                "operation_ler": 8.2e-06
+              }
+            ]
+          }
+        }
+      },
+      "logical_operation_failure_probability": {
+        "cnot": 1.9211980350109168e-08,
+        "cx": 1.9211980350109168e-08,
+        "h": 5.226442749324039e-09,
+        "measure": 3.439338965409607e-08,
+        "s": 1.6580660448155085e-07,
+        "sdg": 1.6580660448155085e-07,
+        "sx": 1.7625948811605952e-07,
+        "t": 3.439338965409607e-08,
+        "t_pauli": 3.439338965409607e-08,
+        "tdg": 3.439338965409607e-08,
+        "x": 0.0,
+        "z": 0.0
+      },
+      "operation_failure_models": {
+        "TELEPORT_QUBITS": {
+          "channels": {
+            "transversal_cnot": 1.9211980350109168e-08
+          },
+          "kind": "independent_channels_per_teleported_item"
+        }
+      },
+      "operation_failure_probability": {
+        "CLASSICAL_REACTION": 0.0,
+        "EXECUTE_COMPUTE": 0.0,
+        "FENCE": 0.0,
+        "LOAD_QUBITS": 2.3e-06,
+        "MOVE_QUBITS": 0.0,
+        "PREPARE_LOGICAL_BELL": 0.0,
+        "PREPARE_MAGIC_STATE": 0.0,
+        "STORE_QUBITS": 2.3e-06
+      },
+      "provenance": {
+        "accounting_scope": {
+          "CLASSICAL_REACTION": "no direct failure term; its elapsed time contributes idle exposure",
+          "EXECUTE_COMPUTE": "direct logical-operation LER plus idle exposure of every logical qubit not active in the realized event",
+          "FENCE": "zero-duration ordering primitive with no direct failure term",
+          "LOAD_QUBITS": "one optimistic failure proxy per realized multi-qubit batch, plus elapsed-time idle exposure",
+          "MOVE_QUBITS": "no separate movement LER; elapsed time contributes idle exposure to qubits not participating in the move",
+          "PREPARE_LOGICAL_BELL": "no direct application failure is charged at production; the selected protocol's output infidelity is charged only when the logical Bell pair lies on a Program-consumption provenance closure",
+          "PREPARE_MAGIC_STATE": "factory output infidelity is charged when the state reaches terminal Program consumption through the backward token provenance closure; unused states are not charged",
+          "STORE_QUBITS": "one optimistic failure proxy per realized multi-qubit batch, plus elapsed-time idle exposure",
+          "TELEPORT_QUBITS": "per teleported item, charge the LightStim transversal-CNOT LER; the consumed logical-Bell token ledger separately charges its selected output infidelity and buffered idle exposure"
+        },
+        "bb_memory": {
+          "block_failure_probability_per_cycle": 2e-12,
+          "code": "[[288,12,18]]",
+          "failure_probability_per_logical_qubit_cycle": 1.6666666666681945e-13,
+          "logical_qubits_per_block": 12,
+          "normalization": "paper p_L is already per syndrome cycle; adapt block survival to the logical-qubit-cycle ledger via 1-(1-p_block)^(1/k)",
+          "physical_error_probability": 0.001,
+          "source": "Bravyi et al., High-threshold and low-overhead fault-tolerant quantum memory",
+          "source_location": "Table 1 and definition of p_L in Section 3",
+          "source_url": "https://arxiv.org/abs/2308.07915",
+          "source_version": "arXiv:2308.07915v2"
+        },
+        "bb_surface_store_load": {
+          "aggregation": "apply once to each realized STORE_QUBITS or LOAD_QUBITS batch, independent of the number of logical qubits in it",
+          "decoder": "Relay-BP",
+          "decoder_parameter_s": 100,
+          "modeling_status": "optimistic batch-level inter-module proxy; Table 3 measures one X1X1 operation and does not calibrate multi-qubit batch scaling or the [[288,12,18]] BB-to-surface-code adapter",
+          "physical_error_probability": 0.001,
+          "reported_low_mean_high": [
+            2.3e-06,
+            2.8e-06,
+            3.2e-06
+          ],
+          "selected_failure_probability": 2.3e-06,
+          "selected_statistic": "low endpoint of reported 95% CI",
+          "source": "Wills et al., Concatenating Algebraic Codes over High-Rate Quantum LDPC Codes",
+          "source_circuit": "inter-module X1X1 logical measurement between adjacent [[144,12,12]] gross-code modules",
+          "source_location": "Table 3",
+          "source_url": "https://arxiv.org/abs/2605.21898",
+          "source_version": "arXiv:2605.21898v2"
+        },
+        "calibration_status": "reference_evaluation_v1_mixed_simulation_and_literature",
+        "logical_bell_operations": {
+          "aggregation": "Bell output infidelity is charged once by token identity; TELEPORT_QUBITS independently carries the transversal-CNOT operation channel",
+          "assumptions": {},
+          "factory_family": null,
+          "factory_output_failure_probability": 0.0,
+          "factory_profile": null,
+          "idling_scope": "no additional cross-modality idling/syndrome channel is folded into TELEPORT_QUBITS; the trace still accounts ordinary idle exposure of non-participating program qubits",
+          "protocol_profile_hash": null,
+          "source": {},
+          "teleport_proxy": "LightStim unrotated-surface-code transversal CNOT",
+          "teleport_proxy_failure_probability": 1.9211980350109168e-08
+        },
+        "magic_state_operations": {
+          "accounting": "factory output is charged once by the Program-reachable resource ledger; the T-family logical-operation entry contains only the fixed consumption proxy",
+          "combination": "1-(1-p_factory_output)*(1-p_consumption_proxy)",
+          "combined_failure_probability": 3.636230239134619e-08,
+          "consumption_proxy": "corrected_surface_d13_13_cycle_memory_failure",
+          "consumption_proxy_failure_probability": 3.439338965409607e-08,
+          "factory_output_failure_probability": 1.9689128369672686e-09,
+          "factory_profile": "cultivation-d5-d15-p1e3",
+          "protocol_profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e",
+          "status": "separate_resource_output_and_consumption_proxy"
+        },
+        "physical_error_probability": 0.001,
+        "surface_logical_operations": {
+          "fits": {
+            "cnot": {
+              "aggregation": "mean over five initial/measurement subexperiments",
+              "log10_intercept": -1.3401046083984722,
+              "log10_slope": -0.4904864044483076,
+              "protocol": "transversal_cnot",
+              "r_squared": 0.9995127006761091,
+              "source_points": [
+                {
+                  "distance": 3,
+                  "operation_ler": 0.00158833333333332
+                },
+                {
+                  "distance": 5,
+                  "operation_ler": 0.00015221323822911997
+                },
+                {
+                  "distance": 7,
+                  "operation_ler": 1.733788158495141e-05
+                }
+              ]
+            },
+            "h": {
+              "aggregation": "mean over H_ZtoX and H_XtoZ at each distance",
+              "log10_intercept": -1.4319932357329686,
+              "log10_slope": -0.5269077359068703,
+              "protocol": "fold_transversal_h",
+              "r_squared": 0.994115572324686,
+              "source_points": [
+                {
+                  "distance": 3,
+                  "operation_ler": 0.00108166666666665
+                },
+                {
+                  "distance": 5,
+                  "operation_ler": 6.915893630179344e-05
+                },
+                {
+                  "distance": 7,
+                  "operation_ler": 8.442333472172151e-06
+                }
+              ]
+            },
+            "s": {
+              "aggregation": "direct S_oneway LER",
+              "log10_intercept": -1.6069215178341625,
+              "log10_slope": -0.3979597428152572,
+              "protocol": "fold_transversal_s_oneway",
+              "r_squared": 0.9602161984579384,
+              "source_points": [
+                {
+                  "distance": 3,
+                  "operation_ler": 0.0019621621621621
+                },
+                {
+                  "distance": 5,
+                  "operation_ler": 0.0001645161290322
+                },
+                {
+                  "distance": 7,
+                  "operation_ler": 5.022222222222222e-05
+                }
+              ]
+            }
+          },
+          "formula": "log10(p_operation) = slope * distance + intercept",
+          "normalization": "no per-cycle division for operation LER",
+          "operation_scope": "complete two-SE-round logical protocol",
+          "pauli_frame": {
+            "x": "free Pauli-frame update; zero direct LER",
+            "z": "free Pauli-frame update; zero direct LER"
+          },
+          "physical_error_probability": 0.001,
+          "source": "LightStim paper-artifact circuit-level logical-operation experiments on the unrotated surface code",
+          "source_files": {
+            "cnot": "Research/LightStim/paper_artifact/logical_ops/precomputed/fig3_cnot_trans.csv",
+            "h": "Research/LightStim/paper_artifact/logical_ops/precomputed/fig4_h.csv",
+            "s": "Research/LightStim/paper_artifact/logical_ops/precomputed/fig5_s.csv"
+          },
+          "sx": {
+            "combination": "1-(1-p_H)^2*(1-p_S)",
+            "decomposition": "H-S-H up to global phase",
+            "failure_probability": 1.7625948811605952e-07,
+            "status": "compiler-decomposition surrogate, not direct calibration"
+          }
+        },
+        "surface_memory": {
+          "formula": "log10(p_idle_per_cycle) = slope * distance + intercept",
+          "log10_intercept": -1.9183922281958368,
+          "log10_slope": -0.5122366259401231,
+          "normalization": "experiment_ler / rounds before fitting",
+          "physical_error_probability": 0.001,
+          "r_squared": 0.9996354509980524,
+          "source": "LightStim paper-artifact circuit-level rotated-SC Z-memory",
+          "source_file": "Research/LightStim/paper_artifact/memory/precomputed/fig1_surface_codes.csv",
+          "source_points": [
+            {
+              "distance": 3,
+              "experiment_ler": 0.001025,
+              "rounds": 3
+            },
+            {
+              "distance": 5,
+              "experiment_ler": 0.0001745762711864,
+              "rounds": 5
+            },
+            {
+              "distance": 7,
+              "experiment_ler": 2.1367521367521368e-05,
+              "rounds": 7
+            }
+          ]
+        },
+        "surface_ppm": {
+          "configuration": "heteqsys/operation_profiles/fidelity_profiles/unrotated_surface_ppm_p1e3.yaml",
+          "extrapolation_notice": "Only d in {3,5,7} and w in {2,3,4,5,6,7,8,12,16} were directly simulated",
+          "fit": {
+            "calibrated_distances": [
+              3,
+              5,
+              7
+            ],
+            "calibrated_weights": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              12,
+              16
+            ],
+            "delta_aic_raw_minus_paired": 62.96746601618361,
+            "log10_distance_coefficient": -0.535717275935929,
+            "log10_effective_weight_coefficient": 1.1728480909396906,
+            "log10_intercept": -1.2223865401600522,
+            "r_squared_log_cumulative_hazard": 0.9980585726241805
+          },
+          "formula": "p=1-exp(-10^(a*d+b*log10(2*ceil(w/2))+c)), w>=2",
+          "layout": "canonical alternating left/right vertical corridor",
+          "metric": "XOR of decoded logical-Z residuals (PPM parity)",
+          "physical_error_probability": 0.001,
+          "source": "LightStim circuit-level unrotated-SC multi-patch Z-product experiment",
+          "source_data": "Research/LightStim/benchmarks/logical_ops/results/multi_patch_ppm_results.csv",
+          "source_fit": "Research/LightStim/benchmarks/logical_ops/results/multi_patch_ppm_fit_p1e-3.json",
+          "source_notebook": "Research/LightStim/notebooks/LogicalOps/multi_patch_LS.ipynb",
+          "weight_one_control": {
+            "log10_distance_coefficient": -0.5692100384251828,
+            "log10_intercept": -1.0455168530404118,
+            "r_squared_log_cumulative_hazard": 0.9985396293194345,
+            "source_points": [
+              {
+                "distance": 3,
+                "operation_ler": 0.0017166666666666667
+              },
+              {
+                "distance": 5,
+                "operation_ler": 0.00013605442176870748
+              },
+              {
+                "distance": 7,
+                "operation_ler": 8.2e-06
+              }
+            ]
+          }
+        }
+      },
+      "resource_state_models": {
+        "magic_state": {
+          "buffer_idle_models": {
+            "sc_node/sc_compute/magic_state_input_buffer": {
+              "idle_cycle_time_s": 1e-06,
+              "idle_failure_probability_per_cycle": 2.645645400004027e-09,
+              "location": "sc_node/sc_compute/magic_state_input_buffer",
+              "logical_qubits_per_token": 1,
+              "owner_kind": "node",
+              "qec_code": "surface",
+              "qec_parameters": {
+                "distance": 13
+              }
+            },
+            "sc_node/sc_msf/magic_state_output_buffer": {
+              "idle_cycle_time_s": 1e-06,
+              "idle_failure_probability_per_cycle": 2.645645400004027e-09,
+              "location": "sc_node/sc_msf/magic_state_output_buffer",
+              "logical_qubits_per_token": 1,
+              "owner_kind": "node",
+              "qec_code": "surface",
+              "qec_parameters": {
+                "distance": 13
+              }
+            }
+          },
+          "output_failure_probability": 1.9689128369672686e-09,
+          "protocol_id": "cultivation-d5-d15-p1e3",
+          "protocol_profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e",
+          "resource_kind": "magic_state"
+        }
+      }
+    },
+    "footprint_model": {
+      "bb_code_qubit_multiplier": {
+        "neutral_atom": 2.0,
+        "superconducting": 2.0
+      },
+      "bb_controller_qubits_per_block": {
+        "neutral_atom": 158.0,
+        "superconducting": 158.0
+      },
+      "factory_qubits_per_copy": {
+        "neutral_atom": 463.0,
+        "superconducting": 463.0
+      },
+      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "model_id": "reference-space-v1",
+      "provenance": {
+        "bb_rule": "ceil(logical_patches/k) * (2*n + 158)",
+        "factory_rule": "pinned QEC resource protocol; legacy model field is consistency-checked for report-v1 codec parity",
+        "kind": "legacy_compatibility",
+        "source": "heteqsys.evaluation.footprint.estimate_physical_footprint",
+        "surface_rule": "(2*d^2 - 1) with modality multiplier"
+      },
+      "schema_version": "heteqsys.physical-footprint-model.v1",
+      "surface_capacity_multiplier": {
+        "communication_qubits": 1.0,
+        "logical_bell_pairs": 1.0,
+        "logical_magic_states": 1.0,
+        "logical_patches": 1.0
+      },
+      "surface_modality_multiplier": {
+        "neutral_atom": 1.0,
+        "superconducting": 4.0
+      },
+      "surface_patch_coefficient": 2.0
+    },
+    "latency_profile": {
+      "bell_pair_arrival": {
+        "initial_delay_s": 0.0,
+        "initial_delay_samples": 0,
+        "kind": "deterministic",
+        "mean_interval_s": 0.001,
+        "repeat_trace": true,
+        "success_probability": 1.0,
+        "trace_intervals_s": []
+      },
+      "compute_protocol_by_modality": {
+        "neutral_atom": "gbc_transversal",
+        "superconducting": "pbc_lattice_surgery"
+      },
+      "gate_duration_s": {
+        "neutral_atom": 0.001,
+        "superconducting": 1e-06
+      },
+      "link_item_s": 0.001,
+      "local_magic_delivery_s": 0.0,
+      "magic_state_arrival": {
+        "initial_delay_s": 0.0,
+        "initial_delay_samples": 0,
+        "kind": "deterministic",
+        "mean_interval_s": 0.001,
+        "repeat_trace": true,
+        "success_probability": 1.0,
+        "trace_intervals_s": []
+      },
+      "neutral_atom_movement": {
+        "aod_count": 4,
+        "provenance": {},
+        "reference_distance_um": 110.0,
+        "reference_move_duration_us": 200.0,
+        "schema_version": "arqsim.neutral-atom-movement-profile.v1",
+        "transfer_duration_us": 8.0,
+        "x_spacing_um": 19.0,
+        "y_spacing_um": 15.0
+      },
+      "provenance": {
+        "resource_arrival_sources": {
+          "magic_state": "explicit_arrival_override"
+        },
+        "resource_protocol_bindings_hash": "4c27b59bd1e054bd1677849386651cea78b4708e4096d15f59fc6a0d4829517d"
+      },
+      "reaction_latency_by_modality_s": {},
+      "store_load_protocol": "bb_surface_transfer",
+      "syndrome_profiles": {
+        "bb_surface_transfer": {
+          "cycle_time_s": 0.001,
+          "distance_module_role": "memory",
+          "provenance": {
+            "assumption": "qldpc_distance_adapter_measurement"
+          },
+          "round_mode": "qec_distance"
+        },
+        "gbc_transversal": {
+          "cycle_time_s": 0.001,
+          "provenance": {
+            "assumption": "one_round_correlated_decoding"
+          },
+          "round_mode": "fixed",
+          "rounds": 1
+        },
+        "pbc_lattice_surgery": {
+          "cycle_time_s": 1e-06,
+          "distance_module_role": "compute",
+          "provenance": {
+            "assumption": "surface_distance_merged_measurement"
+          },
+          "round_mode": "qec_distance"
+        }
+      }
+    }
+  },
+  "results": {
+    "analysis": {
+      "buffer_occupancy": null,
+      "engine_utilization": {
+        "compute:sc_node/sc_compute": 0.05068226120857699,
+        "msf:sc_node/sc_msf": 1.0,
+        "resource_move": 0.01267056530214424
+      },
+      "exclusive_time_s": null,
+      "fidelity_negative_log_success": {
+        "idle_compute": 5.2568974167619455e-06,
+        "non_clifford_operations": 3.439339024554871e-08,
+        "resource_magic_state_output": 1.9689128389055774e-09,
+        "single_qubit_clifford": 5.226442762981891e-09,
+        "two_qubit_clifford": 1.9211980534659264e-08
+      },
+      "physical_space_qubits": {
+        "compute": 2696.0,
+        "magic_input_buffer": 1348.0,
+        "magic_output_buffer": 1348.0,
+        "magic_state_factory": 463.0
+      },
+      "unavailable": {
+        "buffer_occupancy": "The selected trace level does not retain the discrete-time log required for causal attribution.",
+        "exclusive_time_s": "The selected trace level does not retain the discrete-time log required for causal attribution."
+      }
+    },
+    "fidelity": {
+      "architecture_operation_counts": {
+        "EXECUTE_COMPUTE": 4,
+        "FENCE": 4,
+        "MOVE_QUBITS": 1,
+        "PREPARE_MAGIC_STATE": 1
+      },
+      "complete_coverage": false,
+      "consumed_resource_counts": {
+        "magic_state": 1
+      },
+      "failure_probability": 5.317684004246814e-06,
+      "idle_cycles_by_location": {
+        "sc_node/sc_compute": 1987.0000000000002
+      },
+      "log_success_by_idle_location": {
+        "sc_node/sc_compute": -5.2568974167619455e-06
+      },
+      "log_success_by_logical_operation": {
+        "cx": -1.9211980534659264e-08,
+        "h": -5.226442762981891e-09,
+        "t": -3.439339024554871e-08
+      },
+      "log_success_by_operation": {},
+      "log_success_by_resource_idle_location": {},
+      "log_success_by_resource_output": {
+        "magic_state": -1.9689128389055774e-09
+      },
+      "logical_operation_counts": {
+        "cx": 1,
+        "h": 1,
+        "rz": 1,
+        "t": 1
+      },
+      "profile_hash": "115ef1bdfe0f826319cd4698c2d939729c2fb9a2d7176f9ebe2c5b0242e8139b",
+      "resource_idle_cycles_by_location": {},
+      "success_probability": 0.9999946823159958,
+      "unprofiled_idle_exposure_s": {},
+      "unprofiled_logical_operation_counts": {
+        "rz": 1
+      },
+      "unprofiled_operation_counts": {},
+      "unprofiled_resource_idle_exposure_s": {},
+      "unprofiled_resource_output_counts": {}
+    },
+    "footprint": {
+      "architecture_hash": "1fe860dd815dea30818ef10ee31cf903c76ac1752232d606fb3962c79901b7b3",
+      "checks": {
+        "all_capacity_entries_accounted": true,
+        "all_component_costs_non_negative": true,
+        "component_keys_unique": true,
+        "finite_positive_total": true
+      },
+      "components": [
+        {
+          "capacity": 2.0,
+          "details": {
+            "base_patch_physical_qubits": 337.0,
+            "capacity_unit": "logical_patches",
+            "distance": 13.0,
+            "physical_qubits_per_unit": 1348.0
+          },
+          "modality": "superconducting",
+          "module": "sc_compute",
+          "module_type": "compute",
+          "owner": "sc_node",
+          "payload": "logical_qubit",
+          "physical_qubits": 2696.0,
+          "qec_code": "surface",
+          "rule": "surface_patch",
+          "submodule": "compute_region",
+          "submodule_type": "region"
+        },
+        {
+          "capacity": 1.0,
+          "details": {
+            "base_patch_physical_qubits": 337.0,
+            "capacity_unit": "logical_magic_states",
+            "distance": 13.0,
+            "physical_qubits_per_unit": 1348.0
+          },
+          "modality": "superconducting",
+          "module": "sc_compute",
+          "module_type": "compute",
+          "owner": "sc_node",
+          "payload": "magic_state",
+          "physical_qubits": 1348.0,
+          "qec_code": "surface",
+          "rule": "surface_patch",
+          "submodule": "magic_state_input_buffer",
+          "submodule_type": "buffer"
+        },
+        {
+          "capacity": 1.0,
+          "details": {
+            "capacity_unit": "copies",
+            "physical_qubits_per_copy": 463,
+            "physical_qubits_source": "pinned_qec_resource_protocol",
+            "protocol": "cultivation-d5-d15-p1e3",
+            "protocol_profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e"
+          },
+          "modality": "superconducting",
+          "module": "sc_msf",
+          "module_type": "resource_factory",
+          "owner": "sc_node",
+          "payload": "magic_state",
+          "physical_qubits": 463.0,
+          "qec_code": null,
+          "rule": "factory_copy",
+          "submodule": "factory_engine",
+          "submodule_type": "engine"
+        },
+        {
+          "capacity": 1.0,
+          "details": {
+            "base_patch_physical_qubits": 337.0,
+            "capacity_unit": "logical_magic_states",
+            "distance": 13.0,
+            "physical_qubits_per_unit": 1348.0
+          },
+          "modality": "superconducting",
+          "module": "sc_msf",
+          "module_type": "resource_factory",
+          "owner": "sc_node",
+          "payload": "magic_state",
+          "physical_qubits": 1348.0,
+          "qec_code": "surface",
+          "rule": "surface_patch",
+          "submodule": "magic_state_output_buffer",
+          "submodule_type": "buffer"
+        }
+      ],
+      "estimate_hash": "5140369b8aea0f543eb28564bb0f2f6be7262e752fdc2b3237720efb2363195b",
+      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "model_id": "reference-space-v1",
+      "schema_version": "arqsim.physical-footprint-estimate.v2",
+      "total_physical_qubits": 5855.0
+    },
+    "observations": {
+      "discrete_time_log": []
+    },
+    "summary": {
+      "completed_program_instructions": 8,
+      "event_count": 10,
+      "fidelity_complete_coverage": false,
+      "invariant_checks": {
+        "active_reservations_account_for_engine_usage": true,
+        "active_reservations_account_for_output_slots": true,
+        "active_reservations_match_running_events": true,
+        "all_program_instructions_completed": true,
+        "buffer_capacities_respected": true,
+        "buffer_slots_consistent": true,
+        "engine_capacities_respected": true,
+        "nonnegative_latency": true,
+        "pending_output_slots_consistent": true,
+        "pending_outputs_nonnegative": true,
+        "qubit_exposure_conflict_free": true,
+        "qubit_exposure_time_conserved": true,
+        "token_locations_consistent": true,
+        "transaction_versions_consistent": true
+      },
+      "success_probability": 0.9999946823159958,
+      "total_latency_s": 0.001026,
+      "total_physical_qubits": 5855.0
+    }
+  },
+  "schema_version": "arqsim.evaluation-report.v2",
+  "workflow_id": "report-v2-static-fixture"
+}

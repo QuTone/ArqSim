@@ -1,0 +1,651 @@
+{
+  "architecture": {
+    "interconnects": [],
+    "nodes": [
+      {
+        "connections": [
+          {
+            "direction": "directed",
+            "endpoints": [
+              "sc_msf/magic_state_output_buffer",
+              "sc_compute/magic_state_input_buffer"
+            ],
+            "id": "sc_magic_bus",
+            "payload": "magic_state"
+          }
+        ],
+        "id": "sc_node",
+        "modality": "superconducting",
+        "modules": [
+          {
+            "id": "sc_compute",
+            "submodules": [
+              {
+                "capacity": {
+                  "logical_patches": 4
+                },
+                "id": "compute_region",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "sc_node/sc_compute/compute_region/slot_0",
+                    "logical_coordinate": [
+                      2,
+                      0
+                    ]
+                  },
+                  {
+                    "id": "sc_node/sc_compute/compute_region/slot_1",
+                    "logical_coordinate": [
+                      4,
+                      0
+                    ]
+                  },
+                  {
+                    "id": "sc_node/sc_compute/compute_region/slot_2",
+                    "logical_coordinate": [
+                      2,
+                      2
+                    ]
+                  },
+                  {
+                    "id": "sc_node/sc_compute/compute_region/slot_3",
+                    "logical_coordinate": [
+                      4,
+                      2
+                    ]
+                  }
+                ],
+                "type": "region"
+              },
+              {
+                "capacity": {
+                  "logical_magic_states": 1
+                },
+                "id": "magic_state_input_buffer",
+                "payload": "magic_state",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "sc_node/sc_compute/magic_state_input_buffer/slot_0",
+                    "logical_coordinate": [
+                      6,
+                      0
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "compute"
+          },
+          {
+            "id": "sc_msf",
+            "submodules": [
+              {
+                "capacity": {
+                  "copies": 1
+                },
+                "id": "factory_engine",
+                "payload": "magic_state",
+                "resource_protocol": {
+                  "id": "cultivation-d5-d15-p1e3"
+                },
+                "type": "engine"
+              },
+              {
+                "capacity": {
+                  "logical_magic_states": 1
+                },
+                "id": "magic_state_output_buffer",
+                "payload": "magic_state",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "sc_node/sc_msf/magic_state_output_buffer/slot_0",
+                    "logical_coordinate": [
+                      8,
+                      0
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "resource_factory"
+          }
+        ]
+      }
+    ],
+    "profile_id": "1.2",
+    "resource_protocols": [
+      {
+        "copies": 1,
+        "outputs_per_copy_per_batch": 1,
+        "protocol_id": "cultivation-d5-d15-p1e3",
+        "resource_kind": "magic_state"
+      }
+    ],
+    "workload": {
+      "logical_qubits": 4
+    }
+  },
+  "case_id": "six-profile-clifford-t",
+  "execution": {
+    "compiler": {
+      "mapping_backend": "row_major_checkerboard_sc",
+      "routing_backend": "greedy_steiner_sc"
+    },
+    "plan": {
+      "buffers": [
+        {
+          "capacity": 1,
+          "id": "magic_compute",
+          "owner": {
+            "module": "sc_node/sc_compute",
+            "submodule": "sc_node/sc_compute/magic_state_input_buffer"
+          },
+          "slots": [
+            "sc_node/sc_compute/magic_state_input_buffer/slot_0"
+          ],
+          "token_kind": "magic_state"
+        },
+        {
+          "capacity": 1,
+          "id": "msf_output",
+          "owner": {
+            "module": "sc_node/sc_msf",
+            "submodule": "sc_node/sc_msf/magic_state_output_buffer"
+          },
+          "slots": [
+            "sc_node/sc_msf/magic_state_output_buffer/slot_0"
+          ],
+          "token_kind": "magic_state"
+        }
+      ],
+      "engines": [
+        {
+          "capacity": 1,
+          "id": "compute:sc_node/sc_compute",
+          "owner": {
+            "module": "sc_node/sc_compute",
+            "submodule": "sc_node/sc_compute/compute_region"
+          }
+        },
+        {
+          "capacity": 1,
+          "id": "msf:sc_node/sc_msf",
+          "owner": {
+            "module": "sc_node/sc_msf",
+            "submodule": "sc_node/sc_msf/factory_engine"
+          }
+        },
+        {
+          "capacity": 1,
+          "id": "resource_move",
+          "owner": {
+            "module": "sc_node/sc_msf",
+            "submodule": null
+          }
+        }
+      ],
+      "program": [
+        {
+          "consumes": {},
+          "duration_s": 2.6e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [],
+          "produces": {},
+          "signature": "L0:EXECUTE_COMPUTE:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "sc_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L0:EXECUTE_COMPUTE:q0,1"
+          ],
+          "produces": {},
+          "signature": "L0:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {
+            "magic_compute": 1
+          },
+          "duration_s": 1.3e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L0:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L1:EXECUTE_COMPUTE:q0",
+          "target_links": [],
+          "target_modules": [
+            "sc_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L1:EXECUTE_COMPUTE:q0"
+          ],
+          "produces": {},
+          "signature": "L1:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 1.3e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L1:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L2:EXECUTE_COMPUTE:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "sc_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L2:EXECUTE_COMPUTE:q0,1"
+          ],
+          "produces": {},
+          "signature": "L2:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 2.6e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L2:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L3:EXECUTE_COMPUTE:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "sc_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L3:EXECUTE_COMPUTE:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {
+            "magic_compute": 1
+          },
+          "duration_s": 1.3e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L3:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L4:EXECUTE_COMPUTE:q2",
+          "target_links": [],
+          "target_modules": [
+            "sc_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L4:EXECUTE_COMPUTE:q2"
+          ],
+          "produces": {},
+          "signature": "L4:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 1.3e-05,
+          "engines": {
+            "compute:sc_node/sc_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L4:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L5:EXECUTE_COMPUTE:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "sc_node/sc_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L5:EXECUTE_COMPUTE:q2,3"
+          ],
+          "produces": {},
+          "signature": "L5:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        }
+      ],
+      "program_opcode_counts": {
+        "EXECUTE_COMPUTE": 6,
+        "FENCE": 6
+      },
+      "resource_processes": [
+        {
+          "arrival_distribution": {
+            "initial_delay_s": 0.0,
+            "initial_delay_samples": 0,
+            "kind": "deterministic",
+            "mean_interval_s": 0.001,
+            "repeat_trace": true,
+            "success_probability": 1.0,
+            "trace_intervals_s": []
+          },
+          "consumes": {},
+          "dispatch_policy": "single",
+          "duration_s": 0.0,
+          "engines": {
+            "msf:sc_node/sc_msf": 1
+          },
+          "forwards": {},
+          "id": "prepare_magic",
+          "opcode": "PREPARE_MAGIC_STATE",
+          "output_overflow_policy": "discard_excess",
+          "parallelism": 1,
+          "produces": {
+            "msf_output": 1
+          },
+          "protocol": "cultivation-d5-d15-p1e3",
+          "target_links": [],
+          "target_modules": [
+            "sc_node/sc_msf"
+          ]
+        },
+        {
+          "arrival_distribution": null,
+          "consumes": {
+            "msf_output": 1
+          },
+          "dispatch_policy": "eager_available",
+          "duration_s": 0.0,
+          "engines": {
+            "resource_move": 1
+          },
+          "forwards": {
+            "msf_output": "magic_compute"
+          },
+          "id": "deliver_magic_local",
+          "opcode": "MOVE_QUBITS",
+          "output_overflow_policy": "block",
+          "parallelism": 1,
+          "produces": {
+            "magic_compute": 1
+          },
+          "protocol": "local_magic_delivery",
+          "target_links": [],
+          "target_modules": [
+            "sc_node/sc_compute",
+            "sc_node/sc_msf"
+          ]
+        }
+      ]
+    },
+    "trace": {
+      "all_invariants_hold": true,
+      "buffer_peaks": {
+        "magic_compute": 1,
+        "msf_output": 1
+      },
+      "buffer_tokens_consumed": {
+        "magic_compute": 2,
+        "msf_output": 2
+      },
+      "buffer_tokens_produced": {
+        "magic_compute": 2,
+        "msf_output": 2
+      },
+      "completed_opcode_counts": {
+        "EXECUTE_COMPUTE": 6,
+        "FENCE": 6,
+        "MOVE_QUBITS": 2,
+        "PREPARE_MAGIC_STATE": 2
+      },
+      "completed_program_instructions": 12,
+      "completed_work_s_by_opcode": {
+        "EXECUTE_COMPUTE": 0.00010399999999999994,
+        "FENCE": 0.0,
+        "MOVE_QUBITS": 2.599999999999998e-05,
+        "PREPARE_MAGIC_STATE": 0.002
+      },
+      "completion_schedule": [
+        {
+          "duration_s": 2.6e-05,
+          "end_s": 2.6e-05,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L0:EXECUTE_COMPUTE:q0,1",
+          "plane": "program",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.001,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 2.6e-05,
+          "opcode": "FENCE",
+          "operation": "L0:FENCE:q-",
+          "plane": "program",
+          "start_s": 2.6e-05
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.001013,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.001
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.002,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.001
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.001026,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L1:EXECUTE_COMPUTE:q0",
+          "plane": "program",
+          "start_s": 0.001013
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.001026,
+          "opcode": "FENCE",
+          "operation": "L1:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.001026
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.001039,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L2:EXECUTE_COMPUTE:q0,1",
+          "plane": "program",
+          "start_s": 0.001026
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.001039,
+          "opcode": "FENCE",
+          "operation": "L2:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.001039
+        },
+        {
+          "duration_s": 2.599999999999998e-05,
+          "end_s": 0.001065,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L3:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
+          "start_s": 0.001039
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.001065,
+          "opcode": "FENCE",
+          "operation": "L3:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.001065
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.002013,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.002
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.002026,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L4:EXECUTE_COMPUTE:q2",
+          "plane": "program",
+          "start_s": 0.002013
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.002026,
+          "opcode": "FENCE",
+          "operation": "L4:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.002026
+        },
+        {
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.002039,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L5:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
+          "start_s": 0.002026
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.002039,
+          "opcode": "FENCE",
+          "operation": "L5:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.002039
+        }
+      ],
+      "inflight_resource_events_at_program_completion": 1,
+      "producer_blocked_s": {
+        "deliver_magic_local": 0.0,
+        "prepare_magic": 0.0
+      },
+      "program_state_blocked_s": 0.001935,
+      "resource_items_started": {
+        "deliver_magic_local": 2,
+        "prepare_magic": 3
+      },
+      "terminal_buffer_tokens": {
+        "magic_compute": [],
+        "msf_output": []
+      },
+      "total_latency_s": 0.002039
+    }
+  },
+  "results": {
+    "footprint": {
+      "bell_endpoint_components": [],
+      "interconnects": [],
+      "model_id": "reference-space-v1",
+      "total_physical_qubits": 8551.0
+    }
+  },
+  "schema_version": "arqsim.architecture-semantic-oracle.v1"
+}

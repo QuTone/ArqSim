@@ -1,0 +1,35 @@
+schema_version: arqsim.architecture-profile.v3
+id: "1.1"
+name: NA-CF
+description: Homogeneous neutral-atom system with colocated compute and magic-state supply.
+
+nodes:
+  na_node:
+    modality: neutral_atom
+    modules:
+      na_compute:
+        type: compute
+        submodules:
+          compute_region:
+            type: region
+            payload: logical_qubit
+          magic_state_input_buffer:
+            type: buffer
+            payload: magic_state
+      na_msf:
+        type: resource_factory
+        submodules:
+          factory_engine:
+            type: engine
+            payload: magic_state
+          magic_state_output_buffer:
+            type: buffer
+            payload: magic_state
+    connections:
+      na_magic_bus:
+        direction: directed
+        endpoints:
+          - na_msf/magic_state_output_buffer
+          - na_compute/magic_state_input_buffer
+
+interconnects: {}

@@ -1,0 +1,864 @@
+{
+  "architecture": {
+    "interconnects": [],
+    "nodes": [
+      {
+        "connections": [
+          {
+            "direction": "directed",
+            "endpoints": [
+              "na_msf/magic_state_output_buffer",
+              "na_compute/magic_state_input_buffer"
+            ],
+            "id": "na_magic_bus",
+            "payload": "magic_state"
+          },
+          {
+            "direction": "bidirectional",
+            "endpoints": [
+              "na_compute/store_load_buffer",
+              "na_memory/memory_region"
+            ],
+            "id": "na_memory_compute_bus",
+            "payload": "logical_qubit"
+          }
+        ],
+        "id": "na_node",
+        "modality": "neutral_atom",
+        "modules": [
+          {
+            "id": "na_compute",
+            "submodules": [
+              {
+                "capacity": {
+                  "logical_patches": 2
+                },
+                "id": "compute_region",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "na_node/na_compute/compute_region/slot_0",
+                    "logical_coordinate": [
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "id": "na_node/na_compute/compute_region/slot_1",
+                    "logical_coordinate": [
+                      1,
+                      0
+                    ]
+                  }
+                ],
+                "type": "region"
+              },
+              {
+                "capacity": {
+                  "logical_magic_states": 1
+                },
+                "id": "magic_state_input_buffer",
+                "payload": "magic_state",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "na_node/na_compute/magic_state_input_buffer/slot_0",
+                    "logical_coordinate": [
+                      3,
+                      0
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              },
+              {
+                "capacity": {
+                  "logical_patches": 2
+                },
+                "id": "store_load_buffer",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "na_node/na_compute/store_load_buffer/slot_0",
+                    "logical_coordinate": [
+                      -3,
+                      0
+                    ]
+                  },
+                  {
+                    "id": "na_node/na_compute/store_load_buffer/slot_1",
+                    "logical_coordinate": [
+                      -2,
+                      0
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "compute"
+          },
+          {
+            "id": "na_memory",
+            "submodules": [
+              {
+                "capacity": {
+                  "logical_patches": 2
+                },
+                "id": "memory_region",
+                "payload": "logical_qubit",
+                "qec": {
+                  "code": "bb",
+                  "parameters": {
+                    "distance": 18,
+                    "k": 12,
+                    "n": 288
+                  }
+                },
+                "slot_semantics": "identity_only",
+                "slots": [
+                  {
+                    "id": "na_node/na_memory/memory_region/slot_0"
+                  },
+                  {
+                    "id": "na_node/na_memory/memory_region/slot_1"
+                  }
+                ],
+                "type": "region"
+              }
+            ],
+            "type": "memory"
+          },
+          {
+            "id": "na_msf",
+            "submodules": [
+              {
+                "capacity": {
+                  "copies": 1
+                },
+                "id": "factory_engine",
+                "payload": "magic_state",
+                "resource_protocol": {
+                  "id": "cultivation-d5-d15-p1e3"
+                },
+                "type": "engine"
+              },
+              {
+                "capacity": {
+                  "logical_magic_states": 1
+                },
+                "id": "magic_state_output_buffer",
+                "payload": "magic_state",
+                "qec": {
+                  "code": "surface",
+                  "parameters": {
+                    "distance": 13
+                  }
+                },
+                "slots": [
+                  {
+                    "id": "na_node/na_msf/magic_state_output_buffer/slot_0",
+                    "logical_coordinate": [
+                      200,
+                      40
+                    ]
+                  }
+                ],
+                "type": "buffer"
+              }
+            ],
+            "type": "resource_factory"
+          }
+        ]
+      }
+    ],
+    "profile_id": "2.1",
+    "resource_protocols": [
+      {
+        "copies": 1,
+        "outputs_per_copy_per_batch": 1,
+        "protocol_id": "cultivation-d5-d15-p1e3",
+        "resource_kind": "magic_state"
+      }
+    ],
+    "workload": {
+      "logical_qubits": 4
+    }
+  },
+  "case_id": "six-profile-clifford-t",
+  "execution": {
+    "compiler": {
+      "mapping_backend": "sabre_na",
+      "routing_backend": "powermove_na"
+    },
+    "plan": {
+      "buffers": [
+        {
+          "capacity": 1,
+          "id": "magic_compute",
+          "owner": {
+            "module": "na_node/na_compute",
+            "submodule": "na_node/na_compute/magic_state_input_buffer"
+          },
+          "slots": [
+            "na_node/na_compute/magic_state_input_buffer/slot_0"
+          ],
+          "token_kind": "magic_state"
+        },
+        {
+          "capacity": 1,
+          "id": "msf_output",
+          "owner": {
+            "module": "na_node/na_msf",
+            "submodule": "na_node/na_msf/magic_state_output_buffer"
+          },
+          "slots": [
+            "na_node/na_msf/magic_state_output_buffer/slot_0"
+          ],
+          "token_kind": "magic_state"
+        }
+      ],
+      "engines": [
+        {
+          "capacity": 1,
+          "id": "compute:na_node/na_compute",
+          "owner": {
+            "module": "na_node/na_compute",
+            "submodule": "na_node/na_compute/compute_region"
+          }
+        },
+        {
+          "capacity": 2,
+          "id": "program_move",
+          "owner": {
+            "module": "na_node/na_compute",
+            "submodule": null
+          }
+        },
+        {
+          "capacity": 2,
+          "id": "store_load_buffer",
+          "owner": {
+            "module": "na_node/na_compute",
+            "submodule": null
+          }
+        },
+        {
+          "capacity": 1,
+          "id": "msf:na_node/na_msf",
+          "owner": {
+            "module": "na_node/na_msf",
+            "submodule": "na_node/na_msf/factory_engine"
+          }
+        },
+        {
+          "capacity": 1,
+          "id": "resource_move",
+          "owner": {
+            "module": "na_node/na_msf",
+            "submodule": null
+          }
+        }
+      ],
+      "program": [
+        {
+          "consumes": {},
+          "duration_s": 0.002,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [],
+          "produces": {},
+          "signature": "L0:EXECUTE_COMPUTE:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L0:EXECUTE_COMPUTE:q0,1"
+          ],
+          "produces": {},
+          "signature": "L0:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {
+            "magic_compute": 1
+          },
+          "duration_s": 0.002,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L0:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L1:EXECUTE_COMPUTE:q0",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L1:EXECUTE_COMPUTE:q0"
+          ],
+          "produces": {},
+          "signature": "L1:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.002198241882918727,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L1:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L2:EXECUTE_COMPUTE:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L2:EXECUTE_COMPUTE:q0,1"
+          ],
+          "produces": {},
+          "signature": "L2:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.00015996969378057567,
+          "engines": {
+            "program_move": 2
+          },
+          "forwards": {},
+          "opcode": "MOVE_QUBITS",
+          "predecessors": [
+            "L2:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L3:MOVE_QUBITS:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.018000000000000002,
+          "engines": {
+            "store_load_buffer": 2
+          },
+          "forwards": {},
+          "opcode": "STORE_QUBITS",
+          "predecessors": [
+            "L3:MOVE_QUBITS:q0,1"
+          ],
+          "produces": {},
+          "signature": "L3:STORE_QUBITS:q0,1",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute",
+            "na_node/na_memory"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.018000000000000002,
+          "engines": {
+            "store_load_buffer": 2
+          },
+          "forwards": {},
+          "opcode": "LOAD_QUBITS",
+          "predecessors": [
+            "L3:STORE_QUBITS:q0,1"
+          ],
+          "produces": {},
+          "signature": "L3:LOAD_QUBITS:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute",
+            "na_node/na_memory"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.00015996969378057567,
+          "engines": {
+            "program_move": 2
+          },
+          "forwards": {},
+          "opcode": "MOVE_QUBITS",
+          "predecessors": [
+            "L3:LOAD_QUBITS:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:MOVE_QUBITS:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.002,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L3:MOVE_QUBITS:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:EXECUTE_COMPUTE:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L3:EXECUTE_COMPUTE:q2,3"
+          ],
+          "produces": {},
+          "signature": "L3:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {
+            "magic_compute": 1
+          },
+          "duration_s": 0.002,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L3:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L4:EXECUTE_COMPUTE:q2",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L4:EXECUTE_COMPUTE:q2"
+          ],
+          "produces": {},
+          "signature": "L4:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.002198241882918727,
+          "engines": {
+            "compute:na_node/na_compute": 1
+          },
+          "forwards": {},
+          "opcode": "EXECUTE_COMPUTE",
+          "predecessors": [
+            "L4:FENCE:q-"
+          ],
+          "produces": {},
+          "signature": "L5:EXECUTE_COMPUTE:q2,3",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute"
+          ]
+        },
+        {
+          "consumes": {},
+          "duration_s": 0.0,
+          "engines": {},
+          "forwards": {},
+          "opcode": "FENCE",
+          "predecessors": [
+            "L5:EXECUTE_COMPUTE:q2,3"
+          ],
+          "produces": {},
+          "signature": "L5:FENCE:q-",
+          "target_links": [],
+          "target_modules": []
+        }
+      ],
+      "program_opcode_counts": {
+        "EXECUTE_COMPUTE": 6,
+        "FENCE": 6,
+        "LOAD_QUBITS": 1,
+        "MOVE_QUBITS": 2,
+        "STORE_QUBITS": 1
+      },
+      "resource_processes": [
+        {
+          "arrival_distribution": {
+            "initial_delay_s": 0.0,
+            "initial_delay_samples": 0,
+            "kind": "deterministic",
+            "mean_interval_s": 0.001,
+            "repeat_trace": true,
+            "success_probability": 1.0,
+            "trace_intervals_s": []
+          },
+          "consumes": {},
+          "dispatch_policy": "single",
+          "duration_s": 0.0,
+          "engines": {
+            "msf:na_node/na_msf": 1
+          },
+          "forwards": {},
+          "id": "prepare_magic",
+          "opcode": "PREPARE_MAGIC_STATE",
+          "output_overflow_policy": "discard_excess",
+          "parallelism": 1,
+          "produces": {
+            "msf_output": 1
+          },
+          "protocol": "cultivation-d5-d15-p1e3",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_msf"
+          ]
+        },
+        {
+          "arrival_distribution": null,
+          "consumes": {
+            "msf_output": 1
+          },
+          "dispatch_policy": "eager_available",
+          "duration_s": 0.0,
+          "engines": {
+            "resource_move": 1
+          },
+          "forwards": {
+            "msf_output": "magic_compute"
+          },
+          "id": "deliver_magic_local",
+          "opcode": "MOVE_QUBITS",
+          "output_overflow_policy": "block",
+          "parallelism": 1,
+          "produces": {
+            "magic_compute": 1
+          },
+          "protocol": "local_magic_delivery",
+          "target_links": [],
+          "target_modules": [
+            "na_node/na_compute",
+            "na_node/na_msf"
+          ]
+        }
+      ]
+    },
+    "trace": {
+      "all_invariants_hold": true,
+      "buffer_peaks": {
+        "magic_compute": 1,
+        "msf_output": 1
+      },
+      "buffer_tokens_consumed": {
+        "magic_compute": 2,
+        "msf_output": 3
+      },
+      "buffer_tokens_produced": {
+        "magic_compute": 3,
+        "msf_output": 4
+      },
+      "completed_opcode_counts": {
+        "EXECUTE_COMPUTE": 6,
+        "FENCE": 6,
+        "LOAD_QUBITS": 1,
+        "MOVE_QUBITS": 5,
+        "PREPARE_MAGIC_STATE": 4,
+        "STORE_QUBITS": 1
+      },
+      "completed_program_instructions": 16,
+      "completed_work_s_by_opcode": {
+        "EXECUTE_COMPUTE": 0.01271642315339861,
+        "FENCE": 0.0,
+        "LOAD_QUBITS": 0.018000000000000006,
+        "MOVE_QUBITS": 0.003890183647599188,
+        "PREPARE_MAGIC_STATE": 0.004000000000000001,
+        "STORE_QUBITS": 0.018000000000000002
+      },
+      "completion_schedule": [
+        {
+          "duration_s": 0.002,
+          "end_s": 0.002,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L0:EXECUTE_COMPUTE:q0,1",
+          "plane": "program",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.001,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.0
+        },
+        {
+          "duration_s": 0.0011900814200126774,
+          "end_s": 0.0021900814200126774,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.001
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.002,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.001
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.002,
+          "opcode": "FENCE",
+          "operation": "L0:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.002
+        },
+        {
+          "duration_s": 0.002159969693780576,
+          "end_s": 0.004350051113793253,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L1:EXECUTE_COMPUTE:q0",
+          "plane": "program",
+          "start_s": 0.0021900814200126774
+        },
+        {
+          "duration_s": 0.0011900814200126774,
+          "end_s": 0.0033801628400253548,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.0021900814200126774
+        },
+        {
+          "duration_s": 0.001,
+          "end_s": 0.0031900814200126774,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.0021900814200126774
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.004350051113793253,
+          "opcode": "FENCE",
+          "operation": "L1:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.004350051113793253
+        },
+        {
+          "duration_s": 0.002198241882918727,
+          "end_s": 0.00654829299671198,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L2:EXECUTE_COMPUTE:q0,1",
+          "plane": "program",
+          "start_s": 0.004350051113793253
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.00654829299671198,
+          "opcode": "FENCE",
+          "operation": "L2:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.00654829299671198
+        },
+        {
+          "duration_s": 0.00015996969378057578,
+          "end_s": 0.006708262690492556,
+          "opcode": "MOVE_QUBITS",
+          "operation": "L3:MOVE_QUBITS:q0,1",
+          "plane": "program",
+          "start_s": 0.00654829299671198
+        },
+        {
+          "duration_s": 0.018000000000000002,
+          "end_s": 0.024708262690492557,
+          "opcode": "STORE_QUBITS",
+          "operation": "L3:STORE_QUBITS:q0,1",
+          "plane": "program",
+          "start_s": 0.006708262690492556
+        },
+        {
+          "duration_s": 0.018000000000000006,
+          "end_s": 0.04270826269049256,
+          "opcode": "LOAD_QUBITS",
+          "operation": "L3:LOAD_QUBITS:q2,3",
+          "plane": "program",
+          "start_s": 0.024708262690492557
+        },
+        {
+          "duration_s": 0.00015996969378057752,
+          "end_s": 0.04286823238427314,
+          "opcode": "MOVE_QUBITS",
+          "operation": "L3:MOVE_QUBITS:q2,3",
+          "plane": "program",
+          "start_s": 0.04270826269049256
+        },
+        {
+          "duration_s": 0.0020000000000000018,
+          "end_s": 0.04486823238427314,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L3:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
+          "start_s": 0.04286823238427314
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.04486823238427314,
+          "opcode": "FENCE",
+          "operation": "L3:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.04486823238427314
+        },
+        {
+          "duration_s": 0.0021599696937805793,
+          "end_s": 0.04702820207805372,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L4:EXECUTE_COMPUTE:q2",
+          "plane": "program",
+          "start_s": 0.04486823238427314
+        },
+        {
+          "duration_s": 0.00119008142001268,
+          "end_s": 0.04605831380428582,
+          "opcode": "MOVE_QUBITS",
+          "operation": "deliver_magic_local",
+          "plane": "resource",
+          "start_s": 0.04486823238427314
+        },
+        {
+          "duration_s": 0.0010000000000000009,
+          "end_s": 0.04586823238427314,
+          "opcode": "PREPARE_MAGIC_STATE",
+          "operation": "prepare_magic",
+          "plane": "resource",
+          "start_s": 0.04486823238427314
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.04702820207805372,
+          "opcode": "FENCE",
+          "operation": "L4:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.04702820207805372
+        },
+        {
+          "duration_s": 0.002198241882918728,
+          "end_s": 0.04922644396097245,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L5:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
+          "start_s": 0.04702820207805372
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.04922644396097245,
+          "opcode": "FENCE",
+          "operation": "L5:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.04922644396097245
+        }
+      ],
+      "inflight_resource_events_at_program_completion": 0,
+      "producer_blocked_s": {
+        "deliver_magic_local": 0.044656199700934415,
+        "prepare_magic": 0.045226443960972446
+      },
+      "program_state_blocked_s": 0.00019008142001267735,
+      "resource_items_started": {
+        "deliver_magic_local": 3,
+        "prepare_magic": 4
+      },
+      "terminal_buffer_tokens": {
+        "magic_compute": [
+          "magic_state:2"
+        ],
+        "msf_output": [
+          "magic_state:3"
+        ]
+      },
+      "total_latency_s": 0.04922644396097245
+    }
+  },
+  "results": {
+    "footprint": {
+      "bell_endpoint_components": [],
+      "interconnects": [],
+      "model_id": "reference-space-v1",
+      "total_physical_qubits": 3219.0
+    }
+  },
+  "schema_version": "arqsim.architecture-semantic-oracle.v1"
+}

@@ -1,0 +1,106 @@
+{
+  "case_id": "clifford_t_toy__2.3__seed_5",
+  "hashes": {
+    "architecture": "07e6bfbc103942b2d117f3de5ad052c29118b90347b830fba0bd4c0f48e1dbee",
+    "compiler": "7dffd518e0ebe480fcbcb1fa8654080d705653c772bae7dfe84289c0e3a51877",
+    "config": "5dde0f382ddedc69eaa5002ffecc50b6c90b582116181438fa375556d7d41ba3",
+    "execution_plan": "de528be20f03693e6f546d306f3728825a9573d16a6b75781d628aa06ea9fb58",
+    "execution_trace": "c2db4ee37e2fc86e59bfed7197bb3fc4eed608ef857fde2b3af548b1e98a2444",
+    "logical_compilation": "08248f674b624899088c0564b825a88806412257a3f9d1d26e3721a4352650d5",
+    "report": "272acda4b6c6f4db5e4630b2beeaab36c290e230ca8d0170be01a6035614a745",
+    "report_json": "68c43276535680678c540575eb03e1b90a10aa762bd390f4721b678d55b751e6",
+    "request_json": "62f1e06b20c28b46b92b45edda4ec383dc20a890a74cff0bde5ea5cf40f836b5",
+    "semantic_manifest": "ec6456dd4f544f50e60da443f10134a495c62c201df0a9fdeaf868a93ca0c945",
+    "workload": "27234a4ff54f9889cc2e730a1af08771013f516397c0d6339485f55d45a42fe0"
+  },
+  "results": {
+    "all_invariants_passed": true,
+    "completed_program_instructions": 16,
+    "consumed_resource_counts": {
+      "logical_bell_pair": 2,
+      "magic_state": 2
+    },
+    "event_count": 26,
+    "fidelity_complete_coverage": true,
+    "invariant_checks": {
+      "active_reservations_account_for_engine_usage": true,
+      "active_reservations_account_for_output_slots": true,
+      "active_reservations_match_running_events": true,
+      "all_program_instructions_completed": true,
+      "buffer_capacities_respected": true,
+      "buffer_slots_consistent": true,
+      "engine_capacities_respected": true,
+      "nonnegative_latency": true,
+      "pending_output_slots_consistent": true,
+      "pending_outputs_nonnegative": true,
+      "qubit_exposure_conflict_free": true,
+      "qubit_exposure_time_conserved": true,
+      "token_locations_consistent": true,
+      "transaction_versions_consistent": true
+    },
+    "logical_idle_cycles_by_location": {
+      "na_compute_node/na_compute": 102.67723833409018,
+      "na_compute_node/na_compute/store_load_buffer": 36.000000000000014,
+      "na_compute_node/na_memory": 162.4300240284485
+    },
+    "logical_idle_cycles_total": 301.1072623625387,
+    "logical_operation_counts": {
+      "cx": 2,
+      "h": 4,
+      "s": 1,
+      "t": 2
+    },
+    "resource_idle_cycles_by_location": {
+      "sc_msf_node/sc_msf/magic_state_output_buffer": 87754.28228621715
+    },
+    "resource_idle_cycles_total": 87754.28228621715,
+    "success_probability": 0.9997625580721519,
+    "total_latency_s": 0.09921501201422428,
+    "total_physical_qubits": 7357.0,
+    "unprofiled": {
+      "architecture_operations": {},
+      "logical_idle_exposure_s": {},
+      "logical_operations": {},
+      "resource_idle_exposure_s": {},
+      "resource_outputs": {}
+    }
+  },
+  "runtime_injection": {
+    "invocations": [
+      {
+        "logical_s_materialized": true,
+        "measurement_register": "instruction:2:source:1:operation:0:stage:0:bit",
+        "outcome_bit": 1,
+        "recipe_convention": "cx_data_magic_measure_magic_z_v1",
+        "recipe_invocation_id": "instruction:2:source:1:operation:0",
+        "source_event_id": 7,
+        "source_instruction_id": 2,
+        "steps": [
+          "source",
+          "reaction",
+          "correction"
+        ]
+      },
+      {
+        "logical_s_materialized": false,
+        "measurement_register": "instruction:12:source:4:operation:0:stage:0:bit",
+        "outcome_bit": 0,
+        "recipe_convention": "cx_data_magic_measure_magic_z_v1",
+        "recipe_invocation_id": "instruction:12:source:4:operation:0",
+        "source_event_id": 22,
+        "source_instruction_id": 12,
+        "steps": [
+          "source",
+          "reaction"
+        ]
+      }
+    ],
+    "outcome_model": "seeded_bernoulli_half",
+    "recipe_convention": "cx_data_magic_measure_magic_z_v1",
+    "recipe_id": "surface_code.t_injection.v1",
+    "seed": 5
+  },
+  "schema_version": "arqsim.system-case-receipt.v1",
+  "status": "complete",
+  "system_case_id": "finite_runtime_injection_demo"
+}

@@ -1,0 +1,69 @@
+schema_version: arqsim.architecture-profile.v3
+id: "2.3"
+name: NA-MC + SC-F
+description: Neutral-atom memory and compute with a remote superconducting magic-state accelerator.
+
+nodes:
+  na_compute_node:
+    modality: neutral_atom
+    modules:
+      na_memory:
+        type: memory
+        submodules:
+          memory_region:
+            type: region
+            payload: logical_qubit
+      na_compute:
+        type: compute
+        submodules:
+          compute_region:
+            type: region
+            payload: logical_qubit
+          store_load_buffer:
+            type: buffer
+            payload: logical_qubit
+          magic_state_input_buffer:
+            type: buffer
+            payload: magic_state
+    connections:
+      na_memory_compute_bus:
+        direction: bidirectional
+        endpoints:
+          - na_memory/memory_region
+          - na_compute/store_load_buffer
+  sc_msf_node:
+    modality: superconducting
+    modules:
+      sc_msf:
+        type: resource_factory
+        submodules:
+          factory_engine:
+            type: engine
+            payload: magic_state
+          magic_state_output_buffer:
+            type: buffer
+            payload: magic_state
+interconnects:
+  compute_msf_link:
+    endpoints:
+      - na_compute_node/na_compute/magic_state_input_buffer
+      - sc_msf_node/sc_msf/magic_state_output_buffer
+    modules:
+      bell_engine:
+        type: bell_engine
+        submodules:
+          pair_generator:
+            type: engine
+            payload: bell_pair
+      bell_storage:
+        type: bell_storage
+        submodules:
+          bell_buffer:
+            type: buffer
+            payload: bell_pair
+    connections:
+      engine_to_storage:
+        direction: directed
+        endpoints:
+          - bell_engine/pair_generator
+          - bell_storage/bell_buffer
