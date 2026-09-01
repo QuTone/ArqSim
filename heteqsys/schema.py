@@ -9,7 +9,22 @@ from dataclasses import asdict, is_dataclass
 from enum import Enum
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any
+from typing import Any, Iterable
+
+
+def canonical_float_sum(values: Iterable[float]) -> float:
+    """Accumulate ordered float terms with version-stable arithmetic.
+
+    Python 3.12 changed the algorithm used by the built-in :func:`sum` for
+    floats.  Serialized contracts that predate that change must spell out
+    their arithmetic instead of inheriting interpreter-version behavior.
+    Callers are responsible for supplying terms in canonical order.
+    """
+
+    total = 0.0
+    for value in values:
+        total += float(value)
+    return total
 
 
 def normalize_json(value: Any) -> Any:

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from heteqsys.architecture.specification import ArchitectureSpecification
-from heteqsys.schema import deep_freeze_json, normalize_json
+from heteqsys.schema import canonical_float_sum, deep_freeze_json, normalize_json
 
 from .footprint import PhysicalFootprintEstimate
 
@@ -217,9 +217,13 @@ def qubit_exposure(result: Any) -> QubitExposure:
                 active_by_opcode[opcode] += delta
                 active_by_qubit[qubit] += delta
 
-    idle_total = sum(idle_by_qubit.values())
-    active_total = sum(active_by_qubit.values())
-    classified_total = idle_total + active_total
+    idle_total = canonical_float_sum(
+        idle_by_qubit[qubit] for qubit in sorted(idle_by_qubit)
+    )
+    active_total = canonical_float_sum(
+        active_by_qubit[qubit] for qubit in sorted(active_by_qubit)
+    )
+    classified_total = canonical_float_sum((idle_total, active_total))
     expected_total = len(logical_qubits) * horizon
     conserved = math.isclose(
         classified_total, expected_total, rel_tol=1e-10, abs_tol=1e-12

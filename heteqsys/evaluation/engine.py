@@ -54,7 +54,7 @@ from .result import (
     ProgramContinuationReceipt,
     TraceStateProjection,
 )
-from heteqsys.schema import normalize_json, semantic_hash
+from heteqsys.schema import canonical_float_sum, normalize_json, semantic_hash
 
 
 class EvaluationError(RuntimeError):
@@ -1454,9 +1454,16 @@ def evaluate(
         now = next_time
 
     logical_qubit_count = sum(key.startswith("q:") for key in state.locations)
-    classified_qubit_time_s = (
-        sum(idle_exposure_by_qubit_s.values())
-        + sum(active_exposure_by_qubit_s.values())
+    idle_qubit_time_s = canonical_float_sum(
+        idle_exposure_by_qubit_s[qubit]
+        for qubit in sorted(idle_exposure_by_qubit_s)
+    )
+    active_qubit_time_s = canonical_float_sum(
+        active_exposure_by_qubit_s[qubit]
+        for qubit in sorted(active_exposure_by_qubit_s)
+    )
+    classified_qubit_time_s = canonical_float_sum(
+        (idle_qubit_time_s, active_qubit_time_s)
     )
     expected_qubit_time_s = logical_qubit_count * now
 
@@ -1578,8 +1585,8 @@ def evaluate(
                 },
                 "active_by_opcode": dict(active_exposure_by_opcode_s),
                 "active_by_qubit": dict(active_exposure_by_qubit_s),
-                "idle_total": sum(idle_exposure_by_qubit_s.values()),
-                "active_total": sum(active_exposure_by_qubit_s.values()),
+                "idle_total": idle_qubit_time_s,
+                "active_total": active_qubit_time_s,
                 "classified_total": classified_qubit_time_s,
             },
         },
