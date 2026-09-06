@@ -6,18 +6,18 @@ from typing import Any
 
 import pytest
 
-import heteqsys.architecture.construction as canonical_construction
-from heteqsys.architecture import (
+import arqsim.architecture.construction as canonical_construction
+from arqsim.architecture import (
     LogicalLayoutRequest,
     SubmoduleKey,
     SubmoduleLayoutRequest,
     get_architecture_profile,
 )
-from heteqsys.architecture.specification import (
+from arqsim.architecture.specification import (
     ArchitectureSpecification as CoreArchitectureSpecification,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.specification import build_architecture_specification
 from tests.architecture_semantic_oracle import oracle_circuit
 
 

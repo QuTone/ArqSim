@@ -257,7 +257,7 @@
           "id": "store_load_buffer",
           "owner": {
             "module": "na_node/na_compute",
-            "submodule": null
+            "submodule": "na_node/na_compute/store_load_buffer"
           }
         },
         {
@@ -272,7 +272,7 @@
           "capacity": 1,
           "id": "resource_move",
           "owner": {
-            "module": "na_node/na_msf",
+            "module": null,
             "submodule": null
           }
         }

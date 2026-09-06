@@ -3,7 +3,7 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "heteqsys"
+name = "arqsim"
 version = "0.2.0"
 description = "System-level evaluation framework for fault-tolerant quantum architectures"
 authors = [{ name = "Xiang Fang" }]
@@ -50,14 +50,14 @@ Issues = "https://github.com/QuTone/ArqSim/issues"
 Repository = "https://github.com/QuTone/ArqSim.git"
 
 [project.scripts]
-heteqsys = "heteqsys.cli:main"
+arqsim = "arqsim.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["heteqsys*"]
+include = ["arqsim*"]
 
 [tool.setuptools.package-data]
-"heteqsys" = [
+"arqsim" = [
     "architecture/gallery/*/profile.yaml",
     "qec/protocol_profiles/*.yaml",
     "operation_profiles/fidelity_profiles/*.yaml",

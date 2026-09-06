@@ -7,20 +7,20 @@ from dataclasses import replace
 
 import pytest
 
-from heteqsys.architecture.construction import construct_architecture
-from heteqsys.architecture.gallery import (
+from arqsim.architecture.construction import construct_architecture
+from arqsim.architecture.gallery import (
     QuantileSizingConfig,
     get_gallery_entry,
 )
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.isa import (
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.isa import (
     ArchitectureInstruction,
     ArchitectureOpcode,
     MoveOperands,
 )
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.architecture.specification import QECBinding
-from heteqsys.compiler import (
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.architecture.specification import QECBinding
+from arqsim.compiler import (
     COMPILATION_RESULT_SCHEMA_VERSION,
     LogicalCompilationResult,
     CompiledRouteStep,
@@ -29,14 +29,14 @@ from heteqsys.compiler import (
     canonical_compiler_spec,
     compile_ft_circuit,
 )
-from heteqsys.compiler.errors import LogicalCompilerValidationError
-from heteqsys.compiler.layout import materialize_compute_layout
-from heteqsys.compiler.movement import bind_program_move_costs
-from heteqsys.operation_profiles import OperationLatencyProfile
-from heteqsys.program.statistics import CircuitStatistics
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.qec import get_magic_state_factory_profile
-from heteqsys.schema import normalize_json
+from arqsim.compiler.errors import LogicalCompilerValidationError
+from arqsim.compiler.layout import materialize_compute_layout
+from arqsim.compiler.movement import bind_program_move_costs
+from arqsim.operation_profiles import OperationLatencyProfile
+from arqsim.program.statistics import CircuitStatistics
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.qec import get_magic_state_factory_profile
+from arqsim.schema import normalize_json
 
 
 def _targets(

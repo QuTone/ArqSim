@@ -200,7 +200,7 @@
           "capacity": 1,
           "id": "resource_move",
           "owner": {
-            "module": "na_node/na_msf",
+            "module": null,
             "submodule": null
           }
         }

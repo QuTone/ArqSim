@@ -7,38 +7,41 @@ from types import SimpleNamespace
 
 import pytest
 
-from heteqsys.architecture.isa import (
+from arqsim.architecture.isa import (
     ArchitectureInstruction,
     ArchitectureOpcode,
     MagicRouteDispatchRecipe,
+    OperationClaims,
     ResourceMoveDispatchRecipe,
 )
-from heteqsys.architecture.state import (
+from arqsim.architecture.state import (
     ArchitectureState,
     InvalidStateTransitionError,
     StaleBindingError,
     StaleCompletionError,
     TentativeBinding,
 )
-from heteqsys.evaluation import (
+from arqsim.evaluation import (
     BufferSpec,
     EngineSpec,
     EvaluationError,
     EvaluationPolicy,
     ExecutionPlan,
+    ExecutionTransition,
+    ExecutionTransitionKind,
     ProgramDAG,
     ResourceDAG,
     ResourceProcess,
     evaluate,
 )
-from heteqsys.evaluation.components import (
+from arqsim.evaluation.components import (
     RuntimeComponentDescriptor,
     StateBoundRuntimeRealizer,
     build_runtime_component_set,
     default_direct_runtime_component_manifest,
     default_runtime_component_manifest,
 )
-from heteqsys.operation_profiles import ArrivalDistribution
+from arqsim.operation_profiles import ArrivalDistribution
 
 
 def _with_compiler_component(
@@ -149,12 +152,8 @@ def test_stale_binding_is_rejected_without_mutation() -> None:
         BufferSpec("b", 1, "b_token", initial_contents=("b0",)),
     )
     snapshot = state.snapshot()
-    operation_a = ArchitectureInstruction(
-        0, ArchitectureOpcode.FENCE, consumes={"a": 1}
-    )
-    operation_b = ArchitectureInstruction(
-        0, ArchitectureOpcode.FENCE, consumes={"b": 1}
-    )
+    operation_a = OperationClaims(consumes={"a": 1})
+    operation_b = OperationClaims(consumes={"b": 1})
     binding_a = snapshot.propose(operation_a)
     binding_b = snapshot.propose(operation_b)
 
@@ -335,6 +334,14 @@ def test_duplicate_initial_token_ids_are_rejected() -> None:
         )
 
 
+def test_state_rejects_initial_resource_and_logical_entity_id_collision() -> None:
+    with pytest.raises(ValueError, match="conflict with initial location entities"):
+        _state(
+            BufferSpec("magic", 1, "magic_state", initial_contents=("q:0",)),
+            locations={"q:0": "compute"},
+        )
+
+
 def test_duplicate_forwarding_destination_is_rejected_atomically() -> None:
     state = _state(
         BufferSpec("a", 1, "magic_state", initial_contents=("a0",)),
@@ -422,6 +429,70 @@ def test_stale_completion_delta_is_rejected_without_mutation() -> None:
     assert state.snapshot() == before_rejection
 
 
+def test_trace_validation_failure_precedes_completion_commit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plan = ExecutionPlan(
+        "circuit",
+        "architecture",
+        "latency",
+        EvaluationPolicy(trace_level="full"),
+        ProgramDAG(
+            (
+                ArchitectureInstruction(
+                    0,
+                    ArchitectureOpcode.EXECUTE_COMPUTE,
+                    duration_s=1.0,
+                    engines={"compute": 1},
+                ),
+            )
+        ),
+        ResourceDAG(()),
+        (),
+        (EngineSpec("compute"),),
+    )
+    state = ArchitectureState.from_plan(plan)
+    monkeypatch.setattr(
+        ArchitectureState,
+        "from_plan",
+        classmethod(lambda cls, _plan: state),
+    )
+
+    before_completion = None
+    original_propose_completion = ArchitectureState.propose_completion
+
+    def track_completion_proposal(self, reservation, **kwargs):
+        nonlocal before_completion
+        before_completion = self.snapshot()
+        return original_propose_completion(self, reservation, **kwargs)
+
+    monkeypatch.setattr(
+        ArchitectureState,
+        "propose_completion",
+        track_completion_proposal,
+    )
+    original_transition_post_init = ExecutionTransition.__post_init__
+
+    def reject_completion_transition(transition):
+        original_transition_post_init(transition)
+        if transition.kind == ExecutionTransitionKind.COMPLETION:
+            raise RuntimeError("completion trace construction failed")
+
+    monkeypatch.setattr(
+        ExecutionTransition,
+        "__post_init__",
+        reject_completion_transition,
+    )
+
+    with pytest.raises(RuntimeError, match="trace construction failed"):
+        evaluate(plan)
+
+    assert before_completion is not None
+    assert state.snapshot() == before_completion
+    assert state.engines["compute"].users == 1
+    assert before_completion.active_reservation_ids
+
+
 def _program_compiler_plan() -> ExecutionPlan:
     return ExecutionPlan(
         "circuit",
@@ -461,7 +532,7 @@ def _program_compiler_plan() -> ExecutionPlan:
 def test_program_compiler_failure_leaves_state_unchanged(
     monkeypatch: pytest.MonkeyPatch, failure: str
 ) -> None:
-    engine_module = importlib.import_module("heteqsys.evaluation.engine")
+    engine_module = importlib.import_module("arqsim.evaluation.engine")
     plan = _program_compiler_plan()
     state = ArchitectureState.from_plan(plan)
     before = state.snapshot()
@@ -502,7 +573,7 @@ def test_program_compiler_failure_leaves_state_unchanged(
 def test_resource_compiler_failure_leaves_state_unchanged(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    engine_module = importlib.import_module("heteqsys.evaluation.engine")
+    engine_module = importlib.import_module("arqsim.evaluation.engine")
     plan = ExecutionPlan(
         "circuit",
         "architecture",
@@ -822,7 +893,7 @@ def test_zero_duration_resource_cycle_is_stopped_by_transition_budget() -> None:
             (
                 ResourceProcess(
                     "heartbeat",
-                    ArchitectureOpcode.PREPARE_MAGIC_STATE,
+                    ArchitectureOpcode.MOVE_QUBITS,
                 ),
             )
         ),

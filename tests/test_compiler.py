@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import math
 
 import pytest
 
-from heteqsys.architecture.specification import (
+from arqsim.architecture.specification import (
     ArchitectureSpecification,
     LogicalSlot,
     Module,
@@ -12,35 +13,37 @@ from heteqsys.architecture.specification import (
     QECBinding,
     Submodule,
 )
-from heteqsys.architecture.isa import (
+from arqsim.architecture.isa import (
     ArchitectureInstruction,
     ArchitectureOpcode,
     MoveOperands,
 )
-from heteqsys.compiler import (
+from arqsim.compiler import (
     BackendSpec,
     LayoutSlot,
     LogicalLayout,
     LogicalPlacement,
     PlacementEntry,
     canonical_compiler_spec,
+    compile_ft_circuit,
 )
-from heteqsys.compiler.errors import (
+from arqsim.compiler.errors import (
     LogicalCompilerValidationError,
     LogicalRoutingError,
 )
-from heteqsys.compiler.neutral_atom.aod_layer_scheduler import (
+from arqsim.compiler.neutral_atom.aod_layer_scheduler import (
     AODTimingModel,
     RoundTripGroup,
     schedule_logical_layer,
     schedule_round_trip_tasks,
 )
-from heteqsys.compiler.layout import materialize_compute_layout
-from heteqsys.compiler.movement import bind_program_move_costs
-from heteqsys.compiler.routing import route_logical_circuit
-from heteqsys.operation_profiles import NeutralAtomMovementProfile
-from heteqsys.operation_profiles import OperationLatencyProfile
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.compiler.layout import materialize_compute_layout
+from arqsim.compiler.movement import bind_program_move_costs
+from arqsim.compiler.pipeline import _route_duration_components_s
+from arqsim.compiler.routing import route_logical_circuit
+from arqsim.operation_profiles import NeutralAtomMovementProfile
+from arqsim.operation_profiles import OperationLatencyProfile
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
 
 
 def _slots(
@@ -410,6 +413,7 @@ def test_layer_route_returns_moved_patch_home() -> None:
 def _powermove_route(
     movement_profile: NeutralAtomMovementProfile | None,
     *,
+    representation: str = "clifford_t",
     routing_options: dict | None = None,
     coordinates: tuple[tuple[int, int], ...] = ((0, 0), (2, 0)),
     interactions: tuple[tuple[int, int], ...] = ((0, 1),),
@@ -445,7 +449,7 @@ def _powermove_route(
         ),
     )
     circuit = FTCircuit(
-        representation="clifford_t",
+        representation=representation,
         num_qubits=len(coordinates),
         num_clbits=0,
         layers=(
@@ -468,6 +472,246 @@ def _powermove_route(
         ),
         movement_profile=movement_profile,
     )
+
+
+def _superconducting_steiner_route(
+    interactions_by_layer: tuple[tuple[tuple[int, int], ...], ...],
+):
+    """Route small, explicit paths whose conflict groups are easy to audit."""
+
+    routing_nodes = tuple(f"r{index}" for index in range(5))
+    coordinates = ((0.0, 0.0), (1.0, 0.0), (3.0, 0.0), (4.0, 0.0))
+    interfaces = (("r0",), ("r1",), ("r3",), ("r4",))
+    layout = LogicalLayout(
+        module_id="compute",
+        node_id="node",
+        modality="superconducting",
+        layout_type="test_line",
+        slots=tuple(
+            LayoutSlot(
+                f"slot_{index}",
+                "data",
+                coordinate,
+                interfaces[index],
+            )
+            for index, coordinate in enumerate(coordinates)
+        ),
+        routing_nodes=routing_nodes,
+        routing_edges=tuple(
+            (f"r{index}", f"r{index + 1}") for index in range(4)
+        ),
+    )
+    placement = LogicalPlacement(
+        backend="fixed_mapping",
+        backend_version="1",
+        effective_options={},
+        layout_hash=layout.layout_hash,
+        entries=tuple(
+            PlacementEntry(
+                index,
+                "node",
+                "compute",
+                f"slot_{index}",
+                coordinate,
+            )
+            for index, coordinate in enumerate(coordinates)
+        ),
+    )
+    circuit = FTCircuit(
+        representation="gate",
+        num_qubits=4,
+        num_clbits=0,
+        layers=tuple(
+            LogicalLayer(
+                layer_index,
+                tuple(
+                    LogicalOperation("gate", "cx", qubits=qubits)
+                    for qubits in interactions
+                ),
+            )
+            for layer_index, interactions in enumerate(interactions_by_layer)
+        ),
+    )
+    return route_logical_circuit(
+        circuit,
+        layout,
+        placement,
+        BackendSpec("greedy_steiner_sc", {"guard_distance": 0}),
+    )
+
+
+def _superconducting_route_duration(route):
+    specification = _compute_specification(
+        modality="superconducting",
+        data_coordinates=((0, 0), (1, 0), (3, 0), (4, 0)),
+    )
+    return _route_duration_components_s(
+        specification,
+        specification.nodes[0],
+        route,
+        OperationLatencyProfile(),
+    )
+
+
+def test_sc_disjoint_routes_share_one_parallel_syndrome_service_wave() -> None:
+    route = _superconducting_steiner_route((((0, 1), (2, 3)),))
+
+    assert [step.group for step in route.steps] == [0, 0]
+    duration, syndrome = _superconducting_route_duration(route)
+    assert duration.total_s == pytest.approx(syndrome.service_s)
+    assert duration.compiler_routing_s == pytest.approx(0.0)
+
+
+def test_sc_conflicting_routes_pay_one_syndrome_service_per_group() -> None:
+    route = _superconducting_steiner_route((((0, 2), (1, 3)),))
+
+    assert [step.group for step in route.steps] == [0, 1]
+    duration, syndrome = _superconducting_route_duration(route)
+    assert duration.total_s == pytest.approx(2 * syndrome.service_s)
+    assert duration.compiler_routing_s == pytest.approx(syndrome.service_s)
+
+
+def test_sc_route_groups_are_local_to_each_logical_layer() -> None:
+    route = _superconducting_steiner_route(
+        (
+            ((0, 1), (2, 3)),
+            ((0, 1), (2, 3)),
+        )
+    )
+
+    assert [
+        (step.layer_index, step.group) for step in route.steps
+    ] == [(0, 0), (0, 0), (1, 0), (1, 0)]
+    duration, syndrome = _superconducting_route_duration(route)
+    assert duration.total_s == pytest.approx(2 * syndrome.service_s)
+    assert duration.compiler_routing_s == pytest.approx(syndrome.service_s)
+
+
+def test_powermove_checks_operations_not_legacy_representation_label() -> None:
+    route = _powermove_route(None, representation="clifford_rz")
+
+    assert route.backend == "powermove_na"
+
+
+def test_compiler_requires_gate_timing_for_active_compute_modality() -> None:
+    specification = _compute_specification(
+        modality="neutral_atom",
+        data_coordinates=((0, 0),),
+    )
+    circuit = FTCircuit(
+        representation="gate",
+        num_qubits=1,
+        num_clbits=0,
+        layers=(
+            LogicalLayer(
+                0,
+                (LogicalOperation("gate", "h", qubits=(0,)),),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="No gate duration.*neutral_atom"):
+        compile_ft_circuit(
+            circuit,
+            specification,
+            OperationLatencyProfile(
+                gate_duration_s={"superconducting": 1e-6},
+            ),
+        )
+
+
+def test_compiler_preserves_explicit_zero_gate_timing() -> None:
+    specification = _compute_specification(
+        modality="neutral_atom",
+        data_coordinates=((0, 0),),
+    )
+    circuit = FTCircuit(
+        representation="gate",
+        num_qubits=1,
+        num_clbits=0,
+        layers=(
+            LogicalLayer(
+                0,
+                (LogicalOperation("gate", "h", qubits=(0,)),),
+            ),
+        ),
+    )
+
+    compilation = compile_ft_circuit(
+        circuit,
+        specification,
+        OperationLatencyProfile(gate_duration_s={"neutral_atom": 0.0}),
+    )
+
+    (unit,) = compilation.compute_units
+    assert unit.route.duration.primitive_service_s == (
+        unit.route.syndrome_protocol.service_s
+    )
+
+
+def test_nonempty_neutral_atom_route_requires_pipeline_duration_metric() -> None:
+    route = _powermove_route(None)
+    assert route.steps
+    malformed = replace(route, metrics={"route_steps": len(route.steps)})
+    specification = _compute_specification(
+        modality="neutral_atom",
+        data_coordinates=((0, 0), (2, 0)),
+    )
+
+    with pytest.raises(
+        LogicalCompilerValidationError,
+        match="must report aod_pipeline_duration_us",
+    ):
+        _route_duration_components_s(
+            specification,
+            specification.nodes[0],
+            malformed,
+            OperationLatencyProfile(),
+        )
+
+
+def test_default_compiler_rejects_incompatible_operations_before_deferred_route() -> None:
+    specification = _compute_specification(
+        modality="neutral_atom",
+        data_coordinates=((0, 0),),
+        magic_coordinates=((2, 0),),
+    )
+    circuit = FTCircuit(
+        representation="pbc",
+        num_qubits=1,
+        num_clbits=0,
+        layers=(
+            LogicalLayer(
+                0,
+                (
+                    LogicalOperation(
+                        "pauli_rotation",
+                        "t_pauli",
+                        qubits=(0,),
+                        pauli="+X",
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    with pytest.raises(LogicalRoutingError, match="gate/measurement") as exc_info:
+        compile_ft_circuit(
+            circuit,
+            specification,
+            OperationLatencyProfile(),
+            defer_magic_routing=True,
+        )
+
+    assert exc_info.value.details["unsupported_operations"] == [
+        {
+            "layer": 0,
+            "operation": 0,
+            "kind": "pauli_rotation",
+            "name": "t_pauli",
+            "width": 1,
+        }
+    ]
 
 
 def test_powermove_default_movement_profile_preserves_implicit_timing() -> None:

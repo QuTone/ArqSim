@@ -6,8 +6,8 @@ import {
 } from "@/components/ui/resizable";
 import { TopBar } from "@/components/layout/TopBar";
 import { LeftPanel } from "@/components/layout/LeftPanel";
-import { BottomPanel } from "@/components/layout/BottomPanel";
 import { MainCanvas } from "@/components/layout/MainCanvas";
+import { EvaluationResultsPage } from "@/pages/EvaluationResultsPage";
 import { Module, ModuleLink, InteractionMode, defaultModules } from "@/types/module";
 import { SelectedConfig } from "@/components/config/ArchitectureComposerSection";
 import { DeviceLibraryParams } from "@/components/config/DeviceLibrarySection";
@@ -23,7 +23,10 @@ import {
   type WorkloadRepresentation,
 } from "@/services/api";
 import { architectureProfileToViewModel, reportToViewModels } from "@/services/reportAdapter";
-import { finiteInjectionDemoConfig } from "@/services/evaluationPresets";
+import {
+  finiteInjectionDemoConfig,
+  finiteInjectionDemoSelectionError,
+} from "@/services/evaluationPresets";
 import type {
   ArchitectureHierarchyViewModel,
   EvaluationReportModel,
@@ -60,12 +63,12 @@ async function settleWithConcurrency<T, R>(
 }
 
 const Index = () => {
+  const [workspaceView, setWorkspaceView] = useState<"setup" | "results">("setup");
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
-  const [bottomPanelCollapsed, setBottomPanelCollapsed] = useState(false);
-  const [is3D, setIs3D] = useState(true);
+  const is3D = true;
   const [modules, setModules] = useState<Module[]>(defaultModules);
   const [links, setLinks] = useState<ModuleLink[]>([]);
-  const [interactionMode, setInteractionMode] = useState<InteractionMode>("drag");
+  const interactionMode: InteractionMode = "drag";
 
   // Device / interconnect parameters (from Device Library panel)
   const [deviceParams, setDeviceParams] = useState<DeviceLibraryParams>({
@@ -131,8 +134,11 @@ const Index = () => {
 
   const handleExperimentParamsChange = (params: ExperimentSetupParams) => {
     setExperimentParams(params);
-    // A report is evidence for the parameters that produced it. Keep cached
-    // results available, but stop presenting an old report as the new setup.
+    // A report is evidence for the parameters that produced it. The visible
+    // result index is keyed only by program and architecture, so clear it when
+    // semantics change rather than letting the selector revive stale evidence.
+    // The request-keyed cache remains safe to reuse after a matching rerun.
+    setEvaluationResults({});
     setViewingProgramId("");
     setViewingConfigId("");
   };
@@ -155,6 +161,17 @@ const Index = () => {
           links,
           source: "preset" as const,
         }];
+
+    if (experimentParams.evaluationPreset === "finite_t_injection_demo_v1") {
+      const selectionError = finiteInjectionDemoSelectionError(
+        selectedPrograms.map((program) => program.id),
+        configsToRun.map((config) => config.profileId),
+      );
+      if (selectionError) {
+        toast.error(selectionError);
+        return;
+      }
+    }
 
     setIsEvaluating(true);
     // Do not leave a prior report visible while a replacement run is pending
@@ -185,19 +202,14 @@ const Index = () => {
         const profileId = arch.profileId;
         const representation: WorkloadRepresentation =
           profileId === "1.2" || profileId === "2.2" ? "pbc" : "clifford_t";
-        if (
-          experimentParams.evaluationPreset === "finite_t_injection_demo_v1" &&
-          representation !== "clifford_t"
-        ) {
-          throw new Error(
-            "The finite-T injection demo requires a Clifford+T architecture profile " +
-            "(1.1, 1.3, 2.1, or 2.3).",
-          );
+        if (experimentParams.evaluationPreset === "finite_t_injection_demo_v1") {
+          return {
+            benchmark_name: program.id,
+            representation: "clifford_t" as const,
+            config: finiteInjectionDemoConfig(),
+          };
         }
-        const config: EvaluationConfigDocument =
-          experimentParams.evaluationPreset === "finite_t_injection_demo_v1"
-            ? finiteInjectionDemoConfig(profileId, program.id)
-            : minimalEvaluationConfig(profileId);
+        const config: EvaluationConfigDocument = minimalEvaluationConfig(profileId);
         const overrides: Record<string, unknown> = {};
         if (experimentParams.msfCopies !== 1) {
           overrides["protocols.magic_state.copies"] = experimentParams.msfCopies;
@@ -273,13 +285,12 @@ const Index = () => {
         setViewingConfigId("");
       }
 
-      setBottomPanelCollapsed(false);
-
       if (failedCombos.length > 0) {
         toast.error(`${failedCombos.length} evaluation(s) failed: ${failedCombos.join(", ")}`);
       }
       if (successCount > 0) {
         toast.success(`${successCount}/${allCombos.length} evaluation(s) completed`);
+        setWorkspaceView("results");
       }
     } catch (error) {
       console.error(error);
@@ -347,32 +358,45 @@ const Index = () => {
     return options;
   }, [selectedConfigs]);
 
+  if (workspaceView === "results" && activeViewModels) {
+    return (
+      <EvaluationResultsPage
+        viewModels={activeViewModels}
+        allReports={evaluationResults}
+        onBack={() => setWorkspaceView("setup")}
+        onTimelineLayerLimitChange={setTimelineLayerLimit}
+        activeProgramId={viewingProgramId}
+        onProgramChange={setViewingProgramId}
+        activeConfigId={viewingConfigId}
+        onConfigChange={setViewingConfigId}
+        onCompareSelect={handleCompareSelect}
+        programs={programOptions}
+        configs={configOptions}
+      />
+    );
+  }
+
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-background">
       {/* Top Navigation Bar */}
       <TopBar
-        is3D={is3D}
-        onToggle3D={() => setIs3D(!is3D)}
-        onZoomIn={() => console.log("Zoom in")}
-        onZoomOut={() => console.log("Zoom out")}
-        onResetView={() => console.log("Reset view")}
         onToggleSidebar={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
-        interactionMode={interactionMode}
-        onToggleInteractionMode={() => setInteractionMode(interactionMode === "drag" ? "connect" : "drag")}
         onRunEvaluation={handleRunEvaluation}
         isEvaluating={isEvaluating}
       />
 
-      {/* Main Content Area */}
-      <ResizablePanelGroup direction="horizontal" className="flex-1">
-        {/* Left Configuration Panel - Resizable */}
+      <main className="min-h-0 flex-1 p-4">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="mx-auto h-full max-w-[1600px] overflow-hidden rounded-xl border border-border bg-secondary/20"
+      >
         {!leftPanelCollapsed && (
           <>
             <ResizablePanel
-              defaultSize={20}
-              minSize={15}
-              maxSize={30}
-              className="min-w-[280px] max-w-[450px]"
+              defaultSize={60}
+              minSize={42}
+              maxSize={72}
+              className="min-w-[360px]"
             >
               <LeftPanel
                 isCollapsed={leftPanelCollapsed}
@@ -398,60 +422,28 @@ const Index = () => {
           </>
         )}
 
-        {/* Center + Bottom Resizable Layout */}
-        <ResizablePanel defaultSize={leftPanelCollapsed ? 100 : 80}>
-          <div className="flex-1 flex flex-col overflow-hidden h-full">
-            <ResizablePanelGroup direction="vertical" className="flex-1">
-              {/* Main Canvas */}
-              <ResizablePanel defaultSize={70} minSize={30}>
-                <div className="relative h-full w-full">
-                  <MainCanvas
-                    is3D={is3D}
-                    modules={modules}
-                    interactionMode={interactionMode}
-                    links={links}
-                    setLinks={setLinks}
-                    architecture={activeViewModels?.architecture ?? previewArchitecture}
-                    architectureLoading={profilesLoading && previewProfileId !== null}
-                    architectureError={previewProfileId !== null ? profileCatalogError : null}
-                  />
-                </div>
-              </ResizablePanel>
-
-              {/* Resize Handle */}
-              <ResizableHandle
-                withHandle
-                className="resize-handle h-1 hover:h-2 transition-all"
-              />
-
-              {/* Bottom Analysis Panel */}
-              <ResizablePanel
-                defaultSize={30}
-                minSize={5}
-                collapsible
-                collapsedSize={5}
-                onCollapse={() => setBottomPanelCollapsed(true)}
-                onExpand={() => setBottomPanelCollapsed(false)}
-              >
-                <BottomPanel
-                  isCollapsed={bottomPanelCollapsed}
-                  onToggleCollapse={() => setBottomPanelCollapsed(!bottomPanelCollapsed)}
-                  viewModels={activeViewModels}
-                  allReports={evaluationResults}
-                  onTimelineLayerLimitChange={setTimelineLayerLimit}
-                  activeProgramId={viewingProgramId}
-                  onProgramChange={setViewingProgramId}
-                  activeConfigId={viewingConfigId}
-                  onConfigChange={setViewingConfigId}
-                  onCompareSelect={handleCompareSelect}
-                  programs={programOptions}
-                  configs={configOptions}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
+        <ResizablePanel defaultSize={leftPanelCollapsed ? 100 : 40} minSize={28}>
+          <div className="relative h-full w-full bg-canvas">
+            <div className="pointer-events-none absolute left-4 top-4 z-20 rounded-md border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-sm">
+              <div className="text-xs font-medium text-foreground">Architecture</div>
+              <div className="font-mono text-[9px] text-muted-foreground">
+                Canonical profile preview
+              </div>
+            </div>
+            <MainCanvas
+              is3D={is3D}
+              modules={modules}
+              interactionMode={interactionMode}
+              links={links}
+              setLinks={setLinks}
+              architecture={previewArchitecture}
+              architectureLoading={profilesLoading && previewProfileId !== null}
+              architectureError={previewProfileId !== null ? profileCatalogError : null}
+            />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
+      </main>
     </div>
   );
 };

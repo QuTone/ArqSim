@@ -35,7 +35,7 @@ jobs:
       - name: Verify package artifacts
         run: python tests/run_packaging_smoke.py
       - name: Replay the finite-injection System Case
-        run: python system_cases/finite_runtime_injection_demo/run.py
+        run: python -m system_cases.finite_runtime_injection_demo_measurement_v3.run
 
   frontend:
     runs-on: ubuntu-latest
@@ -51,8 +51,8 @@ jobs:
           node-version: "20.19.0"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Install backend dependencies
-        working-directory: frontend/backend
+      - name: Install server dependencies
+        working-directory: server
         run: python -m pip install -r requirements.txt pytest
       - name: Install frontend dependencies
         working-directory: frontend
@@ -66,9 +66,9 @@ jobs:
       - name: Test report adapter
         working-directory: frontend
         run: npm run test:adapter
-      - name: Test backend adapter
+      - name: Test server adapter
         working-directory: frontend
-        run: npm run test:backend
+        run: npm run test:server
       - name: Build frontend
         working-directory: frontend
         run: npm run build

@@ -47,6 +47,6 @@
   "num_qubits": 3,
   "provenance": {},
   "representation": "pbc",
-  "schema_version": "heteqsys.ft-workload.v2",
-  "semantic_hash": "ed9087aab909f45c8779b5ef23bbb82456d909ff3faf6d9b7c49bd2c446924b7"
+  "schema_version": "arqsim.ft-workload.v2",
+  "semantic_hash": "bf5b6a8ed5228399f3de093bf2057d03238ef79b8c0655e2481ab755f6472c3e"
 }

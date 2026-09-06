@@ -4,22 +4,22 @@ from copy import deepcopy
 
 import pytest
 
-from heteqsys.architecture.errors import ArchitectureValidationError
-from heteqsys.architecture.gallery.na_c_plus_sc_f import (
+from arqsim.architecture.errors import ArchitectureValidationError
+from arqsim.architecture.gallery.na_c_plus_sc_f import (
     PROFILE,
     make_layout_policy,
 )
-from heteqsys.architecture.gallery.na_c_plus_sc_f.layout import (
+from arqsim.architecture.gallery.na_c_plus_sc_f.layout import (
     HybridRemoteMagicLayoutPolicy,
 )
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.logical_layout import (
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.logical_layout import (
     LogicalLayoutGrid,
     LogicalLayoutRequest,
     SubmoduleLayoutRequest,
 )
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.architecture.sizing import SizingResult
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.architecture.sizing import SizingResult
 
 
 COMPUTE = SubmoduleKey(

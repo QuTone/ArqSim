@@ -8,27 +8,27 @@ import json
 
 import pytest
 
-import heteqsys.architecture.construction as construction_pipeline
-from heteqsys.architecture.gallery import (
+import arqsim.architecture.construction as construction_pipeline
+from arqsim.architecture.gallery import (
     QuantileSizingConfig,
     get_architecture_profile,
     get_gallery_entry,
 )
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.architecture.sizing import SizingPolicy
-from heteqsys.architecture.specification import (
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.architecture.sizing import SizingPolicy
+from arqsim.architecture.specification import (
     ArchitectureSpecification,
     QECBinding,
     Submodule,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.program.statistics import CircuitStatistics
-from heteqsys.qec import (
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.program.statistics import CircuitStatistics
+from arqsim.qec import (
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
 )
-from heteqsys.specification import build_architecture_specification
+from arqsim.specification import build_architecture_specification
 from tests.architecture_semantic_oracle import oracle_circuit
 
 

@@ -1,18 +1,20 @@
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 
 import pytest
 
-from heteqsys.program import (
+from arqsim.program import (
     CircuitStatistics,
     FTCircuit,
     LogicalLayer,
     LogicalOperation,
     WorkloadParseError,
     load_ft_workload,
+    workload_stats,
 )
-from heteqsys.program.layout import partition_active_sets
+from arqsim.program.layout import partition_active_sets
 
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -54,6 +56,338 @@ def test_invalid_input_raises_structured_error(tmp_path: Path) -> None:
     with pytest.raises(WorkloadParseError) as error:
         load_ft_workload(source, "clifford_t")
     assert error.value.code == "invalid_workload"
+
+
+def test_gate_qasm_loader_derives_dependency_layers_without_gate_set_claim(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "clifford_rz.qasm"
+    source.write_text(
+        "OPENQASM 2.0;\n"
+        'include "qelib1.inc";\n'
+        "qreg q[2];\n"
+        "h q[0];\n"
+        "rz(pi/8) q[1];\n"
+        "cx q[0],q[1];\n",
+        encoding="utf-8",
+    )
+
+    circuit = load_ft_workload(source, "gate")
+
+    assert circuit.representation == "gate"
+    assert [
+        [operation.name for operation in layer.operations]
+        for layer in circuit.layers
+    ] == [["h", "rz"], ["cx"]]
+
+
+def test_ft_circuit_accepts_extensible_ir_dialect_and_round_trips() -> None:
+    circuit = FTCircuit(
+        representation="clifford_rz",
+        num_qubits=1,
+        num_clbits=0,
+        layers=(
+            LogicalLayer(
+                0,
+                (
+                    LogicalOperation(
+                        "gate",
+                        "rz",
+                        qubits=(0,),
+                        parameters=(0.125,),
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    restored = FTCircuit.from_json(circuit.to_json())
+
+    assert restored.to_dict() == circuit.to_dict()
+    assert restored.semantic_hash == circuit.semantic_hash
+
+
+def test_workload_statistics_infer_magic_operations_from_ir_not_dialect() -> None:
+    circuit = FTCircuit(
+        representation="gate",
+        num_qubits=1,
+        num_clbits=0,
+        layers=(
+            LogicalLayer(
+                0,
+                (LogicalOperation("gate", "t", qubits=(0,)),),
+            ),
+        ),
+    )
+
+    assert workload_stats(circuit)["t_count"] == 1
+    assert circuit.statistics.magic_states_per_layer == (1,)
+
+
+@pytest.mark.parametrize("representation", ["", " gate", "gate "])
+def test_ft_circuit_requires_canonical_nonempty_dialect(
+    representation: str,
+) -> None:
+    with pytest.raises(WorkloadParseError, match="trimmed string"):
+        FTCircuit(representation, 0, 0, ())
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("num_qubits", True),
+        ("num_qubits", 1.0),
+        ("num_clbits", False),
+        ("num_clbits", 0.0),
+    ],
+)
+def test_ft_circuit_does_not_coerce_counts_to_integers(
+    field: str,
+    value: object,
+) -> None:
+    arguments = {
+        "representation": "gate",
+        "num_qubits": 1,
+        "num_clbits": 0,
+        "layers": (),
+    }
+    arguments[field] = value
+
+    with pytest.raises(WorkloadParseError, match=field):
+        FTCircuit(**arguments)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("index", [True, 0.0, -1])
+def test_logical_layer_does_not_coerce_index(index: object) -> None:
+    with pytest.raises(WorkloadParseError, match="LogicalLayer.index"):
+        LogicalLayer(index, ())  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("field", "indices"),
+    [
+        ("qubits", (True,)),
+        ("qubits", (0.0,)),
+        ("classical_bits", (False,)),
+        ("classical_bits", (1.0,)),
+    ],
+)
+def test_logical_operation_does_not_coerce_indices(
+    field: str,
+    indices: tuple[object, ...],
+) -> None:
+    arguments = {"kind": "gate", "name": "h"}
+    arguments[field] = indices
+
+    with pytest.raises(WorkloadParseError, match=field):
+        LogicalOperation(**arguments)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("kind", ""),
+        ("kind", "Gate"),
+        ("kind", True),
+        ("name", ""),
+        ("name", "H"),
+        ("name", " h"),
+        ("name", False),
+    ],
+)
+def test_logical_operation_requires_canonical_string_identity(
+    field: str,
+    value: object,
+) -> None:
+    arguments = {"kind": "gate", "name": "h"}
+    arguments[field] = value
+
+    with pytest.raises(WorkloadParseError, match=field):
+        LogicalOperation(**arguments)  # type: ignore[arg-type]
+
+
+def test_program_records_reject_members_of_the_wrong_type() -> None:
+    with pytest.raises(WorkloadParseError, match="LogicalOperation records"):
+        LogicalLayer(0, (object(),))  # type: ignore[arg-type]
+    with pytest.raises(WorkloadParseError, match="LogicalLayer records"):
+        FTCircuit("gate", 0, 0, (object(),))  # type: ignore[arg-type]
+
+
+def test_logical_layer_rejects_shared_quantum_dependency() -> None:
+    with pytest.raises(WorkloadParseError, match="DAG layer") as exc_info:
+        LogicalLayer(
+            0,
+            (
+                LogicalOperation("gate", "h", qubits=(0,)),
+                LogicalOperation("gate", "t", qubits=(0,)),
+            ),
+        )
+
+    assert exc_info.value.details["shared_qubits"] == [0]
+
+
+def test_logical_layer_rejects_shared_classical_dependency() -> None:
+    with pytest.raises(WorkloadParseError, match="DAG layer") as exc_info:
+        LogicalLayer(
+            0,
+            (
+                LogicalOperation(
+                    "measurement",
+                    "measure",
+                    qubits=(0,),
+                    classical_bits=(0,),
+                ),
+                LogicalOperation(
+                    "measurement",
+                    "measure",
+                    qubits=(1,),
+                    classical_bits=(0,),
+                ),
+            ),
+        )
+
+    assert exc_info.value.details["shared_classical_bits"] == [0]
+
+
+def _canonical_document() -> dict:
+    return FTCircuit(
+        "gate",
+        2,
+        1,
+        (
+            LogicalLayer(
+                0,
+                (
+                    LogicalOperation("gate", "h", qubits=(0,)),
+                    LogicalOperation(
+                        "measurement",
+                        "measure",
+                        qubits=(1,),
+                        classical_bits=(0,),
+                    ),
+                ),
+            ),
+        ),
+    ).to_dict()
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected"),
+    [
+        (lambda data: data.pop("provenance"), "missing_fields"),
+        (lambda data: data.update({"extra": 1}), "unknown_fields"),
+        (
+            lambda data: data["layers"][0].pop("active_qubits"),
+            "missing_fields",
+        ),
+        (
+            lambda data: data["layers"][0].update({"extra": 1}),
+            "unknown_fields",
+        ),
+        (
+            lambda data: data["layers"][0]["operations"][0].pop("parameters"),
+            "missing_fields",
+        ),
+        (
+            lambda data: data["layers"][0]["operations"][0].update(
+                {"extra": 1}
+            ),
+            "unknown_fields",
+        ),
+    ],
+)
+def test_ft_circuit_from_dict_requires_exact_canonical_wire_fields(
+    mutation,
+    expected: str,
+) -> None:
+    document = copy.deepcopy(_canonical_document())
+    mutation(document)
+
+    with pytest.raises(WorkloadParseError) as exc_info:
+        FTCircuit.from_dict(document)
+
+    assert expected in exc_info.value.details
+
+
+def test_ft_circuit_from_dict_validates_derived_wire_fields() -> None:
+    active_qubits = copy.deepcopy(_canonical_document())
+    active_qubits["layers"][0]["active_qubits"] = [0]
+    with pytest.raises(WorkloadParseError, match="active_qubits"):
+        FTCircuit.from_dict(active_qubits)
+
+    pauli = FTCircuit(
+        "pbc",
+        1,
+        0,
+        (
+            LogicalLayer(
+                0,
+                (
+                    LogicalOperation(
+                        "pauli_rotation",
+                        "t_pauli",
+                        qubits=(0,),
+                        pauli="+X",
+                    ),
+                ),
+            ),
+        ),
+    ).to_dict()
+    pauli["layers"][0]["operations"][0]["weight"] = 2
+    with pytest.raises(WorkloadParseError, match="weight"):
+        FTCircuit.from_dict(pauli)
+
+
+@pytest.mark.parametrize("value", [None, [], "workload"])
+def test_ft_circuit_from_dict_rejects_non_objects(value: object) -> None:
+    with pytest.raises(WorkloadParseError, match="must be an object"):
+        FTCircuit.from_dict(value)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("value", [None, 1, b"{}"])
+def test_ft_circuit_from_json_rejects_non_string_input(value: object) -> None:
+    with pytest.raises(WorkloadParseError, match="must be a string"):
+        FTCircuit.from_json(value)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("text", ["null", "[]", '"workload"'])
+def test_ft_circuit_from_json_requires_an_object(text: str) -> None:
+    with pytest.raises(WorkloadParseError, match="must be an object"):
+        FTCircuit.from_json(text)
+
+
+def test_ft_circuit_from_json_rejects_duplicates_and_nonfinite_values() -> None:
+    text = FTCircuit.from_dict(_canonical_document()).to_json()
+    duplicate = text.replace(
+        '"num_qubits": 2,',
+        '"num_qubits": 2, "num_qubits": 2,',
+        1,
+    )
+    with pytest.raises(WorkloadParseError, match="Duplicate"):
+        FTCircuit.from_json(duplicate)
+
+    nonfinite = text.replace('"parameters": []', '"parameters": [NaN]', 1)
+    with pytest.raises(WorkloadParseError, match="Non-finite"):
+        FTCircuit.from_json(nonfinite)
+
+
+def test_ft_circuit_from_dict_wraps_nonfinite_nested_values() -> None:
+    parameter = copy.deepcopy(_canonical_document())
+    parameter["layers"][0]["operations"][0]["parameters"] = [float("nan")]
+    with pytest.raises(WorkloadParseError, match="finite JSON"):
+        FTCircuit.from_dict(parameter)
+
+    provenance = copy.deepcopy(_canonical_document())
+    provenance["provenance"] = {"score": float("inf")}
+    with pytest.raises(WorkloadParseError, match="finite JSON"):
+        FTCircuit.from_dict(provenance)
+
+
+def test_ft_circuit_from_json_wraps_malformed_json() -> None:
+    with pytest.raises(WorkloadParseError, match="JSON is invalid") as exc_info:
+        FTCircuit.from_json('{"schema_version":')
+
+    assert exc_info.value.details == {"line": 1, "column": 19}
 
 
 def test_workload_parameters_and_provenance_are_deeply_immutable() -> None:

@@ -5,8 +5,8 @@ from dataclasses import replace
 
 import pytest
 
-from heteqsys.architecture.isa import ArchitectureInstruction, ArchitectureOpcode
-from heteqsys.evaluation import (
+from arqsim.architecture.isa import ArchitectureInstruction, ArchitectureOpcode
+from arqsim.evaluation import (
     BufferSpec,
     EngineSpec,
     EvaluationPolicy,
@@ -18,7 +18,7 @@ from heteqsys.evaluation import (
     evaluate,
     resource_token_ledger,
 )
-from heteqsys.operation_profiles import (
+from arqsim.operation_profiles import (
     ArrivalDistribution,
     FidelityProfile,
     ResolvedResourceProtocolBinding,
@@ -444,7 +444,9 @@ def test_unused_resource_output_has_no_application_fidelity_cost() -> None:
     assert estimate.complete_coverage
 
 
-def _remote_magic_delivery_plan(*, consume_delivered_magic: bool) -> ExecutionPlan:
+def _remote_magic_delivery_plan(
+    *, consume_delivered_magic: bool, bell_buffer_id: str = "bell:link"
+) -> ExecutionPlan:
     program = [
         ArchitectureInstruction(
             0,
@@ -478,10 +480,11 @@ def _remote_magic_delivery_plan(*, consume_delivered_magic: bool) -> ExecutionPl
                     "deliver_remote_magic",
                     ArchitectureOpcode.TELEPORT_QUBITS,
                     duration_s=1.0,
-                    consumes={"msf_output": 1, "bell:link": 1},
+                    consumes={"msf_output": 1, bell_buffer_id: 1},
                     produces={"magic_compute": 1},
                     forwards={"msf_output": "magic_compute"},
                     protocol="logical_magic_teleportation",
+                    target_links=("link",),
                 ),
             )
         ),
@@ -495,7 +498,7 @@ def _remote_magic_delivery_plan(*, consume_delivered_magic: bool) -> ExecutionPl
                 initial_contents=("magic:0",),
             ),
             BufferSpec(
-                "bell:link",
+                bell_buffer_id,
                 1,
                 "logical_bell_pair",
                 module="link/bell_storage",
@@ -635,6 +638,117 @@ def test_program_consumed_remote_magic_settles_magic_bell_and_delivery_once() ->
     assert estimate.complete_coverage
 
 
+@pytest.mark.parametrize("bell_buffer_id", ("bell:link", "pair_pool"))
+@pytest.mark.parametrize("diagnostic_amount", (1, 100, "diagnostic only"))
+def test_teleport_fidelity_ignores_buffer_spelling_and_diagnostic_quantities(
+    bell_buffer_id: str, diagnostic_amount: object
+) -> None:
+    plan = _remote_magic_delivery_plan(
+        consume_delivered_magic=True, bell_buffer_id=bell_buffer_id
+    )
+    process = replace(
+        plan.resource_dag.processes[0], metadata={"amount": diagnostic_amount}
+    )
+    plan = replace(plan, resource_dag=ResourceDAG((process,)))
+    result = evaluate(plan)
+    # ResourceProcess rejects metadata.qubits at construction. Also test a
+    # re-signed diagnostic Trace projection carrying that obsolete receipt:
+    # Resource work has no typed logical-qubit tuple to replace with it.
+    transitions = tuple(
+        replace(item, metadata={**dict(item.metadata), "qubits": [7] * 13})
+        if item.process_id == process.id else item
+        for item in result.transitions
+    )
+    result = replace(result, trace=replace(result.trace, transitions=transitions))
+
+    estimate = estimate_fidelity(result, _remote_magic_fidelity_profile(), plan=plan)
+
+    assert result.total_latency_s == 2.5
+    assert estimate.log_success_by_operation == pytest.approx(
+        {"TELEPORT_QUBITS:transversal_cnot": math.log(0.9)}
+    )
+    assert estimate.success_probability == pytest.approx(0.504)
+    assert estimate.complete_coverage
+
+
+@pytest.mark.parametrize("dispatch_policy", ("single", "eager_available"))
+def test_teleport_fidelity_counts_forwarded_items_in_typed_batches(
+    dispatch_policy: str,
+) -> None:
+    plan = _remote_magic_delivery_plan(
+        consume_delivered_magic=True, bell_buffer_id="pair_pool"
+    )
+    # Deliberately distinguish teleported payload from consumed Bell ancillas.
+    # Eager mode scales a one-item template into a two-item realized batch.
+    item_quantity = 2 if dispatch_policy == "single" else 1
+    bell_quantity = 3 if dispatch_policy == "single" else 2
+    bell_count = bell_quantity * (2 // item_quantity)
+    process = replace(
+        plan.resource_dag.processes[0],
+        consumes={"msf_output": item_quantity, "pair_pool": bell_quantity},
+        produces={"magic_compute": item_quantity},
+        dispatch_policy=dispatch_policy,
+        metadata={"amount": 999},
+    )
+    buffers = tuple(
+        replace(
+            buffer,
+            capacity=bell_count if buffer.id == "pair_pool" else 2,
+            slots=(),
+            initial_contents=(
+                tuple(f"bell:{index}" for index in range(bell_count))
+                if buffer.id == "pair_pool"
+                else ("magic:0", "magic:1") if buffer.id == "msf_output" else ()
+            ),
+        )
+        for buffer in plan.buffers
+    )
+    first, consume = plan.program_dag.instructions
+    plan = replace(
+        plan,
+        buffers=buffers,
+        resource_dag=ResourceDAG((process,)),
+        program_dag=ProgramDAG((
+            first,
+            replace(consume, qubits=(0, 1), consumes={"magic_compute": 2},
+                    metadata={"gates": {"t": [0, 1]}}),
+        )),
+        initial_locations={"q:0": "compute_node/compute", "q:1": "compute_node/compute"},
+    )
+    profile = replace(
+        _remote_magic_fidelity_profile(),
+        idle_failure_rate_per_s={"compute_node/compute": 0.0},
+    )
+
+    result = evaluate(plan)
+    estimate = estimate_fidelity(result, profile, plan=plan)
+
+    assert estimate.architecture_operation_counts["TELEPORT_QUBITS"] == 1
+    assert estimate.consumed_resource_counts == {
+        "magic_state": 2, "logical_bell_pair": bell_count,
+    }
+    assert estimate.log_success_by_operation == pytest.approx(
+        {"TELEPORT_QUBITS:transversal_cnot": 2 * math.log(0.9)}
+    )
+    assert estimate.success_probability == pytest.approx(0.9**2 * 0.7**2 * 0.8**bell_count)
+    assert estimate.complete_coverage
+
+
+def test_teleport_fidelity_rejects_missing_typed_process_context() -> None:
+    plan = _remote_magic_delivery_plan(consume_delivered_magic=True)
+    result = evaluate(plan)
+    other_plan = replace(
+        plan,
+        resource_dag=ResourceDAG((
+            replace(plan.resource_dag.processes[0], id="different_process"),
+        )),
+    )
+    rebound = replace(result, trace=replace(result.trace, plan_hash=other_plan.plan_hash))
+
+    with pytest.raises(ValueError, match="typed Plan teleport flow"):
+        estimate_fidelity(rebound, _remote_magic_fidelity_profile(), plan=other_plan)
+
+
 def test_relevant_multi_forward_event_does_not_settle_unused_sibling() -> None:
     plan = ExecutionPlan(
         "circuit",
@@ -758,7 +872,11 @@ def _bell_plan(delay_s: float) -> ExecutionPlan:
                     ArchitectureOpcode.TELEPORT_QUBITS,
                     predecessor_ids=(0,),
                     duration_s=0.5,
+                    qubits=(0,),
                     consumes={"bell": 1},
+                    required_locations={"q:0": "left"},
+                    completion_locations={"q:0": "right"},
+                    target_links=("link",),
                 ),
             )
         ),
@@ -774,6 +892,7 @@ def _bell_plan(delay_s: float) -> ExecutionPlan:
             ),
         ),
         (),
+        initial_locations={"q:0": "left"},
     )
 
 

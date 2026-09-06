@@ -5,21 +5,21 @@ from dataclasses import replace
 
 import pytest
 
-import heteqsys.specification as specification_module
-from heteqsys.api import EvaluationConfig, run_evaluation
-from heteqsys.architecture import (
+import arqsim.specification as specification_module
+from arqsim.api import EvaluationConfig, run_evaluation
+from arqsim.architecture import (
     ARCHITECTURE_PROFILE_SCHEMA_VERSION,
     ArchitectureProfile,
     get_architecture_profile,
 )
-from heteqsys.architecture.isa import MagicRouteDispatchRecipe
-from heteqsys.architecture.specification import ArchitectureSpecification
-from heteqsys.compiler.layout import materialize_compute_layout
-from heteqsys.evaluation import EvaluationPolicy
-from heteqsys.operation_profiles import ArrivalDistribution, OperationLatencyProfile
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.schema import normalize_json
-from heteqsys.specification import build_architecture_specification
+from arqsim.architecture.isa import MagicRouteDispatchRecipe
+from arqsim.architecture.specification import ArchitectureSpecification
+from arqsim.compiler.layout import materialize_compute_layout
+from arqsim.evaluation import EvaluationPolicy
+from arqsim.operation_profiles import ArrivalDistribution, OperationLatencyProfile
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.schema import normalize_json
+from arqsim.specification import build_architecture_specification
 
 
 def _single_t_circuit() -> FTCircuit:
@@ -168,9 +168,9 @@ def test_11_single_t_trace_preserves_plan_ownership_and_token_lineage() -> None:
         _single_t_circuit(),
         EvaluationConfig(
             profile_id="1.1",
-            workflow_id="vertical-slice-runtime",
+            run_label="vertical-slice-runtime",
             latency_profile=_latency_profile(),
-            evaluation_policy=EvaluationPolicy(trace_level="full", seed=0),
+            execution_policy=EvaluationPolicy(trace_level="full", seed=0),
         ),
     )
     assert isinstance(report.specification, ArchitectureSpecification)
@@ -274,6 +274,41 @@ def test_11_single_t_trace_preserves_plan_ownership_and_token_lineage() -> None:
         )
     )
     assert all(report.evaluation.invariant_checks.values())
+
+
+def test_23_runtime_engine_metadata_uses_canonical_static_owners() -> None:
+    report = run_evaluation(
+        _single_t_circuit(),
+        EvaluationConfig(
+            profile_id="2.3",
+            run_label="profile-23-runtime-ownership",
+            latency_profile=_latency_profile(),
+            execution_policy=EvaluationPolicy(trace_level="full", seed=0),
+        ),
+    )
+    engines = {engine.id: engine for engine in report.execution_plan.engines}
+
+    bell_engine = engines["bell_engine:compute_msf_link"]
+    assert (bell_engine.module, bell_engine.submodule) == (
+        "compute_msf_link/bell_engine",
+        "compute_msf_link/bell_engine/pair_generator",
+    )
+    store_load = engines["store_load_buffer"]
+    assert (store_load.module, store_load.submodule) == (
+        "na_compute_node/na_compute",
+        "na_compute_node/na_compute/store_load_buffer",
+    )
+    # Internal AOD movement spans compute-region and Store/Load endpoint slots,
+    # so only its enclosing Module is an honest static owner.
+    program_move = engines["program_move"]
+    assert (program_move.module, program_move.submodule) == (
+        "na_compute_node/na_compute",
+        None,
+    )
+    # The resource-delivery engine is a synthetic concurrency domain.  Remote
+    # delivery's semantic locus is the operation target link, not the SC MSF.
+    resource_move = engines["resource_move"]
+    assert (resource_move.module, resource_move.submodule) == (None, None)
 
 
 def test_all_six_profiles_resolve_their_exact_v3_owner_graph() -> None:

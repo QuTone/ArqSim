@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from heteqsys.api import (
+from arqsim.api import (
     CANONICAL_FIDELITY_PRESET,
     EFFECTIVE_EVALUATION_CONFIG_SCHEMA_VERSION,
     EVALUATION_CONFIG_SCHEMA_VERSION,
@@ -17,21 +17,21 @@ from heteqsys.api import (
     run_evaluation,
     validate_evaluation_report_document,
 )
-from heteqsys.architecture import (
+from arqsim.architecture import (
     LogicalLayoutGrid,
     LogicalLayoutRequest,
     SubmoduleKey,
     SubmoduleLayoutRequest,
 )
-from heteqsys.cli import main as cli_main
-from heteqsys.evaluation import EvaluationPolicy
-from heteqsys.operation_profiles import ArrivalDistribution, OperationLatencyProfile
-from heteqsys.program import load_ft_workload
-from heteqsys.report_v1 import (
+from arqsim.cli import main as cli_main
+from arqsim.evaluation import EvaluationPolicy
+from arqsim.operation_profiles import ArrivalDistribution, OperationLatencyProfile
+from arqsim.program import load_ft_workload
+from arqsim.report_v1 import (
     EVALUATION_REPORT_SCHEMA_VERSION as EVALUATION_REPORT_V1_SCHEMA_VERSION,
     render_evaluation_report_v1,
 )
-from heteqsys.schema import normalize_json, semantic_hash
+from arqsim.schema import normalize_json, semantic_hash
 from tests.generate_public_report_fixture import (
     FIXTURE as PUBLIC_REPORT_FIXTURE,
     V1_FIXTURE as PUBLIC_REPORT_V1_FIXTURE,
@@ -57,9 +57,9 @@ def _latency_profile() -> OperationLatencyProfile:
 def _config(*, trace_level: str = "full") -> EvaluationConfig:
     return EvaluationConfig(
         profile_id="1.2",
-        workflow_id="public-api-test",
+        run_label="public-api-test",
         latency_profile=_latency_profile(),
-        evaluation_policy=EvaluationPolicy(trace_level=trace_level, seed=0),
+        execution_policy=EvaluationPolicy(trace_level=trace_level, seed=0),
         fidelity_profile=CANONICAL_FIDELITY_PRESET,
     )
 
@@ -75,7 +75,7 @@ def test_public_api_runs_fixture_deterministically() -> None:
     first = run_evaluation(circuit, config)
     second = run_evaluation(circuit, config)
     payload = first.to_dict()
-    canonical_evaluation = first.evaluation.to_dict()
+    runtime_diagnostics = first.evaluation.diagnostic_dict()
 
     assert payload == second.to_dict()
     assert payload["schema_version"] == EVALUATION_REPORT_SCHEMA_VERSION
@@ -98,13 +98,14 @@ def test_public_api_runs_fixture_deterministically() -> None:
     )
     assert (
         payload["artifacts"]["execution_trace"]["schema_version"]
-        == "arqsim.execution-trace.v3"
+        == "arqsim.execution-trace.v4"
     )
     assert len(payload["artifacts"]["execution_trace"]["transitions"]) == len(
         first.evaluation.trace.transitions
     )
-    assert canonical_evaluation["schema_version"] == "arqsim.execution-trace.v3"
-    assert "events" not in canonical_evaluation
+    assert "schema_version" not in runtime_diagnostics
+    assert "events" not in runtime_diagnostics
+    assert runtime_diagnostics["trace_hash"] == first.evaluation.trace_hash
     assert first.execution_plan.plan_hash == first.evaluation.plan_hash
     assert all(first.evaluation.invariant_checks.values())
     assert all(first.footprint.checks.values())
@@ -113,9 +114,9 @@ def test_public_api_runs_fixture_deterministically() -> None:
     assert summary["total_latency_s"] > 0
     assert summary["total_physical_qubits"] > 0
     assert 0 <= summary["success_probability"] <= 1
-    assert summary["fidelity_complete_coverage"] is False
+    assert summary["fidelity_complete_coverage"] is True
     assert first.fidelity is not None
-    assert first.fidelity.unprofiled_logical_operation_counts == {"rz": 1}
+    assert first.fidelity.unprofiled_logical_operation_counts == {}
 
     analysis = payload["results"]["analysis"]
     assert sum(analysis["exclusive_time_s"].values()) == pytest.approx(
@@ -134,7 +135,7 @@ def test_public_api_runs_fixture_deterministically() -> None:
         effective["schema_version"]
         == EFFECTIVE_EVALUATION_CONFIG_SCHEMA_VERSION
     )
-    assert effective["workflow_id"] == config.workflow_id
+    assert effective["workflow_id"] == config.run_label
     assert effective["compiler_spec"] == first.compiler_spec.to_dict()
     assert effective["footprint_model"] == (
         first.footprint_model.to_dict()
@@ -154,13 +155,13 @@ def test_runtime_caches_preserve_frozen_small_fixture_contract_hashes() -> None:
     report = run_evaluation(circuit, _config())
 
     assert report.report_hash == (
-        "ad2b5170628cc20a2d049147ad69bc6407c916bc6c69cd6f4395b0908b7c70b6"
+        "92fd2bf749e267ff394904dd16445149f03d2292cfa339f18f4b0db790bbe676"
     )
     assert report.execution_plan.plan_hash == (
-        "52926f757b8e78f94fb2661af1fc241321e86a888abe3badd018086c3216832e"
+        "37be942c172183ee4762e695d1d54135c5c856665aae76915506509bb4faf732"
     )
     assert report.evaluation.trace_hash == (
-        "f0a7e7b523cd39b5b389cb181026873ff503827da0022ab2e72697c2243d86ab"
+        "e38fb6cd743fb0a3736dcf0d37a82594a1bb7fce8cc22b1be87e2ea46d342b81"
     )
     assert validate_evaluation_report_document(report.to_dict())
 
@@ -192,7 +193,7 @@ def test_non_full_trace_marks_causal_analysis_unavailable() -> None:
     config = EvaluationConfig(
         profile_id="1.2",
         latency_profile=_latency_profile(),
-        evaluation_policy=EvaluationPolicy(trace_level="summary", seed=0),
+        execution_policy=EvaluationPolicy(trace_level="summary", seed=0),
     )
     payload = run_evaluation(circuit, config).to_dict()
 
@@ -201,17 +202,16 @@ def test_non_full_trace_marks_causal_analysis_unavailable() -> None:
     assert set(payload["results"]["analysis"]["unavailable"]) == {
         "buffer_occupancy",
         "exclusive_time_s",
-        "fidelity",
     }
-    assert payload["results"]["summary"]["success_probability"] is None
-    assert payload["results"]["summary"]["fidelity_complete_coverage"] is None
+    assert 0 <= payload["results"]["summary"]["success_probability"] <= 1
+    assert payload["results"]["summary"]["fidelity_complete_coverage"] is True
 
 
 def test_layout_policy_override_reaches_resolved_architecture() -> None:
     circuit = load_ft_workload(FIXTURE, "clifford_t")
     config = EvaluationConfig(
         profile_id="1.2",
-        layout_policy_overrides={
+        architecture_overrides={
             "protocols.magic_state.buffer_capacity": 2,
         },
         latency_profile=_latency_profile(),
@@ -245,9 +245,9 @@ def test_cli_evaluate_emits_public_report_contract(
             "1.2",
             "--arrival",
             "deterministic",
-            "--trace-level",
+            "--observation-level",
             "summary",
-            "--seed",
+            "--run-seed",
             "0",
             "--output",
             str(output),
@@ -350,7 +350,7 @@ def test_cli_arrival_flags_preserve_auto_request_semantics(
         captured_configs.append(config)
         return _StubReport()
 
-    monkeypatch.setattr("heteqsys.api.run_evaluation", _capture_config)
+    monkeypatch.setattr("arqsim.api.run_evaluation", _capture_config)
 
     cases = (
         ((), None, None, None),
@@ -614,7 +614,7 @@ def test_config_rejects_unknown_fields_wrong_types_and_nonfinite_json() -> None:
     with pytest.raises(TypeError, match="latency_profile"):
         EvaluationConfig(latency_profile={})  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="finite JSON"):
-        EvaluationConfig(layout_policy_overrides={"bad": float("nan")})
+        EvaluationConfig(architecture_overrides={"bad": float("nan")})
     with pytest.raises(ValueError, match="finite JSON"):
         OperationLatencyProfile(provenance={"bad": float("nan")})
 
@@ -989,9 +989,9 @@ def test_cli_validation_errors_use_the_versioned_json_contract(
 
 
 def test_package_root_exports_only_stable_common_surface() -> None:
-    import heteqsys
-    import heteqsys.api as public_api
-    import heteqsys.program as program
+    import arqsim
+    import arqsim.api as public_api
+    import arqsim.program as program
 
     expected = [
         "EvaluationConfig",
@@ -1008,49 +1008,49 @@ def test_package_root_exports_only_stable_common_surface() -> None:
         "evaluate",
     }
 
-    assert heteqsys.__all__ == expected
-    assert heteqsys.__version__ == "0.2.0"
-    assert "__version__" not in heteqsys.__all__
-    assert forbidden.isdisjoint(heteqsys.__all__)
-    assert all(not hasattr(heteqsys, name) for name in forbidden)
-    assert heteqsys.EvaluationConfig is public_api.EvaluationConfig
-    assert heteqsys.EvaluationReport is public_api.EvaluationReport
-    assert heteqsys.FTCircuit is program.FTCircuit
-    assert heteqsys.run_evaluation is public_api.run_evaluation
+    assert arqsim.__all__ == expected
+    assert arqsim.__version__ == "0.2.0"
+    assert "__version__" not in arqsim.__all__
+    assert forbidden.isdisjoint(arqsim.__all__)
+    assert all(not hasattr(arqsim, name) for name in forbidden)
+    assert arqsim.EvaluationConfig is public_api.EvaluationConfig
+    assert arqsim.EvaluationReport is public_api.EvaluationReport
+    assert arqsim.FTCircuit is program.FTCircuit
+    assert arqsim.run_evaluation is public_api.run_evaluation
 
 
 @pytest.mark.parametrize(
     ("legacy_name", "module_name"),
     [
-        ("ArchitectureProfile", "heteqsys.architecture"),
-        ("ArchitectureSpecification", "heteqsys.architecture"),
-        ("ArrivalDistribution", "heteqsys.operation_profiles"),
-        ("BackendSpec", "heteqsys.compiler"),
-        ("CANONICAL_FIDELITY_PRESET", "heteqsys.api"),
-        ("DEFAULT_FOOTPRINT_PRESET", "heteqsys.api"),
-        ("EFFECTIVE_EVALUATION_CONFIG_SCHEMA_VERSION", "heteqsys.api"),
-        ("EVALUATION_CONFIG_SCHEMA_VERSION", "heteqsys.api"),
-        ("EVALUATION_REPORT_SCHEMA_VERSION", "heteqsys.api"),
-        ("EffectiveEvaluationConfig", "heteqsys.api"),
-        ("EvaluationAnalysis", "heteqsys.evaluation"),
-        ("EvaluationPolicy", "heteqsys.evaluation"),
-        ("FidelityProfile", "heteqsys.operation_profiles"),
-        ("LogicalCompilerSpec", "heteqsys.compiler"),
-        ("LogicalLayer", "heteqsys.program"),
-        ("LogicalLayoutRequest", "heteqsys.architecture"),
-        ("LogicalOperation", "heteqsys.program"),
-        ("OperationLatencyProfile", "heteqsys.operation_profiles"),
-        ("PhysicalFootprintModel", "heteqsys.evaluation"),
-        ("WORKLOAD_SCHEMA_VERSION", "heteqsys.program"),
-        ("WorkloadParseError", "heteqsys.program"),
-        ("build_architecture_specification", "heteqsys.specification"),
-        ("get_architecture_profile", "heteqsys.architecture"),
-        ("list_architecture_profiles", "heteqsys.architecture"),
-        ("load_evaluation_report_document", "heteqsys.api"),
-        ("load_ft_workload", "heteqsys.program"),
-        ("make_layers", "heteqsys.program"),
-        ("validate_evaluation_report_document", "heteqsys.api"),
-        ("workload_stats", "heteqsys.program"),
+        ("ArchitectureProfile", "arqsim.architecture"),
+        ("ArchitectureSpecification", "arqsim.architecture"),
+        ("ArrivalDistribution", "arqsim.operation_profiles"),
+        ("BackendSpec", "arqsim.compiler"),
+        ("CANONICAL_FIDELITY_PRESET", "arqsim.api"),
+        ("DEFAULT_FOOTPRINT_PRESET", "arqsim.api"),
+        ("EFFECTIVE_EVALUATION_CONFIG_SCHEMA_VERSION", "arqsim.api"),
+        ("EVALUATION_CONFIG_SCHEMA_VERSION", "arqsim.api"),
+        ("EVALUATION_REPORT_SCHEMA_VERSION", "arqsim.api"),
+        ("EffectiveEvaluationConfig", "arqsim.api"),
+        ("EvaluationAnalysis", "arqsim.evaluation"),
+        ("EvaluationPolicy", "arqsim.evaluation"),
+        ("FidelityProfile", "arqsim.operation_profiles"),
+        ("LogicalCompilerSpec", "arqsim.compiler"),
+        ("LogicalLayer", "arqsim.program"),
+        ("LogicalLayoutRequest", "arqsim.architecture"),
+        ("LogicalOperation", "arqsim.program"),
+        ("OperationLatencyProfile", "arqsim.operation_profiles"),
+        ("PhysicalFootprintModel", "arqsim.evaluation"),
+        ("WORKLOAD_SCHEMA_VERSION", "arqsim.program"),
+        ("WorkloadParseError", "arqsim.program"),
+        ("build_architecture_specification", "arqsim.specification"),
+        ("get_architecture_profile", "arqsim.architecture"),
+        ("list_architecture_profiles", "arqsim.architecture"),
+        ("load_evaluation_report_document", "arqsim.api"),
+        ("load_ft_workload", "arqsim.program"),
+        ("make_layers", "arqsim.program"),
+        ("validate_evaluation_report_document", "arqsim.api"),
+        ("workload_stats", "arqsim.program"),
     ],
 )
 def test_removed_root_names_are_identity_preserving_deprecation_aliases(
@@ -1058,14 +1058,14 @@ def test_removed_root_names_are_identity_preserving_deprecation_aliases(
     module_name: str,
 ) -> None:
     import importlib
-    import heteqsys
+    import arqsim
 
     owner = importlib.import_module(module_name)
-    with pytest.warns(DeprecationWarning, match=rf"heteqsys\.{legacy_name} is deprecated"):
-        legacy = getattr(heteqsys, legacy_name)
+    with pytest.warns(DeprecationWarning, match=rf"arqsim\.{legacy_name} is deprecated"):
+        legacy = getattr(arqsim, legacy_name)
 
     assert legacy is getattr(owner, legacy_name)
-    assert legacy_name not in heteqsys.__all__
+    assert legacy_name not in arqsim.__all__
 
 
 def test_public_report_v2_fixture_is_current_and_self_validating() -> None:

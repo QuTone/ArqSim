@@ -6,7 +6,7 @@ from types import MappingProxyType
 
 import pytest
 
-from heteqsys.architecture.isa import (
+from arqsim.architecture.isa import (
     ArchitectureInstruction,
     ArchitectureOpcode,
     MagicRouteDispatchRecipe,
@@ -14,8 +14,8 @@ from heteqsys.architecture.isa import (
     ResourceMoveDispatchRecipe,
     deferred_dispatch_recipe_from_dict,
 )
-from heteqsys.compiler import canonical_compiler_spec
-from heteqsys.evaluation import (
+from arqsim.compiler import canonical_compiler_spec
+from arqsim.evaluation import (
     EvaluationError,
     EvaluationPolicy,
     ExecutionPlan,
@@ -27,19 +27,19 @@ from heteqsys.evaluation import (
     default_runtime_component_manifest,
     evaluate,
 )
-from heteqsys.evaluation.components import build_runtime_component_set
-from heteqsys.evaluation.lowering import (
+from arqsim.evaluation.components import build_runtime_component_set
+from arqsim.evaluation.lowering import (
     build_runtime_instruction_compiler,
     build_runtime_resource_compiler,
 )
-from heteqsys.operation_profiles import (
+from arqsim.operation_profiles import (
     OperationLatencyProfile,
     resolve_resource_protocol_bindings,
     with_effective_arrivals,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.schema import semantic_hash
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.schema import semantic_hash
+from arqsim.specification import build_architecture_specification
 
 
 def _compile_plan(*args, **kwargs) -> ExecutionPlan:

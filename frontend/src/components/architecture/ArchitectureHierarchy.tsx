@@ -549,30 +549,34 @@ function InterconnectSummary({ viewModel }: { viewModel: ArchitectureHierarchyVi
             {expandedId === interconnect.id ? (
               <div className="mt-3 grid gap-3 border-t border-border/70 pt-3 sm:grid-cols-2">
                 <section>
-                  <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground">Shared submodules</p>
+                  <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground">Interconnect modules</p>
                   <div className="mt-2 space-y-2">
-                    {interconnect.submodules.map((submodule) => (
-                      <div key={submodule.ref} className="rounded border border-border/70 bg-black/20 p-2.5">
+                    {interconnect.modules.map((module) => (
+                      <div key={module.ref} className="rounded border border-border/70 bg-black/20 p-2.5">
                         <div className="flex items-start justify-between gap-2">
-                          <span className="font-data text-foreground">{submodule.label}</span>
-                          <span className="text-[9px] uppercase text-muted-foreground">{humanize(submodule.type)}</span>
+                          <span className="font-data text-foreground">{module.label}</span>
+                          <span className="text-[9px] uppercase text-muted-foreground">{humanize(module.type)}</span>
                         </div>
-                        <p className="mt-1 text-[10px] text-muted-foreground">
-                          {submodule.payload} · {submodule.slots.length
-                            ? `${submodule.slots.length} logical slots`
-                            : submodule.copyCount != null
-                              ? `${submodule.copyCount} copies`
-                              : "no bindable slots"}
-                        </p>
-                        {submodule.resourceProtocolId ? (
-                          <p className="mt-1 break-all font-data text-[9px] text-quantum-amber">{submodule.resourceProtocolId}</p>
-                        ) : null}
-                        {submodule.slots.length ? (
-                          <p className="mt-1 break-all font-data text-[9px] text-quantum-cyan/80">
-                            {submodule.slots.slice(0, 8).map((slot) => slot.id).join(", ")}
-                            {submodule.slots.length > 8 ? ` … +${submodule.slots.length - 8}` : ""}
-                          </p>
-                        ) : null}
+                        <div className="mt-2 space-y-1.5 border-t border-white/10 pt-2">
+                          {module.submodules.map((submodule) => (
+                            <div key={submodule.ref} className="rounded bg-white/[0.025] px-2 py-1.5">
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="font-data text-foreground">{submodule.label}</span>
+                                <span className="text-[9px] uppercase text-muted-foreground">{humanize(submodule.type)}</span>
+                              </div>
+                              <p className="mt-1 text-[10px] text-muted-foreground">
+                                {submodule.payload} · {submodule.slots.length
+                                  ? `${submodule.slots.length} logical slots`
+                                  : submodule.copyCount != null
+                                    ? `${submodule.copyCount} copies`
+                                    : "no bindable slots"}
+                              </p>
+                              {submodule.resourceProtocolId ? (
+                                <p className="mt-1 break-all font-data text-[9px] text-quantum-amber">{submodule.resourceProtocolId}</p>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>

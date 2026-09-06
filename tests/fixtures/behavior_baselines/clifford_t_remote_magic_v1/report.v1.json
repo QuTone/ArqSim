@@ -56,8 +56,8 @@
     }
   },
   "compiler": {
-    "compiler_hash": "7dffd518e0ebe480fcbcb1fa8654080d705653c772bae7dfe84289c0e3a51877",
-    "instruction_set": "heteqsys.hqisa.v1",
+    "compiler_hash": "58932ea6c9a04a019110442f4015a564750e91a8c0e12e8f80b63338c0109638",
+    "instruction_set": "arqsim.hqisa.v1",
     "issue_policy": "conservative_layers",
     "mapping": {
       "backend": "sabre_na",
@@ -71,7 +71,7 @@
         "distance_metric": "euclidean"
       }
     },
-    "schema_version": "heteqsys.logical-compiler-spec.v1"
+    "schema_version": "arqsim.logical-compiler-spec.v1"
   },
   "config": {
     "compiler_spec": {
@@ -177,12 +177,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "outcome_model": {
-          "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
-          "component_id": "outcome.seeded_bernoulli.v1",
+          "component_hash": "0b122f67265f86ab0821aed38428d3c5704944d160dabb4e46be43c55cce8979",
+          "component_id": "outcome.seeded_bernoulli.v2",
           "contract_version": "1",
           "effective_config": {
             "distribution": "independent_bernoulli_half",
-            "seed_identity": "program_work_lineage"
+            "seed_identity": "program_work_lineage_and_register"
           },
           "implementation_version": "1",
           "provider": "arqsim",
@@ -190,12 +190,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "runtime_realizer": {
-          "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
-          "component_id": "runtime_realizer.state_bound.v2",
+          "component_hash": "508e2859ef6699054684ddf56cc20b6d7c0795cdef52a2cc4a029936d54dad34",
+          "component_id": "runtime_realizer.state_bound.v3",
           "contract_version": "1",
           "effective_config": {
             "binding": "fifo_first_free",
-            "continuation": "finite_injection_recipe_v1",
+            "continuation": "fully_scheduled_injection_recipe_v1",
             "deferred_program": "joint_magic_route",
             "deferred_resource": "state_bound_resource_move"
           },
@@ -241,7 +241,7 @@
         "role": "event_engine",
         "schema_version": "arqsim.runtime-component.v3"
       },
-      "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+      "manifest_hash": "8deed83cf3e6fcabb2a6286a4142fc619199ad440e7507ed01d6387bfa38db00",
       "schema_version": "arqsim.runtime-manifest.v3"
     },
     "schema_version": "arqsim.evaluation-config.v1",
@@ -324,8 +324,8 @@
       "profile_hash": "869b34a87f7cde4c9fcca950df84ae30dccf7d115fddedf00ae2e59ddc6b64bf"
     },
     "compiler_spec": {
-      "compiler_hash": "7dffd518e0ebe480fcbcb1fa8654080d705653c772bae7dfe84289c0e3a51877",
-      "instruction_set": "heteqsys.hqisa.v1",
+      "compiler_hash": "58932ea6c9a04a019110442f4015a564750e91a8c0e12e8f80b63338c0109638",
+      "instruction_set": "arqsim.hqisa.v1",
       "issue_policy": "conservative_layers",
       "mapping": {
         "backend": "sabre_na",
@@ -339,9 +339,9 @@
           "distance_metric": "euclidean"
         }
       },
-      "schema_version": "heteqsys.logical-compiler-spec.v1"
+      "schema_version": "arqsim.logical-compiler-spec.v1"
     },
-    "effective_config_hash": "6a465d2b4c887383da5b1d7386d6a986233fdcea1375bf321ad6cfb40249c965",
+    "effective_config_hash": "1731f1567b4d07072c85341a0ac0859a9962edd292803a6d7a9918713e2dc625",
     "evaluation_policy": {
       "magic_state_consumption": "bulk_wave",
       "max_events": 10000000,
@@ -366,16 +366,16 @@
         "neutral_atom": 463.0,
         "superconducting": 463.0
       },
-      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "model_hash": "9adbb491fbddd40b421822664663fb70f0a2e41512e9b71b90b709bc949cc6dd",
       "model_id": "reference-space-v1",
       "provenance": {
         "bb_rule": "ceil(logical_patches/k) * (2*n + 158)",
         "factory_rule": "pinned QEC resource protocol; legacy model field is consistency-checked for report-v1 codec parity",
         "kind": "legacy_compatibility",
-        "source": "heteqsys.evaluation.footprint.estimate_physical_footprint",
+        "source": "arqsim.evaluation.footprint.estimate_physical_footprint",
         "surface_rule": "(2*d^2 - 1) with modality multiplier"
       },
-      "schema_version": "heteqsys.physical-footprint-model.v1",
+      "schema_version": "arqsim.physical-footprint-model.v1",
       "surface_capacity_multiplier": {
         "communication_qubits": 1.0,
         "logical_bell_pairs": 1.0,
@@ -433,7 +433,7 @@
             "logical_bell_pair": "explicit_arrival_override",
             "magic_state": "explicit_arrival_override"
           },
-          "resource_protocol_bindings_hash": "f94594e41aa7174c51c474afafb20e43863b7926ea43a5559ae572fe73db8f3c"
+          "resource_protocol_bindings_hash": "107d2a8ff22a4a29ee734781e69129794f6412987ac99e7b4267d32986d816a7"
         },
         "reaction_latency_by_modality_s": {},
         "store_load_protocol": "bb_surface_transfer",
@@ -464,7 +464,7 @@
           }
         }
       },
-      "profile_hash": "b3a76d403f76db685833a39beeb75564e0eb26e93260bdf8d79db9a7cf60ac1d"
+      "profile_hash": "b3aec673e28d46c1332cce6bb7bc82a3e9aae760ae4dca02a1858d7fa162e35e"
     },
     "layout_policy": {
       "configuration": {
@@ -578,12 +578,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "outcome_model": {
-          "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
-          "component_id": "outcome.seeded_bernoulli.v1",
+          "component_hash": "0b122f67265f86ab0821aed38428d3c5704944d160dabb4e46be43c55cce8979",
+          "component_id": "outcome.seeded_bernoulli.v2",
           "contract_version": "1",
           "effective_config": {
             "distribution": "independent_bernoulli_half",
-            "seed_identity": "program_work_lineage"
+            "seed_identity": "program_work_lineage_and_register"
           },
           "implementation_version": "1",
           "provider": "arqsim",
@@ -591,12 +591,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "runtime_realizer": {
-          "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
-          "component_id": "runtime_realizer.state_bound.v2",
+          "component_hash": "508e2859ef6699054684ddf56cc20b6d7c0795cdef52a2cc4a029936d54dad34",
+          "component_id": "runtime_realizer.state_bound.v3",
           "contract_version": "1",
           "effective_config": {
             "binding": "fifo_first_free",
-            "continuation": "finite_injection_recipe_v1",
+            "continuation": "fully_scheduled_injection_recipe_v1",
             "deferred_program": "joint_magic_route",
             "deferred_resource": "state_bound_resource_move"
           },
@@ -642,7 +642,7 @@
         "role": "event_engine",
         "schema_version": "arqsim.runtime-component.v3"
       },
-      "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+      "manifest_hash": "8deed83cf3e6fcabb2a6286a4142fc619199ad440e7507ed01d6387bfa38db00",
       "schema_version": "arqsim.runtime-manifest.v3"
     },
     "schema_version": "arqsim.effective-evaluation-config.v1",
@@ -1982,7 +1982,7 @@
                   ]
                 }
               ],
-              "runtime_route_cache_key": "5522e259751958fae2d2c98b05345c9a3e7986ae5ccdf1f0beeedb67b83e11c6",
+              "runtime_route_cache_key": "2baf26e653eb86881ace06bc839a6591ba5b3a327a3cdda9547d04bf4fbbbf9c",
               "runtime_route_request": {
                 "compute_partition": 0,
                 "compute_partition_count": 1,
@@ -2359,10 +2359,8 @@
         "produced_tokens": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 0,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:0"
         },
@@ -2566,10 +2564,8 @@
         "produced_tokens": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 1,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:1"
         },
@@ -2767,10 +2763,8 @@
         "produced_tokens": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 2,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:2"
         },
@@ -2832,10 +2826,8 @@
         "produced_tokens": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 3,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:3"
         },
@@ -3073,7 +3065,7 @@
               ]
             }
           ],
-          "runtime_route_cache_key": "5522e259751958fae2d2c98b05345c9a3e7986ae5ccdf1f0beeedb67b83e11c6",
+          "runtime_route_cache_key": "2baf26e653eb86881ace06bc839a6591ba5b3a327a3cdda9547d04bf4fbbbf9c",
           "runtime_route_request": {
             "compute_partition": 0,
             "compute_partition_count": 1,
@@ -3130,10 +3122,8 @@
         "produced_tokens": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 4,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:4"
         },
@@ -3197,10 +3187,8 @@
         "produced_tokens": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 5,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:5"
         },
@@ -3209,7 +3197,7 @@
         "wait_reasons": []
       }
     ],
-    "execution_hash": "2fe1d1f5910a8d569b5d269955b004dbf418f16d990f2d8dc3e477c07dc3ea21",
+    "execution_hash": "5ef66120d66a9beb18f9392f362bbfdc76b4cbedaa9502d1510a667479a6028d",
     "final_state": {
       "buffers": {
         "bell:compute_msf_link": [],
@@ -3347,7 +3335,7 @@
         "msf_output": 0
       }
     },
-    "plan_hash": "b9d2248b7c7d43d0bae9e701d420218111d44c984131be3c86312f42cb7a8355",
+    "plan_hash": "31b681b87b2c1f97171d6cc53ec516c6480da116ad95ec7075486634a00700e4",
     "producer_blocked_s": {
       "deliver_magic_remote": 0.0,
       "prepare_logical_bell:compute_msf_link": 0.0,
@@ -3369,12 +3357,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "outcome_model": {
-          "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
-          "component_id": "outcome.seeded_bernoulli.v1",
+          "component_hash": "0b122f67265f86ab0821aed38428d3c5704944d160dabb4e46be43c55cce8979",
+          "component_id": "outcome.seeded_bernoulli.v2",
           "contract_version": "1",
           "effective_config": {
             "distribution": "independent_bernoulli_half",
-            "seed_identity": "program_work_lineage"
+            "seed_identity": "program_work_lineage_and_register"
           },
           "implementation_version": "1",
           "provider": "arqsim",
@@ -3382,12 +3370,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "runtime_realizer": {
-          "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
-          "component_id": "runtime_realizer.state_bound.v2",
+          "component_hash": "508e2859ef6699054684ddf56cc20b6d7c0795cdef52a2cc4a029936d54dad34",
+          "component_id": "runtime_realizer.state_bound.v3",
           "contract_version": "1",
           "effective_config": {
             "binding": "fifo_first_free",
-            "continuation": "finite_injection_recipe_v1",
+            "continuation": "fully_scheduled_injection_recipe_v1",
             "deferred_program": "joint_magic_route",
             "deferred_resource": "state_bound_resource_move"
           },
@@ -3433,7 +3421,7 @@
         "role": "event_engine",
         "schema_version": "arqsim.runtime-component.v3"
       },
-      "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+      "manifest_hash": "8deed83cf3e6fcabb2a6286a4142fc619199ad440e7507ed01d6387bfa38db00",
       "schema_version": "arqsim.runtime-manifest.v3"
     },
     "schema_version": "arqsim.execution-trace.v1",
@@ -3627,7 +3615,7 @@
       "token_slots": {}
     },
     "total_latency_s": 0.008133550762729052,
-    "trace_hash": "cd59097e2742430e91a3d19bd127f12aae2fb48833796c94d39d83f8a1126367",
+    "trace_hash": "ecd8386db8decf00b6b9bd4ffc85b816437d7ce5fed4002576e2f1541dd0e946",
     "transitions": [
       {
         "backend_artifact": {},
@@ -3730,10 +3718,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 0,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:0"
         },
@@ -3998,10 +3984,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 0,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:0"
         },
@@ -4064,10 +4048,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 1,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:1"
         },
@@ -4130,10 +4112,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 1,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:1"
         },
@@ -4331,10 +4311,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 2,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:2"
         },
@@ -4538,10 +4516,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 2,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:2"
         },
@@ -4604,10 +4580,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 3,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:3"
         },
@@ -4670,10 +4644,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 3,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:3"
         },
@@ -5314,7 +5286,7 @@
               ]
             }
           ],
-          "runtime_route_cache_key": "5522e259751958fae2d2c98b05345c9a3e7986ae5ccdf1f0beeedb67b83e11c6",
+          "runtime_route_cache_key": "2baf26e653eb86881ace06bc839a6591ba5b3a327a3cdda9547d04bf4fbbbf9c",
           "runtime_route_request": {
             "compute_partition": 0,
             "compute_partition_count": 1,
@@ -5367,10 +5339,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 4,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:4"
         },
@@ -5541,7 +5511,7 @@
               ]
             }
           ],
-          "runtime_route_cache_key": "5522e259751958fae2d2c98b05345c9a3e7986ae5ccdf1f0beeedb67b83e11c6",
+          "runtime_route_cache_key": "2baf26e653eb86881ace06bc839a6591ba5b3a327a3cdda9547d04bf4fbbbf9c",
           "runtime_route_request": {
             "compute_partition": 0,
             "compute_partition_count": 1,
@@ -5594,10 +5564,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 4,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:4"
         },
@@ -5662,10 +5630,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 5,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:5"
         },
@@ -5728,10 +5694,8 @@
         "produces": {},
         "program_lineage": {
           "parent_event_id": null,
-          "recipe_id": null,
-          "recipe_invocation_id": null,
+          "recipe_members": [],
           "source_instruction_id": 5,
-          "stage_index": null,
           "step": "source",
           "work_id": "program:5"
         },
@@ -5812,9 +5776,9 @@
         "q:1": "na_compute_node/na_compute"
       }
     },
-    "architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
-    "latency_profile_hash": "b3a76d403f76db685833a39beeb75564e0eb26e93260bdf8d79db9a7cf60ac1d",
-    "plan_hash": "b9d2248b7c7d43d0bae9e701d420218111d44c984131be3c86312f42cb7a8355",
+    "architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
+    "latency_profile_hash": "b3aec673e28d46c1332cce6bb7bc82a3e9aae760ae4dca02a1858d7fa162e35e",
+    "plan_hash": "31b681b87b2c1f97171d6cc53ec516c6480da116ad95ec7075486634a00700e4",
     "policy": {
       "magic_state_consumption": "bulk_wave",
       "max_events": 10000000,
@@ -6155,7 +6119,7 @@
             ],
             "resource_policy": "consume_ready_magic_states_at_dispatch",
             "route_binding_status": "unresolved_until_dispatch",
-            "route_hash": "4425e22783abfb5cd9adc653ad886a5bf5229a4cdedf934d8e0833eceeed29ab",
+            "route_hash": "b1526686d4995ec95536dd9155787cbc6710aaecd78ee09588919d8419e6f7db",
             "route_metrics": {
               "deferred_until_dispatch": true
             },
@@ -6235,10 +6199,10 @@
       ]
     },
     "provenance": {
-      "compilation_hash": "ae86040f2f965ca17cba39b23dbf655e975488809e1898d08e5ac7013861f01a",
-      "compiler_spec_hash": "7dffd518e0ebe480fcbcb1fa8654080d705653c772bae7dfe84289c0e3a51877",
+      "compilation_hash": "6cbdbf02751210e5cfffbe1fa68862dda4fe361e6d80f715666127f9e8d50818",
+      "compiler_spec_hash": "58932ea6c9a04a019110442f4015a564750e91a8c0e12e8f80b63338c0109638",
       "initialization": "cold_start",
-      "plan_builder_version": "arqsim-plan-builder-v4",
+      "plan_builder_version": "arqsim-plan-builder-v5",
       "program_dependency": "dag_derived_ft_layers",
       "program_resource_move_contention": "separate_domains",
       "resource_delivery_channels": 1,
@@ -6266,7 +6230,7 @@
               "success_probability": 1.0,
               "trace_intervals_s": []
             },
-            "binding_hash": "37dbb97fe6078c775eb798c821413b93d143565deeb7b7545a3b20ae2d12b88e",
+            "binding_hash": "3b4a26eb69980097983e69e60b131dac70fe26975e2195ee8b1fd6d9a1355aa5",
             "copies": 1,
             "effective_arrival_distribution": {
               "initial_delay_s": 0.0,
@@ -6302,9 +6266,9 @@
             },
             "protocol_family": "entanglement_boosting",
             "protocol_id": "boosting-dbell9-ds19-pbell1e2",
-            "protocol_profile_hash": "7d4064e4021b422e891aa7236abc68d8dc5353de6ac9529ed2f8b3adac70912e",
+            "protocol_profile_hash": "1ec940f4b0e4d43b1faca9665b4566977ace1444bfc544151708769ebb56fdad",
             "provenance": {
-              "architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
+              "architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
               "arrival_resolution": {
                 "base_arrival_hash": "425a83484fe7edb4009b05aa498c4be543cada9a44b0c469548bd7b5cafcf0bc",
                 "effective_arrival_hash": "b6887fabc31b92a352bc91bc8b47ac027492b3590108ece36699f0611d2b712f",
@@ -6319,7 +6283,6 @@
             "source": {
               "arxiv": "2511.10729v2",
               "doi": "10.1103/tz8f-6xwk",
-              "lightstim_implementation": "Research/LightStim/lightstim/protocols/entanglement_boosting.py",
               "location": "Figures 3--4 and Appendix C.2",
               "paper": "Sunami et al., Entanglement boosting: Low-volume logical Bell pair preparation for distributed fault-tolerant quantum computation",
               "publication": "PRX Quantum 7, 033014 (2026)"
@@ -6341,7 +6304,7 @@
               "success_probability": 1.0,
               "trace_intervals_s": []
             },
-            "binding_hash": "50f9142e9fb52f65e536fedde4f5d4ba77f7314304f923f946515392316160e6",
+            "binding_hash": "17b775ecba11be98bd138085488262a8899ee1088fe1a5b2d822643c581d2d03",
             "copies": 1,
             "effective_arrival_distribution": {
               "initial_delay_s": 0.0,
@@ -6370,7 +6333,7 @@
             "protocol_id": "cultivation-d5-d15-p1e3",
             "protocol_profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e",
             "provenance": {
-              "architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
+              "architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
               "arrival_resolution": {
                 "base_arrival_hash": "e897f2a8404cca3a6b6d463f5ac80f08cddc7900963b148d9e52670f6f9072cc",
                 "effective_arrival_hash": "b6887fabc31b92a352bc91bc8b47ac027492b3590108ece36699f0611d2b712f",
@@ -6390,12 +6353,12 @@
             }
           }
         },
-        "bindings_hash": "f94594e41aa7174c51c474afafb20e43863b7926ea43a5559ae572fe73db8f3c",
+        "bindings_hash": "107d2a8ff22a4a29ee734781e69129794f6412987ac99e7b4267d32986d816a7",
         "schema_version": "arqsim.resolved-resource-protocol-bindings.v1"
       },
-      "resource_protocol_bindings_hash": "f94594e41aa7174c51c474afafb20e43863b7926ea43a5559ae572fe73db8f3c",
+      "resource_protocol_bindings_hash": "107d2a8ff22a4a29ee734781e69129794f6412987ac99e7b4267d32986d816a7",
       "runtime_injection_recipe_mode": "black_box",
-      "runtime_manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06"
+      "runtime_manifest_hash": "8deed83cf3e6fcabb2a6286a4142fc619199ad440e7507ed01d6387bfa38db00"
     },
     "resource_dag": {
       "fill_policy": "greedy_fill_to_capacity",
@@ -6516,12 +6479,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "outcome_model": {
-          "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
-          "component_id": "outcome.seeded_bernoulli.v1",
+          "component_hash": "0b122f67265f86ab0821aed38428d3c5704944d160dabb4e46be43c55cce8979",
+          "component_id": "outcome.seeded_bernoulli.v2",
           "contract_version": "1",
           "effective_config": {
             "distribution": "independent_bernoulli_half",
-            "seed_identity": "program_work_lineage"
+            "seed_identity": "program_work_lineage_and_register"
           },
           "implementation_version": "1",
           "provider": "arqsim",
@@ -6529,12 +6492,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "runtime_realizer": {
-          "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
-          "component_id": "runtime_realizer.state_bound.v2",
+          "component_hash": "508e2859ef6699054684ddf56cc20b6d7c0795cdef52a2cc4a029936d54dad34",
+          "component_id": "runtime_realizer.state_bound.v3",
           "contract_version": "1",
           "effective_config": {
             "binding": "fifo_first_free",
-            "continuation": "finite_injection_recipe_v1",
+            "continuation": "fully_scheduled_injection_recipe_v1",
             "deferred_program": "joint_magic_route",
             "deferred_resource": "state_bound_resource_move"
           },
@@ -6580,32 +6543,32 @@
         "role": "event_engine",
         "schema_version": "arqsim.runtime-component.v3"
       },
-      "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+      "manifest_hash": "8deed83cf3e6fcabb2a6286a4142fc619199ad440e7507ed01d6387bfa38db00",
       "schema_version": "arqsim.runtime-manifest.v3"
     },
     "schema_version": "arqsim.execution-plan.v5",
     "source": {
-      "circuit_hash": "c4f34e1c4fa0f6c8dda83aed05ed5a2f0b76a63345413da6c589d7eb42a7c4d6"
+      "circuit_hash": "8fa7d2530380902736445b0e284f1bab4f9c6d93176ee12d865424b2f1988ba3"
     }
   },
   "hashes": {
-    "architecture": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
-    "compiler": "7dffd518e0ebe480fcbcb1fa8654080d705653c772bae7dfe84289c0e3a51877",
-    "config": "ab713e73dd9a6f48b40e25b17d48846f6d09186121c067c2510d4a640158743a",
-    "effective_config": "6a465d2b4c887383da5b1d7386d6a986233fdcea1375bf321ad6cfb40249c965",
-    "execution": "2fe1d1f5910a8d569b5d269955b004dbf418f16d990f2d8dc3e477c07dc3ea21",
-    "execution_plan": "b9d2248b7c7d43d0bae9e701d420218111d44c984131be3c86312f42cb7a8355",
+    "architecture": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
+    "compiler": "58932ea6c9a04a019110442f4015a564750e91a8c0e12e8f80b63338c0109638",
+    "config": "cbbd0fd6a58d878b110ad6494801286412ed9578a2e215de78abc7140c853308",
+    "effective_config": "1731f1567b4d07072c85341a0ac0859a9962edd292803a6d7a9918713e2dc625",
+    "execution": "5ef66120d66a9beb18f9392f362bbfdc76b4cbedaa9502d1510a667479a6028d",
+    "execution_plan": "31b681b87b2c1f97171d6cc53ec516c6480da116ad95ec7075486634a00700e4",
     "fidelity_profile": null,
-    "footprint_estimate": "257e83992010d29b67768daefb8fcabd16d41aa7f64177b6b17c10158be31740",
-    "latency_profile": "b3a76d403f76db685833a39beeb75564e0eb26e93260bdf8d79db9a7cf60ac1d",
+    "footprint_estimate": "721e245f6e8d47b49fc3f6b8826fc0ad5aa2319a822feb08b126f5a7a2b48bcb",
+    "latency_profile": "b3aec673e28d46c1332cce6bb7bc82a3e9aae760ae4dca02a1858d7fa162e35e",
     "magic_sizing_reference": null,
-    "qec": "3e56a299d88861a9aaf2fb96e1ac34b84e0823c80d1606c6c4ddd00ef6225482",
-    "runtime_components": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
-    "system": "31e1481d463a15c84a98ebed25b8141eb3712a6717050cdaf810e96f4ab56be6",
-    "trace": "cd59097e2742430e91a3d19bd127f12aae2fb48833796c94d39d83f8a1126367",
-    "workload": "c4f34e1c4fa0f6c8dda83aed05ed5a2f0b76a63345413da6c589d7eb42a7c4d6"
+    "qec": "fffd8233f014093f247bc7ab4a2a34ddc3aff0fe5e8412d50702f43f3d201b4f",
+    "runtime_components": "8deed83cf3e6fcabb2a6286a4142fc619199ad440e7507ed01d6387bfa38db00",
+    "system": "6a74e371113e295b6441a5c036810710955fe18d2406578274b1b0793bc2824b",
+    "trace": "ecd8386db8decf00b6b9bd4ffc85b816437d7ce5fed4002576e2f1541dd0e946",
+    "workload": "8fa7d2530380902736445b0e284f1bab4f9c6d93176ee12d865424b2f1988ba3"
   },
-  "report_hash": "03b53d2d4ead3d73baf6f0e2721f503ca0c14d558630bde81f50b9a0a58f06f6",
+  "report_hash": "1d7617d0a20eb5cb8502c66fa6e4e4f1b56e6c09a6a3433e67f0d04ad310381a",
   "schema_version": "arqsim.evaluation-report.v1",
   "specification": {
     "architecture_slot_layout": {
@@ -6661,10 +6624,10 @@
     },
     "layout_plan": {
       "connection_layouts": {},
-      "plan_hash": "44d2acf6644308d0cc3f08f295ea66b49b695ca2d53cd5a121985aeb5bec07b5",
-      "profile": "heteqsys.1.3",
+      "plan_hash": "58686863f2414f8bd37a68a54daa383db8a2ecc3750a1ab3bfd0bff3f0c28126",
+      "profile": "arqsim.1.3",
       "provenance": {
-        "canonical_architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
+        "canonical_architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
         "placement_resolved": true,
         "policy": "reference-quantile-square-v1",
         "policy_schema": "arqsim.quantile-layout-policy.v1",
@@ -6959,7 +6922,7 @@
           ]
         }
       ],
-      "logical_architecture_hash": "f5f4ca34b10238fb354c28dd2a6176a7f377381589c745109b92b07d5e57179b",
+      "logical_architecture_hash": "3c1f3b52a334374c3a31e7b15ab99478a67a2c1b268184dbee9d4edec6ab0f6e",
       "nodes": [
         {
           "connections": [],
@@ -7120,10 +7083,10 @@
         ]
       },
       "resolved_hashes": {
-        "architecture": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
-        "layout_plan": "44d2acf6644308d0cc3f08f295ea66b49b695ca2d53cd5a121985aeb5bec07b5",
-        "qec": "3e56a299d88861a9aaf2fb96e1ac34b84e0823c80d1606c6c4ddd00ef6225482",
-        "system": "31e1481d463a15c84a98ebed25b8141eb3712a6717050cdaf810e96f4ab56be6"
+        "architecture": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
+        "layout_plan": "58686863f2414f8bd37a68a54daa383db8a2ecc3750a1ab3bfd0bff3f0c28126",
+        "qec": "fffd8233f014093f247bc7ab4a2a34ddc3aff0fe5e8412d50702f43f3d201b4f",
+        "system": "6a74e371113e295b6441a5c036810710955fe18d2406578274b1b0793bc2824b"
       },
       "schema_version": "arqsim.logical-architecture.v1",
       "workflow": {
@@ -7132,7 +7095,7 @@
       }
     },
     "physical_footprint": {
-      "architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
+      "architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
       "checks": {
         "all_capacity_entries_accounted": true,
         "all_component_costs_non_negative": true,
@@ -7222,7 +7185,7 @@
             "physical_qubits_per_copy_per_endpoint": 721,
             "physical_qubits_source": "pinned_qec_resource_protocol",
             "protocol": "boosting-dbell9-ds19-pbell1e2",
-            "protocol_profile_hash": "7d4064e4021b422e891aa7236abc68d8dc5353de6ac9529ed2f8b3adac70912e"
+            "protocol_profile_hash": "1ec940f4b0e4d43b1faca9665b4566977ace1444bfc544151708769ebb56fdad"
           },
           "modality": "neutral_atom",
           "module": "bell_engine",
@@ -7263,7 +7226,7 @@
             "physical_qubits_per_copy_per_endpoint": 721,
             "physical_qubits_source": "pinned_qec_resource_protocol",
             "protocol": "boosting-dbell9-ds19-pbell1e2",
-            "protocol_profile_hash": "7d4064e4021b422e891aa7236abc68d8dc5353de6ac9529ed2f8b3adac70912e"
+            "protocol_profile_hash": "1ec940f4b0e4d43b1faca9665b4566977ace1444bfc544151708769ebb56fdad"
           },
           "modality": "superconducting",
           "module": "bell_engine",
@@ -7296,12 +7259,12 @@
           "submodule_role": "logical_bell_buffer"
         }
       ],
-      "estimate_hash": "257e83992010d29b67768daefb8fcabd16d41aa7f64177b6b17c10158be31740",
-      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "estimate_hash": "721e245f6e8d47b49fc3f6b8826fc0ad5aa2319a822feb08b126f5a7a2b48bcb",
+      "model_hash": "9adbb491fbddd40b421822664663fb70f0a2e41512e9b71b90b709bc949cc6dd",
       "model_id": "reference-space-v1",
-      "qec_hash": "3e56a299d88861a9aaf2fb96e1ac34b84e0823c80d1606c6c4ddd00ef6225482",
-      "schema_version": "heteqsys.physical-footprint-estimate.v1",
-      "system_hash": "31e1481d463a15c84a98ebed25b8141eb3712a6717050cdaf810e96f4ab56be6",
+      "qec_hash": "fffd8233f014093f247bc7ab4a2a34ddc3aff0fe5e8412d50702f43f3d201b4f",
+      "schema_version": "arqsim.physical-footprint-estimate.v1",
+      "system_hash": "6a74e371113e295b6441a5c036810710955fe18d2406578274b1b0793bc2824b",
       "total_physical_qubits": 5949.0
     },
     "physical_footprint_model": {
@@ -7317,16 +7280,16 @@
         "neutral_atom": 463.0,
         "superconducting": 463.0
       },
-      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "model_hash": "9adbb491fbddd40b421822664663fb70f0a2e41512e9b71b90b709bc949cc6dd",
       "model_id": "reference-space-v1",
       "provenance": {
         "bb_rule": "ceil(logical_patches/k) * (2*n + 158)",
         "factory_rule": "pinned QEC resource protocol; legacy model field is consistency-checked for report-v1 codec parity",
         "kind": "legacy_compatibility",
-        "source": "heteqsys.evaluation.footprint.estimate_physical_footprint",
+        "source": "arqsim.evaluation.footprint.estimate_physical_footprint",
         "surface_rule": "(2*d^2 - 1) with modality multiplier"
       },
-      "schema_version": "heteqsys.physical-footprint-model.v1",
+      "schema_version": "arqsim.physical-footprint-model.v1",
       "surface_capacity_multiplier": {
         "communication_qubits": 1.0,
         "logical_bell_pairs": 1.0,
@@ -7507,7 +7470,7 @@
     },
     "resolved_system": {
       "architecture": {
-        "architecture_hash": "55e68c7c6f91fe5df66b0a2516f7963a62d1aebf16d205214234b9a42f7be4ca",
+        "architecture_hash": "dd23490a1e567b6e9276f03c318412f7b1470ca306f209dde812b9633acdab5c",
         "buses": [
           {
             "endpoints": [
@@ -7553,7 +7516,7 @@
           }
         ],
         "metadata": {
-          "canonical_architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
+          "canonical_architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
           "source": "canonical architecture specification",
           "workflow": "step2-clifford-t-v1"
         },
@@ -7833,11 +7796,11 @@
         "parameters": {},
         "profile": {
           "contract_hash": "869b34a87f7cde4c9fcca950df84ae30dccf7d115fddedf00ae2e59ddc6b64bf",
-          "id": "heteqsys.1.3",
+          "id": "arqsim.1.3",
           "version": 1
         },
         "required_primitive_interfaces": [],
-        "schema_version": "heteqsys.architecture-spec.v2"
+        "schema_version": "arqsim.architecture-spec.v2"
       },
       "qec_configuration": {
         "bindings": [
@@ -7868,18 +7831,18 @@
         ],
         "configuration": {
           "id": "arqsim.qec.1.3.canonical_projection",
-          "target_profile": "heteqsys.1.3",
+          "target_profile": "arqsim.1.3",
           "version": 1
         },
         "metadata": {
-          "architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
+          "architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
           "source": "canonical architecture specification"
         },
-        "qec_hash": "3e56a299d88861a9aaf2fb96e1ac34b84e0823c80d1606c6c4ddd00ef6225482",
-        "schema_version": "heteqsys.qec-configuration.v2"
+        "qec_hash": "fffd8233f014093f247bc7ab4a2a34ddc3aff0fe5e8412d50702f43f3d201b4f",
+        "schema_version": "arqsim.qec-configuration.v2"
       },
-      "schema_version": "heteqsys.resolved-ft-system.v1",
-      "system_hash": "31e1481d463a15c84a98ebed25b8141eb3712a6717050cdaf810e96f4ab56be6"
+      "schema_version": "arqsim.resolved-ft-system.v1",
+      "system_hash": "6a74e371113e295b6441a5c036810710955fe18d2406578274b1b0793bc2824b"
     },
     "resource_protocol_bindings": {
       "bindings": {
@@ -7902,7 +7865,7 @@
             "success_probability": 1.0,
             "trace_intervals_s": []
           },
-          "binding_hash": "37dbb97fe6078c775eb798c821413b93d143565deeb7b7545a3b20ae2d12b88e",
+          "binding_hash": "3b4a26eb69980097983e69e60b131dac70fe26975e2195ee8b1fd6d9a1355aa5",
           "copies": 1,
           "effective_arrival_distribution": {
             "initial_delay_s": 0.0,
@@ -7938,9 +7901,9 @@
           },
           "protocol_family": "entanglement_boosting",
           "protocol_id": "boosting-dbell9-ds19-pbell1e2",
-          "protocol_profile_hash": "7d4064e4021b422e891aa7236abc68d8dc5353de6ac9529ed2f8b3adac70912e",
+          "protocol_profile_hash": "1ec940f4b0e4d43b1faca9665b4566977ace1444bfc544151708769ebb56fdad",
           "provenance": {
-            "architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
+            "architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
             "arrival_resolution": {
               "base_arrival_hash": "425a83484fe7edb4009b05aa498c4be543cada9a44b0c469548bd7b5cafcf0bc",
               "effective_arrival_hash": "b6887fabc31b92a352bc91bc8b47ac027492b3590108ece36699f0611d2b712f",
@@ -7955,7 +7918,6 @@
           "source": {
             "arxiv": "2511.10729v2",
             "doi": "10.1103/tz8f-6xwk",
-            "lightstim_implementation": "Research/LightStim/lightstim/protocols/entanglement_boosting.py",
             "location": "Figures 3--4 and Appendix C.2",
             "paper": "Sunami et al., Entanglement boosting: Low-volume logical Bell pair preparation for distributed fault-tolerant quantum computation",
             "publication": "PRX Quantum 7, 033014 (2026)"
@@ -7977,7 +7939,7 @@
             "success_probability": 1.0,
             "trace_intervals_s": []
           },
-          "binding_hash": "50f9142e9fb52f65e536fedde4f5d4ba77f7314304f923f946515392316160e6",
+          "binding_hash": "17b775ecba11be98bd138085488262a8899ee1088fe1a5b2d822643c581d2d03",
           "copies": 1,
           "effective_arrival_distribution": {
             "initial_delay_s": 0.0,
@@ -8006,7 +7968,7 @@
           "protocol_id": "cultivation-d5-d15-p1e3",
           "protocol_profile_hash": "ae4ab9a0f27b327fb61564f4eff11e0bc000fb34756fc058b667c61a7e644e8e",
           "provenance": {
-            "architecture_hash": "8a4a08a27d7ce901039792f302074f06aea07ce2f58f6a45e77e7ffd8b1175ce",
+            "architecture_hash": "da11fe941e10255581e623bf48f07dba655024fc3320606dcf8f0b1146dcb717",
             "arrival_resolution": {
               "base_arrival_hash": "e897f2a8404cca3a6b6d463f5ac80f08cddc7900963b148d9e52670f6f9072cc",
               "effective_arrival_hash": "b6887fabc31b92a352bc91bc8b47ac027492b3590108ece36699f0611d2b712f",
@@ -8026,7 +7988,7 @@
           }
         }
       },
-      "bindings_hash": "f94594e41aa7174c51c474afafb20e43863b7926ea43a5559ae572fe73db8f3c",
+      "bindings_hash": "107d2a8ff22a4a29ee734781e69129794f6412987ac99e7b4267d32986d816a7",
       "schema_version": "arqsim.resolved-resource-protocol-bindings.v1"
     },
     "schema_version": "arqsim.specification-build.v2",
@@ -8126,8 +8088,8 @@
       "num_qubits": 2,
       "provenance": {},
       "representation": "clifford_t",
-      "schema_version": "heteqsys.ft-workload.v2",
-      "semantic_hash": "c4f34e1c4fa0f6c8dda83aed05ed5a2f0b76a63345413da6c589d7eb42a7c4d6"
+      "schema_version": "arqsim.ft-workload.v2",
+      "semantic_hash": "8fa7d2530380902736445b0e284f1bab4f9c6d93176ee12d865424b2f1988ba3"
     },
     "magic_sizing_reference": null
   }

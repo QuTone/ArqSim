@@ -18,16 +18,16 @@ from typing import Any
 
 import pytest
 
-from heteqsys.architecture.gallery.na_cf import (
+from arqsim.architecture.gallery.na_cf import (
     make_layout_policy,
     make_sizing_policy,
 )
-from heteqsys.architecture.gallery import get_architecture_profile
-from heteqsys.architecture.gallery.quantile import QuantileSizingConfig
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.architecture.resolver import resolve_architecture
-from heteqsys.architecture.specification import (
+from arqsim.architecture.gallery import get_architecture_profile
+from arqsim.architecture.gallery.quantile import QuantileSizingConfig
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.architecture.resolver import resolve_architecture
+from arqsim.architecture.specification import (
     ArchitectureSpecification,
     Interconnect,
     LocalConnection,
@@ -38,8 +38,8 @@ from heteqsys.architecture.specification import (
     QECResourceProtocolRef,
     Submodule,
 )
-from heteqsys.qec import get_magic_state_factory_profile
-from heteqsys.specification import build_architecture_specification
+from arqsim.qec import get_magic_state_factory_profile
+from arqsim.specification import build_architecture_specification
 from tests.behavior_baseline_support import assert_semantic_subset
 from tests.architecture_semantic_oracle import (
     oracle_circuit,
@@ -47,8 +47,8 @@ from tests.architecture_semantic_oracle import (
 
 
 PROJECT_ROOT = Path(__file__).parents[1]
-CORE_PATH = PROJECT_ROOT / "heteqsys" / "architecture" / "specification.py"
-RESOLVER_PATH = PROJECT_ROOT / "heteqsys" / "architecture" / "resolver.py"
+CORE_PATH = PROJECT_ROOT / "arqsim" / "architecture" / "specification.py"
+RESOLVER_PATH = PROJECT_ROOT / "arqsim" / "architecture" / "resolver.py"
 ORACLE_FIXTURE = (
     PROJECT_ROOT / "tests" / "fixtures" / "architecture_semantic_oracles" / "profile-1.1.json"
 )
@@ -337,14 +337,14 @@ def test_architecture_core_excludes_legacy_runtime_cost_and_physical_authorities
     assert not any(
         name.startswith(
             (
-                "heteqsys.compiler",
-                "heteqsys.evaluation",
-                "heteqsys.operation_profiles",
-                "heteqsys.program",
-                "heteqsys.qec",
-                "heteqsys.architecture.spec",
-                "heteqsys.architecture.layout_policy",
-                "heteqsys.architecture.instantiate",
+                "arqsim.compiler",
+                "arqsim.evaluation",
+                "arqsim.operation_profiles",
+                "arqsim.program",
+                "arqsim.qec",
+                "arqsim.architecture.spec",
+                "arqsim.architecture.layout_policy",
+                "arqsim.architecture.instantiate",
             )
         )
         for name in imported
@@ -1354,13 +1354,13 @@ def test_resolver_dependency_is_forward_only() -> None:
     assert not any(
         name.startswith(
             (
-                "heteqsys.compiler",
-                "heteqsys.evaluation",
-                "heteqsys.specification",
-                "heteqsys.architecture.instantiate",
-                "heteqsys.architecture.legacy_adapter",
-                "heteqsys.architecture.spec",
-                "heteqsys.architecture.quantile_layout",
+                "arqsim.compiler",
+                "arqsim.evaluation",
+                "arqsim.specification",
+                "arqsim.architecture.instantiate",
+                "arqsim.architecture.legacy_adapter",
+                "arqsim.architecture.spec",
+                "arqsim.architecture.quantile_layout",
             )
         )
         for name in imports
@@ -1375,7 +1375,7 @@ def test_resolver_dependency_is_forward_only() -> None:
     }.intersection(referenced_names)
     assert not {
         "1.1",
-        "heteqsys.1.1",
+        "arqsim.1.1",
         "na_node",
         "na_compute",
         "na_msf",

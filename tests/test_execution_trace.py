@@ -6,13 +6,14 @@ from types import MappingProxyType
 
 import pytest
 
-from heteqsys.architecture.isa import ArchitectureInstruction, ArchitectureOpcode
-from heteqsys.evaluation import (
+from arqsim.architecture.isa import ArchitectureInstruction, ArchitectureOpcode
+from arqsim.evaluation import (
     BufferSpec,
     EngineSpec,
     EvaluationPolicy,
     ExecutionPlan,
     ExecutionEvent,
+    ExecutionTrace,
     ExecutionTransitionKind,
     ProgramDAG,
     ResourceDAG,
@@ -24,7 +25,7 @@ from heteqsys.evaluation import (
     validate_discrete_time_log_document,
     validate_execution_trace_document,
 )
-from heteqsys.schema import semantic_hash
+from arqsim.schema import semantic_hash
 
 
 def _zero_duration_plan() -> ExecutionPlan:
@@ -157,6 +158,32 @@ def _forwarding_plan() -> ExecutionPlan:
         (EngineSpec("move"), EngineSpec("compute")),
         initial_locations={"q:0": "compute-a"},
     )
+
+
+def test_trace_v4_still_parses_pre_refreeze_open_outcome_payloads() -> None:
+    plan = _zero_duration_plan()
+    document = deepcopy(evaluate(plan).trace.to_dict())
+    completion = next(
+        transition
+        for transition in document["transitions"]
+        if transition["kind"] == "completion"
+    )
+    completion["outcome"] = {
+        "values": {"legacy_value": 1},
+        "metadata": {"legacy_source": "custom-outcome-hook"},
+    }
+    document["trace_hash"] = semantic_hash(
+        {
+            key: value
+            for key, value in document.items()
+            if key != "trace_hash"
+        }
+    )
+
+    parsed = ExecutionTrace.from_dict(document)
+
+    assert parsed.to_dict() == document
+    assert replay_execution_trace(parsed, plan) == parsed.terminal_state
 
 
 def _parallel_resource_plan(*, parallelism: int) -> ExecutionPlan:
@@ -320,7 +347,7 @@ def test_replay_preserves_forwarded_token_slots_engines_and_locations() -> None:
 def test_trace_and_result_payloads_are_deeply_immutable() -> None:
     result = evaluate(_forwarding_plan())
     original_hash = result.trace_hash
-    original_payload = result.to_dict()
+    original_payload = result.diagnostic_dict()
 
     with pytest.raises(TypeError):
         result.events[0].metadata["new"] = "mutation"
@@ -336,7 +363,7 @@ def test_trace_and_result_payloads_are_deeply_immutable() -> None:
         result.discrete_time_log[0]["new"] = 1
 
     assert result.trace_hash == original_hash
-    assert result.to_dict() == original_payload
+    assert result.diagnostic_dict() == original_payload
 
     with pytest.raises(TraceValidationError, match="completed_program_instructions"):
         replace(
@@ -397,7 +424,7 @@ def test_serialized_trace_document_round_trips_and_rejects_tampering() -> None:
     result = evaluate(_forwarding_plan())
     document = result.trace.to_dict()
 
-    assert document["schema_version"] == "arqsim.execution-trace.v3"
+    assert document["schema_version"] == "arqsim.execution-trace.v4"
     assert "events" not in document
     assert result.trace.from_dict(document) == result.trace
 
@@ -459,8 +486,9 @@ def test_trace_v2_codec_rejects_resigned_python_and_scalar_aliases() -> None:
 
 def test_trace_validator_rejects_flattened_and_derived_compatibility_views() -> None:
     result = evaluate(_forwarding_plan())
-    flattened_result = result.to_dict()
-    with pytest.raises(TraceValidationError, match="Unknown ExecutionTrace"):
+    flattened_result = result.diagnostic_dict()
+    assert "schema_version" not in flattened_result
+    with pytest.raises(TraceValidationError, match="Unsupported execution-trace"):
         validate_execution_trace_document(flattened_result)
 
     canonical_with_projection = result.trace.to_dict()
@@ -724,7 +752,7 @@ def test_discrete_time_log_validator_locks_full_and_summary_parity() -> None:
 def test_discrete_time_log_validator_rejects_re_signed_ledger_projection() -> None:
     plan = _forwarding_plan()
     result = evaluate(plan)
-    tampered = deepcopy(result.to_dict()["discrete_time_log"])
+    tampered = deepcopy(result.diagnostic_dict()["discrete_time_log"])
     tampered[0]["dispatched"][0]["candidate_id"] = "resource:forged:0"
 
     with pytest.raises(TraceValidationError, match="dispatched"):
@@ -735,7 +763,7 @@ def test_discrete_time_log_validator_rejects_re_signed_ledger_projection() -> No
             "full",
         )
 
-    tampered = deepcopy(result.to_dict()["discrete_time_log"])
+    tampered = deepcopy(result.diagnostic_dict()["discrete_time_log"])
     tampered[0]["frontier_after"]["waiting"][0]["instruction_id"] = True
     with pytest.raises(TraceValidationError, match="waiting"):
         validate_discrete_time_log_document(
@@ -745,7 +773,7 @@ def test_discrete_time_log_validator_rejects_re_signed_ledger_projection() -> No
             "full",
         )
 
-    tampered = deepcopy(result.to_dict()["discrete_time_log"])
+    tampered = deepcopy(result.diagnostic_dict()["discrete_time_log"])
     tampered[0]["frontier_after"]["waiting"][0]["resource_blockers"] = [
         "forged:changes_attribution"
     ]

@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from heteqsys.schema import (
+from arqsim.schema import (
     canonical_float_sum,
     hash_and_freeze_json_document,
     normalize_json,

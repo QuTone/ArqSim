@@ -1,0 +1,52 @@
+schema_version: arqsim.fidelity-fit.v1
+id: lightstim-unrotated-surface-ppm-p1e3
+
+experiment:
+  code: unrotated_surface_code
+  protocol: multi_patch_z_product_lattice_surgery
+  physical_error_probability: 1.0e-3
+  initial_basis: Z
+  measurement_basis: Z
+  decoder: pymatching
+  metric: decoded_z_product_parity_failure
+  layout: alternating_left_right_vertical_corridor
+  syndrome_rounds_before_coupling: d
+  syndrome_rounds_with_coupler: d
+
+multi_patch_fit:
+  minimum_weight: 2
+  effective_weight: 2*ceil(weight/2)
+  formula: 1-exp(-10^(a*distance+b*log10(effective_weight)+c))
+  coefficients:
+    a: -0.535717275935929
+    b: 1.1728480909396906
+    c: -1.2223865401600522
+  transformed_hazard_r_squared: 0.9980585726241805
+  delta_aic_raw_minus_paired: 62.96746601618361
+  calibrated_distances: [3, 5, 7]
+  calibrated_weights: [2, 3, 4, 5, 6, 7, 8, 12, 16]
+
+weight_one_control:
+  protocol: single_patch_z_memory_readout_no_coupler_2d_rounds
+  formula: 1-exp(-10^(a*distance+c))
+  coefficients:
+    a: -0.5692100384251828
+    c: -1.0455168530404118
+  transformed_hazard_r_squared: 0.9985396293194345
+  source_points:
+    - {distance: 3, operation_ler: 0.0017166666666666667}
+    - {distance: 5, operation_ler: 0.00013605442176870748}
+    - {distance: 7, operation_ler: 8.2e-6}
+
+# Source checkout/sdist bundle: ../../../docs/provenance/ppm/README.md
+# The IDs and hashes below resolve to that bundle. The original availability
+# text predates it and is now outdated for the checkout/sdist; it remains part
+# of the frozen profile/report receipt. See the README for current availability.
+source:
+  experiment_url: https://github.com/QuTone/LightStim/blob/59e5ba569dc10a721c46888ba0e098d60fb41419/benchmarks/logical_ops/run_logical_ops.py
+  notebook_url: https://github.com/QuTone/LightStim/blob/59e5ba569dc10a721c46888ba0e098d60fb41419/notebooks/LogicalOps/multi_patch_LS.ipynb
+  data_artifact_id: lightstim.multi_patch_ppm_results.p1e3.v1
+  data_sha256: e7bab6d9a611366f456efcaf6dc7da71049a161f8d935a032b12826cf3a2e326
+  fit_artifact_id: lightstim.multi_patch_ppm_fit.p1e3.v1
+  fit_sha256: 503e43415dbb41f4b9a27f485a8258a7cc0b400ca81c8bb5df9af5fb7f6385cc
+  availability: raw calibration data and fit artifact are not bundled with ArqSim

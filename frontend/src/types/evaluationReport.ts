@@ -2,7 +2,7 @@
 
 export const EVALUATION_REPORT_V1 = "arqsim.evaluation-report.v1" as const;
 export const EVALUATION_REPORT_V2 = "arqsim.evaluation-report.v2" as const;
-export const EXECUTION_TRACE_V3 = "arqsim.execution-trace.v3" as const;
+export const EXECUTION_TRACE_V4 = "arqsim.execution-trace.v4" as const;
 export const ARCHITECTURE_PROFILE_V3 = "arqsim.architecture-profile.v3" as const;
 
 export type JsonPrimitive = string | number | boolean | null;
@@ -182,16 +182,25 @@ export interface EvaluationEventDocument {
   [key: string]: unknown;
 }
 
-/** Typed dynamic-Program facts carried by canonical Trace v3 transitions. */
-export type ProgramWorkStep = "source" | "injection" | "reaction" | "correction";
+/** Typed dynamic-Program facts carried by canonical Trace v4 transitions. */
+export type ProgramWorkStep =
+  | "source"
+  | "entangle"
+  | "injection"
+  | "measurement"
+  | "reaction"
+  | "correction";
+
+export interface ProgramRecipeMemberDocument {
+  recipe_invocation_id: string;
+  stage_index: number;
+}
 
 export interface ProgramWorkLineageDocument {
   work_id: string;
   source_instruction_id: number;
   parent_event_id: number | null;
-  recipe_invocation_id: string | null;
-  recipe_id: string | null;
-  stage_index: number | null;
+  recipe_members: ProgramRecipeMemberDocument[];
   step: ProgramWorkStep;
 }
 
@@ -212,13 +221,12 @@ export interface InjectionResourceRefDocument {
 export interface InjectionStageDocument {
   index: number;
   resource: InjectionResourceRefDocument;
-  attempt_duration_s: number;
   failure_next_stage?: number;
   failure_correction?: string;
 }
 
 export interface InjectionRecipeDocument {
-  schema_version: "arqsim.injection-recipe.v1";
+  schema_version: "arqsim.injection-recipe.v2";
   kind: "finite_state_injection";
   invocation_id: string;
   recipe_id: string;
@@ -229,9 +237,29 @@ export interface InjectionRecipeDocument {
   data_mapping: Record<string, string>;
   compute_location: string;
   compute_engine: string;
-  reaction_duration_s: number;
-  correction_duration_s: number;
   convention: "cx_data_magic_measure_magic_z_v1";
+}
+
+/**
+ * Frozen, architecture-level work that may be activated by a recipe outcome.
+ * Its duration is a Plan input. UI timing is always projected from realized
+ * Trace events, never reconstructed from this template.
+ */
+export interface ContinuationTemplateDocument {
+  recipe_members: ProgramRecipeMemberDocument[];
+  step: Exclude<ProgramWorkStep, "source" | "entangle">;
+  opcode: string;
+  duration_s: number;
+  qubits: number[];
+  consumes: Record<string, number>;
+  produces: Record<string, number>;
+  forwards: Record<string, string>;
+  engines: Record<string, number>;
+  required_locations: Record<string, string>;
+  completion_locations: Record<string, string>;
+  target_modules: string[];
+  target_links: string[];
+  metadata: JsonRecord;
 }
 
 export interface ProgramInstructionDocument {
@@ -244,11 +272,12 @@ export interface ProgramInstructionDocument {
   target_modules: string[];
   metadata: JsonRecord;
   implementation_recipes?: InjectionRecipeDocument[];
+  continuation_templates?: ContinuationTemplateDocument[];
   [key: string]: unknown;
 }
 
-export interface ExecutionPlanV6Document {
-  schema_version: "arqsim.execution-plan.v6";
+export interface ExecutionPlanV9Document {
+  schema_version: "arqsim.execution-plan.v9";
   source: {
     circuit_hash: string;
   };
@@ -337,7 +366,7 @@ export interface EvaluationReportV1 {
  * exact public topology and keeps nested canonical artifacts as JSON records;
  * backend codecs remain authoritative for semantic hashes and causal replay.
  */
-export interface ExecutionTransitionV3Document {
+export interface ExecutionTransitionV4Document {
   transition_id: number;
   kind: "dispatch" | "completion";
   time_s: number;
@@ -375,15 +404,15 @@ export interface ExecutionTransitionV3Document {
   continuation: ProgramContinuationDocument | null;
 }
 
-export interface ExecutionTraceV3Document {
-  schema_version: typeof EXECUTION_TRACE_V3;
+export interface ExecutionTraceV4Document {
+  schema_version: typeof EXECUTION_TRACE_V4;
   plan_hash: string;
   seed: number;
   total_latency_s: number;
-  transitions: ExecutionTransitionV3Document[];
+  transitions: ExecutionTransitionV4Document[];
   initial_state: JsonRecord;
   terminal_state: JsonRecord;
-  terminal_inflight: ExecutionTransitionV3Document[];
+  terminal_inflight: ExecutionTransitionV4Document[];
   trace_hash: string;
 }
 
@@ -403,8 +432,8 @@ export interface EvaluationReportV2 {
   };
   artifacts: {
     logical_compilation: JsonRecord;
-    execution_plan: ExecutionPlanV6Document;
-    execution_trace: ExecutionTraceV3Document;
+    execution_plan: ExecutionPlanV9Document;
+    execution_trace: ExecutionTraceV4Document;
   };
   results: {
     observations: {
@@ -504,7 +533,8 @@ export interface ArchitectureInterconnectViewModel {
     interconnectSubmoduleId: string;
     localSubmoduleRefs: readonly string[];
   }[];
-  submodules: readonly ArchitectureSubmoduleViewModel[];
+  /** Preserve the canonical interconnect -> module -> submodule hierarchy. */
+  modules: readonly ArchitectureModuleViewModel[];
 }
 
 export interface ArchitectureHierarchyViewModel {
@@ -515,6 +545,11 @@ export interface ArchitectureHierarchyViewModel {
   workflowId: string;
   nodes: readonly ArchitectureNodeViewModel[];
   interconnects: readonly ArchitectureInterconnectViewModel[];
+}
+
+export interface EngineOwnershipViewModel {
+  moduleRef: string | null;
+  submoduleRef: string | null;
 }
 
 export interface TimelineEventViewModel {
@@ -534,19 +569,131 @@ export interface TimelineEventViewModel {
   programReadySeconds: number | null;
   resourceWaitSeconds: number | null;
   targetModules: readonly string[];
+  targetLinks: readonly string[];
   waitReasons: readonly string[];
   runtimeLineage: RuntimeProgramLineageViewModel | null;
   measurements: readonly RuntimeMeasurementViewModel[];
   sourceMeasurements: readonly RuntimeMeasurementViewModel[];
   continuation: RuntimeContinuationViewModel | null;
   conditionalCorrection: boolean;
+  lane: TimelineLane;
+  recipeInvocationIds: readonly string[];
+  logicalParentLabels: readonly string[];
+  /** Semantic execution locus; engine claims remain contention facts. */
+  locus: TimelineOperationLocusViewModel;
+  /** True when an event remains active beyond the displayed causal window. */
+  continuesAfterWindow: boolean;
+  /** Optional pre-dispatch interval projected from canonical ready/start facts. */
+  waitingSpan: TimelineWaitingSpanViewModel | null;
+  /** Semantic completion markers; canonical token identities stay out of the UI model. */
+  milestones: readonly TimelineMilestoneViewModel[];
 }
+
+export interface TimelineWaitingSpanViewModel {
+  plane: "program";
+  startSeconds: number;
+  endSeconds: number;
+  durationSeconds: number;
+  /** Human-facing cause such as "Waiting for magic state". */
+  reason: string;
+}
+
+export interface TimelineBackpressureSpanViewModel {
+  id: string;
+  processId: string;
+  startSeconds: number;
+  endSeconds: number;
+  durationSeconds: number;
+  reason: string;
+  bufferIds: readonly string[];
+  outputOverflowPolicy: ResourceOutputOverflowPolicy;
+}
+
+export type TimelineMilestoneKind =
+  | "produced"
+  | "delivered"
+  | "consumed"
+  | "measurement";
+
+export interface TimelineMilestoneViewModel {
+  id: string;
+  kind: TimelineMilestoneKind;
+  timeSeconds: number;
+  label: string;
+  quantity: number;
+  bufferId: string | null;
+  /** Buffer-backed markers belong to the buffer's architecture owner, not the event locus. */
+  ownerTrackId: string | null;
+  ownerLabel: string | null;
+  outcome: number | null;
+}
+
+export type TimelineLane = "program" | "quantum" | "classical" | "resource";
+
+export type TimelineOperationLocusKind =
+  | "classical"
+  | "interconnect"
+  | "transfer"
+  | "submodule"
+  | "module"
+  | "control"
+  | "resource";
+
+export interface TimelineOperationLocusViewModel {
+  kind: TimelineOperationLocusKind;
+  trackId: string;
+  /** Canonical architecture refs participating in this operation. */
+  ownerRefs: readonly string[];
+}
+
+export type TimelineTrackKind =
+  | "submodule"
+  | "module"
+  | "interconnect"
+  | "transfer"
+  | "classical"
+  | "control"
+  | "resource";
 
 export interface TimelineRowViewModel {
   id: string;
   label: string;
-  plane: "program" | "resource";
+  subtitle: string;
+  trackKind: TimelineTrackKind;
+  /** Execution lanes are materialized only when work uses the locus. */
+  structural: boolean;
+  /** Owning module/interconnect/node group; null for global runtime lanes. */
+  parentTrackId: string | null;
   events: readonly TimelineEventViewModel[];
+  /** Proven output-buffer saturation while this producer had idle capacity. */
+  backpressureSpans: readonly TimelineBackpressureSpanViewModel[];
+}
+
+export interface TimelineBufferStateSegmentViewModel {
+  startSeconds: number;
+  endSeconds: number;
+  ready: number;
+  pendingIncoming: number;
+  capacity: number;
+}
+
+export interface TimelineBufferTrackViewModel {
+  id: string;
+  label: string;
+  subtitle: string;
+  ownerTrackId: string;
+  ownerLabel: string;
+  ownerKind: "submodule" | "module" | "interconnect" | "resource";
+  tokenKind: string;
+  capacity: number;
+  segments: readonly TimelineBufferStateSegmentViewModel[];
+}
+
+export interface TimelineTrackGroupViewModel {
+  id: string;
+  label: string;
+  subtitle: string;
+  kind: "node" | "module" | "interconnect";
 }
 
 export interface TimelineViewModel {
@@ -561,7 +708,14 @@ export interface TimelineViewModel {
   /** Completion events retained for rendering after applying the DOM cap. */
   renderedEventCount: number;
   eventTruncated: boolean;
+  logicalGadgets: readonly LogicalGadgetSpanViewModel[];
+  /** Source-instruction gadget groups rendered in-place on their runtime owner. */
+  gadgetHosts: readonly TimelineGadgetHostViewModel[];
+  /** Architecture owners rendered as headers, never as empty execution lanes. */
+  groups: readonly TimelineTrackGroupViewModel[];
   rows: readonly TimelineRowViewModel[];
+  /** Optional architecture-state projection; empty for Report v1/summary traces. */
+  bufferTracks: readonly TimelineBufferTrackViewModel[];
 }
 
 export interface TimeBreakdownSegmentViewModel {
@@ -648,10 +802,13 @@ export interface RuntimeProgramLineageViewModel {
   workId: string;
   sourceInstructionId: number;
   parentEventId: number | null;
-  recipeInvocationId: string | null;
-  recipeId: string | null;
-  stageIndex: number | null;
+  recipeMembers: readonly RuntimeProgramRecipeMemberViewModel[];
   step: ProgramWorkStep;
+}
+
+export interface RuntimeProgramRecipeMemberViewModel {
+  invocationId: string;
+  stageIndex: number;
 }
 
 export interface RuntimeMeasurementViewModel {
@@ -670,8 +827,47 @@ export interface RuntimeEventSemanticsModel {
   continuation: RuntimeContinuationViewModel | null;
 }
 
+export interface RuntimeTokenFlowModel {
+  consumed: Readonly<Record<string, readonly string[]>>;
+  produced: Readonly<Record<string, readonly string[]>>;
+}
+
 export interface CompletedEvaluationEventModel extends EvaluationEventDocument {
+  engineClaims: Readonly<Record<string, number>>;
+  tokenFlow: RuntimeTokenFlowModel;
   runtime: RuntimeEventSemanticsModel | null;
+}
+
+export interface ArchitectureBufferModel {
+  id: string;
+  moduleRef: string | null;
+  submoduleRef: string | null;
+  tokenKind: string;
+  capacity: number;
+  initialReady: number;
+}
+
+export interface ArchitectureBufferSnapshotModel {
+  timeSeconds: number;
+  states: Readonly<
+    Record<
+      string,
+      {
+        ready: number;
+        pendingIncoming: number;
+      }
+    >
+  >;
+}
+
+export type ResourceOutputOverflowPolicy = "block" | "discard_excess";
+
+/** Minimal normalized Plan facts needed for scheduler-state projections. */
+export interface ResourceProcessModel {
+  id: string;
+  parallelism: number;
+  produces: Readonly<Record<string, number>>;
+  outputOverflowPolicy: ResourceOutputOverflowPolicy;
 }
 
 export interface InjectionStageViewModel {
@@ -679,7 +875,6 @@ export interface InjectionStageViewModel {
   stateKind: string;
   resourceId: string;
   bufferId: string;
-  attemptDurationSeconds: number;
   unfavorableAction:
     | { kind: "next_stage"; stageIndex: number }
     | { kind: "logical_correction"; operation: string };
@@ -692,8 +887,6 @@ export interface InjectionRecipeViewModel {
   sourceLayerIndex: number;
   sourceOperationIndex: number;
   qubits: readonly number[];
-  reactionDurationSeconds: number;
-  correctionDurationSeconds: number;
   stages: readonly InjectionStageViewModel[];
 }
 
@@ -731,11 +924,55 @@ export interface DynamicProgramWorkViewModel {
   sourceMeasurements: readonly RuntimeMeasurementViewModel[];
   continuation: RuntimeContinuationViewModel | null;
   conditionalCorrection: boolean;
+  recipeInvocationIds: readonly string[];
+}
+
+export interface LogicalGadgetSpanViewModel {
+  invocationId: string;
+  recipeId: string;
+  sourceInstructionId: number;
+  sourceOperationIndex: number;
+  sourceLayerIndex: number;
+  qubits: readonly number[];
+  label: string;
+  readySeconds: number;
+  dispatchSeconds: number;
+  completionSeconds: number;
+  queueWaitSeconds: number;
+  /** Dispatch-to-terminal wall time; it may contain future internal waits. */
+  realizationElapsedSeconds: number;
+  /** Sum of unique realized child-event service spans. */
+  activeServiceSeconds: number;
+  terminalEventId: number;
+  childEventIds: readonly number[];
+  measurement: RuntimeMeasurementViewModel | null;
+  correctionApplied: boolean;
+}
+
+export interface TimelineGadgetHostViewModel {
+  id: string;
+  sourceInstructionId: number;
+  sourceLayerIndex: number;
+  invocationIds: readonly string[];
+  qubits: readonly number[];
+  label: string;
+  ownerTrackId: string;
+  readySeconds: number;
+  dispatchSeconds: number;
+  completionSeconds: number;
+  queueWaitSeconds: number;
+  /** Dispatch-to-terminal wall time; not an engine-utilization span. */
+  realizationElapsedSeconds: number;
+  /** Sum of unique realized child-event service spans. */
+  activeServiceSeconds: number;
+  childEventIds: readonly number[];
+  terminalEventIds: readonly number[];
 }
 
 export interface ProgramExecutionViewModel {
   outputProgram: OutputProgramModel;
   dynamicWork: readonly DynamicProgramWorkViewModel[];
+  logicalGadgets: readonly LogicalGadgetSpanViewModel[];
 }
 
 export interface FidelityEvidenceModel {
@@ -762,7 +999,14 @@ export interface EvaluationReportModel {
   workflow_id: string;
   circuit: FTCircuitDocument;
   architecture: ArchitectureHierarchyViewModel;
+  /** Canonical scheduler-engine ownership, used for exact submodule loci and contention. */
+  engineOwners: Readonly<Record<string, EngineOwnershipViewModel>>;
+  architectureBuffers: readonly ArchitectureBufferModel[];
+  architectureBufferSnapshots: readonly ArchitectureBufferSnapshotModel[];
+  resourceProcesses: readonly ResourceProcessModel[];
   completed_events: CompletedEvaluationEventModel[];
+  /** Dispatched work still active when the Program causal window terminates. */
+  inflight_events: CompletedEvaluationEventModel[];
   output_program: OutputProgramModel;
   fidelity_evidence: FidelityEvidenceModel;
   summary: {

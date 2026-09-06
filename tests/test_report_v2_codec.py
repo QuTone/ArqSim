@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 import json
 from pathlib import Path
 import subprocess
@@ -8,23 +9,31 @@ import sys
 
 import pytest
 
-from heteqsys.api import EvaluationConfig, run_evaluation
-from heteqsys.evaluation import EvaluationPolicy, RuntimeInjectionMode
-from heteqsys.operation_profiles import ArrivalDistribution, OperationLatencyProfile
-from heteqsys.program import (
+from arqsim.api import EvaluationConfig, run_evaluation
+from arqsim.evaluation import (
+    EvaluationPolicy,
+    RuntimeInjectionMode,
+    analyze_evaluation,
+)
+from arqsim.operation_profiles import (
+    ArrivalDistribution,
+    OperationLatencyProfile,
+    canonical_fidelity_profile,
+)
+from arqsim.program import (
     FTCircuit,
     LogicalLayer,
     LogicalOperation,
     load_ft_workload,
 )
-from heteqsys.report_v2 import (
+from arqsim.report_v2 import (
     EVALUATION_REPORT_V2_SCHEMA_VERSION,
     ReportV2Codec,
     ReportV2Renderer,
     ReportV2ValidationError,
     load_report_v2_document,
 )
-from heteqsys.schema import normalize_json, semantic_hash
+from arqsim.schema import normalize_json, semantic_hash
 
 
 FIXTURE = Path(__file__).parent / "fixtures/small_original.qasm"
@@ -34,8 +43,8 @@ REPORT_V2_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "report_v2"
 def test_native_report_construction_does_not_import_report_v1() -> None:
     source = """
 import sys
-from heteqsys import EvaluationConfig, FTCircuit, run_evaluation
-from heteqsys.program import LogicalLayer, LogicalOperation
+from arqsim import EvaluationConfig, FTCircuit, run_evaluation
+from arqsim.program import LogicalLayer, LogicalOperation
 circuit = FTCircuit(
     representation='clifford_t',
     num_qubits=1,
@@ -44,7 +53,7 @@ circuit = FTCircuit(
 )
 report = run_evaluation(circuit, EvaluationConfig(profile_id='1.1'))
 assert report.to_dict()['schema_version'] == 'arqsim.evaluation-report.v2'
-assert 'heteqsys.report_v1' not in sys.modules
+assert 'arqsim.report_v1' not in sys.modules
 """
     completed = subprocess.run(
         [sys.executable, "-c", source],
@@ -67,7 +76,7 @@ def _config() -> EvaluationConfig:
                 1_000.0, kind="deterministic"
             ),
         ),
-        evaluation_policy=EvaluationPolicy(trace_level="summary", seed=7),
+        execution_policy=EvaluationPolicy(trace_level="summary", seed=7),
     )
 
 
@@ -106,6 +115,134 @@ def test_checked_in_report_v2_fixtures_are_strict_and_canonical(name: str) -> No
             and transition.program_lineage.step == "correction"
             for transition in parsed.execution_trace.transitions
         )
+
+
+@pytest.mark.parametrize(
+    "name",
+    ("static-summary.v2.json", "dynamic-t-full.v2.json"),
+)
+def test_report_codec_checks_invariants_once_without_trusting_summary(
+    name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import arqsim.report_v2 as report_v2
+
+    recompute = report_v2._recompute_invariant_checks
+    calls = 0
+
+    def counted_recompute(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return recompute(*args, **kwargs)
+
+    monkeypatch.setattr(report_v2, "_recompute_invariant_checks", counted_recompute)
+    document = json.loads((REPORT_V2_FIXTURE_DIR / name).read_text(encoding="utf-8"))
+    parsed = ReportV2Codec.from_dict(document)
+    assert calls == 1
+    assert parsed.to_dict() == document
+
+    exported = parsed.to_dict()
+    exported["results"]["summary"]["invariant_checks"]["buffer_capacities_respected"] = False
+    assert parsed.summary["invariant_checks"]["buffer_capacities_respected"] is True
+    _resign(exported)
+    with pytest.raises(ReportV2ValidationError, match="summary"):
+        ReportV2Codec.from_dict(exported)
+    assert calls == 2
+
+
+@pytest.mark.parametrize(
+    "name",
+    ("static-summary.v2.json", "dynamic-t-full.v2.json"),
+)
+def test_report_codec_replays_once_and_rejects_rehashed_trace_facts(
+    name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import arqsim.evaluation.result as result_module
+    import arqsim.report_v2 as report_v2
+
+    replay = result_module.replay_execution_trace
+    calls = 0
+
+    def counted_replay(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return replay(*args, **kwargs)
+
+    monkeypatch.setattr(result_module, "replay_execution_trace", counted_replay)
+    if hasattr(report_v2, "replay_execution_trace"):
+        monkeypatch.setattr(report_v2, "replay_execution_trace", counted_replay)
+    document = json.loads((REPORT_V2_FIXTURE_DIR / name).read_text(encoding="utf-8"))
+    ReportV2Codec.from_dict(document)
+    assert calls == 1
+
+    forged = deepcopy(document)
+    trace = forged["artifacts"]["execution_trace"]
+    for transition in trace["transitions"]:
+        if transition["plane"] == "program":
+            transition["metadata"]["layer"] = 999
+    trace["trace_hash"] = semantic_hash(
+        {key: value for key, value in trace.items() if key != "trace_hash"}
+    )
+    _resign(forged)
+    with pytest.raises(result_module.TraceReplayError, match="trace-projected metadata"):
+        ReportV2Codec.from_dict(forged)
+    assert calls == 2
+
+
+def test_report_codec_keeps_partial_fidelity_as_diagnostic_history() -> None:
+    circuit = FTCircuit(
+        representation="gate",
+        num_qubits=1,
+        num_clbits=0,
+        layers=(
+            LogicalLayer(
+                0,
+                (
+                    LogicalOperation(
+                        "gate", "rz", (0,), parameters=(0.125,)
+                    ),
+                ),
+            ),
+        ),
+    )
+    diagnostic_run = run_evaluation(
+        circuit,
+        EvaluationConfig(profile_id="1.1", fidelity_profile=None),
+    )
+    fidelity_profile = canonical_fidelity_profile(
+        diagnostic_run.specification,
+        diagnostic_run.latency_profile,
+        diagnostic_run.resource_protocol_bindings,
+    )
+    analysis, fidelity = analyze_evaluation(
+        diagnostic_run.evaluation,
+        diagnostic_run.execution_plan,
+        diagnostic_run.specification,
+        diagnostic_run.footprint,
+        fidelity_profile,
+    )
+    assert fidelity is not None
+    assert fidelity.complete_coverage is False
+    assert fidelity.unprofiled_logical_operation_counts == {"rz": 1}
+
+    artifacts = replace(
+        diagnostic_run._run_artifacts,
+        fidelity_profile=fidelity_profile,
+        fidelity=fidelity,
+        analysis=analysis,
+    )
+    requested = EvaluationConfig(profile_id="1.1")
+    document = ReportV2Renderer().render(
+        artifacts,
+        requested_config=requested.to_dict(),
+        workflow_id="historical-partial-fidelity",
+    )
+
+    parsed = ReportV2Codec.from_dict(normalize_json(document))
+    assert parsed.fidelity is not None
+    assert parsed.fidelity.complete_coverage is False
+    assert parsed.fidelity.unprofiled_logical_operation_counts == {"rz": 1}
 
 
 def test_report_v2_has_only_the_frozen_topology(report_document: dict) -> None:
@@ -350,9 +487,9 @@ def test_dynamic_t_full_trace_round_trip_and_observation_tamper() -> None:
             latency_profile=OperationLatencyProfile(
                 reaction_latency_by_modality_s={"neutral_atom": 0.0}
             ),
-            evaluation_policy=EvaluationPolicy(
+            execution_policy=EvaluationPolicy(
                 trace_level="full",
-                seed=0,
+                    seed=5,
                 runtime_injection_mode=(
                     RuntimeInjectionMode.FINITE_STATE_INJECTION_V1
                 ),

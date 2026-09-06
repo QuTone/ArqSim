@@ -1,0 +1,929 @@
+{
+  "experiment": {
+    "code": "unrotated surface code",
+    "protocol": "multi-patch Z-product lattice surgery",
+    "initial_state": "Z",
+    "measurement_basis": "Z",
+    "physical_error_rate": 0.001,
+    "syndrome_rounds_before_coupling": "d",
+    "syndrome_rounds_with_coupler": "d",
+    "weight_one_control": "no coupler; 2d syndrome rounds",
+    "decoder": "PyMatching"
+  },
+  "fit": {
+    "metric": "logical_error_rate",
+    "weight_definition": "paired",
+    "formula_weight": "w_eff = 2*ceil(w/2)",
+    "fit_scope": {
+      "minimum_weight": 2,
+      "maximum_weight": 16,
+      "distances": [
+        3,
+        5,
+        7
+      ],
+      "physical_error_rate": 0.001,
+      "initial_basis": "Z",
+      "measurement_basis": "Z",
+      "decoder": "pymatching"
+    },
+    "formula": "p(w,d) = 1 - exp(-10^(a*d + b*log10(W(w)) + c)); W(w) = w_eff = 2*ceil(w/2)",
+    "coefficients": {
+      "a": -0.535717275935929,
+      "b": 1.1728480909396906,
+      "c": -1.2223865401600522
+    },
+    "coefficient_standard_errors": {
+      "a": 0.0028602921237660646,
+      "b": 0.016605043256899803,
+      "c": 0.019680859931527187
+    },
+    "coefficient_ci95": {
+      "a": [
+        -0.5413234484985104,
+        -0.5301111033733475
+      ],
+      "b": [
+        1.140302206156167,
+        1.2053939757232142
+      ],
+      "c": [
+        -1.2609610256258454,
+        -1.183812054694259
+      ]
+    },
+    "transformed_hazard_r_squared": 0.9980585726241805,
+    "negative_log_likelihood": 70561.01270728707,
+    "aic": 141128.02541457413,
+    "fitted_rows": [
+      {
+        "weight": 2,
+        "distance": 3,
+        "shots": 140000,
+        "errors": 417,
+        "logical_error_rate": 0.0029785714285714,
+        "predicted_ler": 0.0033327243063726365,
+        "predicted_over_observed": 1.1189002467438107
+      },
+      {
+        "weight": 3,
+        "distance": 3,
+        "shots": 60000,
+        "errors": 446,
+        "logical_error_rate": 0.0074333333333333,
+        "predicted_ler": 0.007498134637087219,
+        "predicted_over_observed": 1.0087176641821372
+      },
+      {
+        "weight": 4,
+        "distance": 3,
+        "shots": 50000,
+        "errors": 414,
+        "logical_error_rate": 0.00828,
+        "predicted_ler": 0.007498134637087219,
+        "predicted_over_observed": 0.9055718160733357
+      },
+      {
+        "weight": 5,
+        "distance": 3,
+        "shots": 40000,
+        "errors": 424,
+        "logical_error_rate": 0.0106,
+        "predicted_ler": 0.012036161827326818,
+        "predicted_over_observed": 1.1354869648421526
+      },
+      {
+        "weight": 6,
+        "distance": 3,
+        "shots": 40000,
+        "errors": 461,
+        "logical_error_rate": 0.011525,
+        "predicted_ler": 0.012036161827326818,
+        "predicted_over_observed": 1.0443524362105698
+      },
+      {
+        "weight": 7,
+        "distance": 3,
+        "shots": 30000,
+        "errors": 480,
+        "logical_error_rate": 0.016,
+        "predicted_ler": 0.016825558913910656,
+        "predicted_over_observed": 1.051597432119416
+      },
+      {
+        "weight": 8,
+        "distance": 3,
+        "shots": 30000,
+        "errors": 564,
+        "logical_error_rate": 0.0188,
+        "predicted_ler": 0.016825558913910656,
+        "predicted_over_observed": 0.894976537973971
+      },
+      {
+        "weight": 12,
+        "distance": 3,
+        "shots": 20000,
+        "errors": 548,
+        "logical_error_rate": 0.0274,
+        "predicted_ler": 0.02693161912347567,
+        "predicted_over_observed": 0.9829058074261193
+      },
+      {
+        "weight": 16,
+        "distance": 3,
+        "shots": 20000,
+        "errors": 682,
+        "logical_error_rate": 0.0341,
+        "predicted_ler": 0.037534490667012976,
+        "predicted_over_observed": 1.1007182013786798
+      },
+      {
+        "weight": 2,
+        "distance": 5,
+        "shots": 1390000,
+        "errors": 401,
+        "logical_error_rate": 0.000288489208633,
+        "predicted_ler": 0.00028315748206023583,
+        "predicted_over_observed": 0.981518454024259
+      },
+      {
+        "weight": 3,
+        "distance": 5,
+        "shots": 660000,
+        "errors": 400,
+        "logical_error_rate": 0.0006060606060606,
+        "predicted_ler": 0.0006382831112915385,
+        "predicted_over_observed": 1.0531671336310384
+      },
+      {
+        "weight": 4,
+        "distance": 5,
+        "shots": 500000,
+        "errors": 407,
+        "logical_error_rate": 0.000814,
+        "predicted_ler": 0.0006382831112915385,
+        "predicted_over_observed": 0.7841315863532413
+      },
+      {
+        "weight": 5,
+        "distance": 5,
+        "shots": 380000,
+        "errors": 401,
+        "logical_error_rate": 0.0010552631578947,
+        "predicted_ler": 0.0010267323387305285,
+        "predicted_over_observed": 0.9729633135102265
+      },
+      {
+        "weight": 6,
+        "distance": 5,
+        "shots": 340000,
+        "errors": 405,
+        "logical_error_rate": 0.0011911764705882,
+        "predicted_ler": 0.0010267323387305285,
+        "predicted_over_observed": 0.8619481362182215
+      },
+      {
+        "weight": 7,
+        "distance": 5,
+        "shots": 250000,
+        "errors": 409,
+        "logical_error_rate": 0.001636,
+        "predicted_ler": 0.0014384736119566223,
+        "predicted_over_observed": 0.8792625989954904
+      },
+      {
+        "weight": 8,
+        "distance": 5,
+        "shots": 260000,
+        "errors": 406,
+        "logical_error_rate": 0.0015615384615384,
+        "predicted_ler": 0.0014384736119566223,
+        "predicted_over_observed": 0.9211899978047335
+      },
+      {
+        "weight": 12,
+        "distance": 5,
+        "shots": 160000,
+        "errors": 402,
+        "logical_error_rate": 0.0025125,
+        "predicted_ler": 0.0023133424303732847,
+        "predicted_over_observed": 0.9207333056212078
+      },
+      {
+        "weight": 16,
+        "distance": 5,
+        "shots": 130000,
+        "errors": 404,
+        "logical_error_rate": 0.0031076923076923,
+        "predicted_ler": 0.003240203971219144,
+        "predicted_over_observed": 1.0426398917289323
+      },
+      {
+        "weight": 2,
+        "distance": 7,
+        "shots": 10000000,
+        "errors": 210,
+        "logical_error_rate": 2.1e-05,
+        "predicted_ler": 2.4024246051336992e-05,
+        "predicted_over_observed": 1.144011716730333
+      },
+      {
+        "weight": 3,
+        "distance": 7,
+        "shots": 4010000,
+        "errors": 200,
+        "logical_error_rate": 4.987531172069826e-05,
+        "predicted_ler": 5.416337001200613e-05,
+        "predicted_over_observed": 1.0859755687407229
+      },
+      {
+        "weight": 4,
+        "distance": 7,
+        "shots": 3680000,
+        "errors": 200,
+        "logical_error_rate": 5.434782608695653e-05,
+        "predicted_ler": 5.416337001200613e-05,
+        "predicted_over_observed": 0.9966060082209128
+      },
+      {
+        "weight": 5,
+        "distance": 7,
+        "shots": 2470000,
+        "errors": 200,
+        "logical_error_rate": 8.097165991902834e-05,
+        "predicted_ler": 8.714185758458006e-05,
+        "predicted_over_observed": 1.0762019411695638
+      },
+      {
+        "weight": 6,
+        "distance": 7,
+        "shots": 2370000,
+        "errors": 200,
+        "logical_error_rate": 8.438818565400843e-05,
+        "predicted_ler": 8.714185758458006e-05,
+        "predicted_over_observed": 1.0326310123772737
+      },
+      {
+        "weight": 7,
+        "distance": 7,
+        "shots": 1930000,
+        "errors": 201,
+        "logical_error_rate": 0.0001041450777202,
+        "predicted_ler": 0.00012211060364439817,
+        "predicted_over_observed": 1.1725048011626293
+      },
+      {
+        "weight": 8,
+        "distance": 7,
+        "shots": 1670000,
+        "errors": 200,
+        "logical_error_rate": 0.0001197604790419,
+        "predicted_ler": 0.00012211060364439817,
+        "predicted_over_observed": 1.0196235404307248
+      },
+      {
+        "weight": 12,
+        "distance": 7,
+        "shots": 1030000,
+        "errors": 200,
+        "logical_error_rate": 0.0001941747572815,
+        "predicted_ler": 0.0001964561048921038,
+        "predicted_over_observed": 1.0117489401943345
+      },
+      {
+        "weight": 16,
+        "distance": 7,
+        "shots": 770000,
+        "errors": 203,
+        "logical_error_rate": 0.0002636363636363,
+        "predicted_ler": 0.0002752850121685368,
+        "predicted_over_observed": 1.0441845289151397
+      }
+    ]
+  },
+  "weight_one_control": {
+    "metric": "logical_error_rate",
+    "protocol": "single-patch Z memory/readout; no coupler; 2d SE rounds",
+    "formula": "p_1(d) = 1 - exp(-10^(a*d + c))",
+    "coefficients": {
+      "a": -0.5692100384251828,
+      "c": -1.0455168530404118
+    },
+    "transformed_hazard_r_squared": 0.9985396293194345,
+    "negative_log_likelihood": 8039.8271486482745,
+    "fitted_rows": [
+      {
+        "weight": 1,
+        "distance": 3,
+        "shots": 240000,
+        "errors": 412,
+        "logical_error_rate": 0.0017166666666666,
+        "predicted_ler": 0.0017638828091240664
+      },
+      {
+        "weight": 1,
+        "distance": 5,
+        "shots": 2940000,
+        "errors": 400,
+        "logical_error_rate": 0.0001360544217687,
+        "predicted_ler": 0.00012835272159652698
+      },
+      {
+        "weight": 1,
+        "distance": 7,
+        "shots": 10000000,
+        "errors": 82,
+        "logical_error_rate": 8.2e-06,
+        "predicted_ler": 9.332776196099954e-06
+      }
+    ]
+  },
+  "model_comparison": {
+    "selected_weight_definition": "paired",
+    "delta_aic_raw_minus_paired": 62.96746601618361,
+    "candidates": [
+      {
+        "metric": "logical_error_rate",
+        "weight_definition": "raw",
+        "formula_weight": "w",
+        "fit_scope": {
+          "minimum_weight": 2,
+          "maximum_weight": 16,
+          "distances": [
+            3,
+            5,
+            7
+          ],
+          "physical_error_rate": 0.001,
+          "initial_basis": "Z",
+          "measurement_basis": "Z",
+          "decoder": "pymatching"
+        },
+        "formula": "p(w,d) = 1 - exp(-10^(a*d + b*log10(W(w)) + c)); W(w) = w",
+        "coefficients": {
+          "a": -0.5354896005163878,
+          "b": 1.1178831878264104,
+          "c": -1.1491133499079103
+        },
+        "coefficient_standard_errors": {
+          "a": 0.002858899110162607,
+          "b": 0.015556442878576743,
+          "c": 0.01877956409072298
+        },
+        "coefficient_ci95": {
+          "a": [
+            -0.5410930427723065,
+            -0.5298861582604691
+          ],
+          "b": [
+            1.0873925597844,
+            1.1483738158684207
+          ],
+          "c": [
+            -1.1859212955257272,
+            -1.1123054042900933
+          ]
+        },
+        "transformed_hazard_r_squared": 0.9965953629270117,
+        "negative_log_likelihood": 70592.49644029516,
+        "aic": 141190.99288059032,
+        "fitted_rows": [
+          {
+            "weight": 2,
+            "distance": 3,
+            "shots": 140000,
+            "errors": 417,
+            "logical_error_rate": 0.0029785714285714,
+            "predicted_ler": 0.0038028319480864718,
+            "predicted_over_observed": 1.2767301504367052
+          },
+          {
+            "weight": 3,
+            "distance": 3,
+            "shots": 60000,
+            "errors": 446,
+            "logical_error_rate": 0.0074333333333333,
+            "predicted_ler": 0.005976990243190697,
+            "predicted_over_observed": 0.8040794049135467
+          },
+          {
+            "weight": 4,
+            "distance": 3,
+            "shots": 50000,
+            "errors": 414,
+            "logical_error_rate": 0.00828,
+            "predicted_ler": 0.008234860520054565,
+            "predicted_over_observed": 0.9945483719872664
+          },
+          {
+            "weight": 5,
+            "distance": 3,
+            "shots": 40000,
+            "errors": 424,
+            "logical_error_rate": 0.0106,
+            "predicted_ler": 0.01055558732841799,
+            "predicted_over_observed": 0.9958101253224519
+          },
+          {
+            "weight": 6,
+            "distance": 3,
+            "shots": 40000,
+            "errors": 461,
+            "logical_error_rate": 0.011525,
+            "predicted_ler": 0.012926408563538563,
+            "predicted_over_observed": 1.1215972723243872
+          },
+          {
+            "weight": 7,
+            "distance": 3,
+            "shots": 30000,
+            "errors": 480,
+            "logical_error_rate": 0.016,
+            "predicted_ler": 0.015338627959048919,
+            "predicted_over_observed": 0.9586642474405574
+          },
+          {
+            "weight": 8,
+            "distance": 3,
+            "shots": 30000,
+            "errors": 564,
+            "logical_error_rate": 0.0188,
+            "predicted_ler": 0.017785901049341392,
+            "predicted_over_observed": 0.9460585664543293
+          },
+          {
+            "weight": 12,
+            "distance": 3,
+            "shots": 20000,
+            "errors": 548,
+            "logical_error_rate": 0.0274,
+            "predicted_ler": 0.02784192706772474,
+            "predicted_over_observed": 1.016128725099443
+          },
+          {
+            "weight": 16,
+            "distance": 3,
+            "shots": 20000,
+            "errors": 682,
+            "logical_error_rate": 0.0341,
+            "predicted_ler": 0.0381991208373243,
+            "predicted_over_observed": 1.120208822208924
+          },
+          {
+            "weight": 2,
+            "distance": 5,
+            "shots": 1390000,
+            "errors": 401,
+            "logical_error_rate": 0.000288489208633,
+            "predicted_ler": 0.0003235078030696858,
+            "predicted_over_observed": 1.1213861502914295
+          },
+          {
+            "weight": 3,
+            "distance": 5,
+            "shots": 660000,
+            "errors": 400,
+            "logical_error_rate": 0.0006060606060606,
+            "predicted_ler": 0.0005089720470860361,
+            "predicted_over_observed": 0.8398038776919596
+          },
+          {
+            "weight": 4,
+            "distance": 5,
+            "shots": 500000,
+            "errors": 407,
+            "logical_error_rate": 0.000814,
+            "predicted_ler": 0.0007019705853756525,
+            "predicted_over_observed": 0.8623717265057155
+          },
+          {
+            "weight": 5,
+            "distance": 5,
+            "shots": 380000,
+            "errors": 401,
+            "logical_error_rate": 0.0010552631578947,
+            "predicted_ler": 0.0009007614530844742,
+            "predicted_over_observed": 0.853589406912968
+          },
+          {
+            "weight": 6,
+            "distance": 5,
+            "shots": 340000,
+            "errors": 405,
+            "logical_error_rate": 0.0011911764705882,
+            "predicted_ler": 0.0011042844207449518,
+            "predicted_over_observed": 0.9270535877858855
+          },
+          {
+            "weight": 7,
+            "distance": 5,
+            "shots": 250000,
+            "errors": 409,
+            "logical_error_rate": 0.001636,
+            "predicted_ler": 0.0013118208353124908,
+            "predicted_over_observed": 0.8018464763523783
+          },
+          {
+            "weight": 8,
+            "distance": 5,
+            "shots": 260000,
+            "errors": 406,
+            "logical_error_rate": 0.0015615384615384,
+            "predicted_ler": 0.0015228490915541316,
+            "predicted_over_observed": 0.9752235561676705
+          },
+          {
+            "weight": 12,
+            "distance": 5,
+            "shots": 160000,
+            "errors": 402,
+            "logical_error_rate": 0.0025125,
+            "predicted_ler": 0.0023950612173891054,
+            "predicted_over_observed": 0.9532581959757633
+          },
+          {
+            "weight": 16,
+            "distance": 5,
+            "shots": 130000,
+            "errors": 404,
+            "logical_error_rate": 0.0031076923076923,
+            "predicted_ler": 0.003302068730825394,
+            "predicted_over_observed": 1.0625468688299535
+          },
+          {
+            "weight": 2,
+            "distance": 7,
+            "shots": 10000000,
+            "errors": 210,
+            "logical_error_rate": 2.1e-05,
+            "predicted_ler": 2.7477033993555957e-05,
+            "predicted_over_observed": 1.3084301901693314
+          },
+          {
+            "weight": 3,
+            "distance": 7,
+            "shots": 4010000,
+            "errors": 200,
+            "logical_error_rate": 4.987531172069826e-05,
+            "predicted_ler": 4.323305123509066e-05,
+            "predicted_over_observed": 0.8668226772635677
+          },
+          {
+            "weight": 4,
+            "distance": 7,
+            "shots": 3680000,
+            "errors": 200,
+            "logical_error_rate": 5.434782608695653e-05,
+            "predicted_ler": 5.9631981352797146e-05,
+            "predicted_over_observed": 1.0972284568914674
+          },
+          {
+            "weight": 5,
+            "distance": 7,
+            "shots": 2470000,
+            "errors": 200,
+            "logical_error_rate": 8.097165991902834e-05,
+            "predicted_ler": 7.65261113150275e-05,
+            "predicted_over_observed": 0.9450974747405896
+          },
+          {
+            "weight": 6,
+            "distance": 7,
+            "shots": 2370000,
+            "errors": 200,
+            "logical_error_rate": 8.438818565400843e-05,
+            "predicted_ler": 9.382558309804148e-05,
+            "predicted_over_observed": 1.1118331597117916
+          },
+          {
+            "weight": 7,
+            "distance": 7,
+            "shots": 1930000,
+            "errors": 201,
+            "logical_error_rate": 0.0001041450777202,
+            "predicted_ler": 0.00011146952000994713,
+            "predicted_over_observed": 1.0703292219860596
+          },
+          {
+            "weight": 8,
+            "distance": 7,
+            "shots": 1670000,
+            "errors": 200,
+            "logical_error_rate": 0.0001197604790419,
+            "predicted_ler": 0.00012941376037248269,
+            "predicted_over_observed": 1.0806048991102304
+          },
+          {
+            "weight": 12,
+            "distance": 7,
+            "shots": 1030000,
+            "errors": 200,
+            "logical_error_rate": 0.0001941747572815,
+            "predicted_ler": 0.00020361688981842516,
+            "predicted_over_observed": 1.0486269825648895
+          },
+          {
+            "weight": 16,
+            "distance": 7,
+            "shots": 770000,
+            "errors": 203,
+            "logical_error_rate": 0.0002636363636363,
+            "predicted_ler": 0.00028084321739051674,
+            "predicted_over_observed": 1.0652673763088567
+          }
+        ]
+      },
+      {
+        "metric": "logical_error_rate",
+        "weight_definition": "paired",
+        "formula_weight": "w_eff = 2*ceil(w/2)",
+        "fit_scope": {
+          "minimum_weight": 2,
+          "maximum_weight": 16,
+          "distances": [
+            3,
+            5,
+            7
+          ],
+          "physical_error_rate": 0.001,
+          "initial_basis": "Z",
+          "measurement_basis": "Z",
+          "decoder": "pymatching"
+        },
+        "formula": "p(w,d) = 1 - exp(-10^(a*d + b*log10(W(w)) + c)); W(w) = w_eff = 2*ceil(w/2)",
+        "coefficients": {
+          "a": -0.535717275935929,
+          "b": 1.1728480909396906,
+          "c": -1.2223865401600522
+        },
+        "coefficient_standard_errors": {
+          "a": 0.0028602921237660646,
+          "b": 0.016605043256899803,
+          "c": 0.019680859931527187
+        },
+        "coefficient_ci95": {
+          "a": [
+            -0.5413234484985104,
+            -0.5301111033733475
+          ],
+          "b": [
+            1.140302206156167,
+            1.2053939757232142
+          ],
+          "c": [
+            -1.2609610256258454,
+            -1.183812054694259
+          ]
+        },
+        "transformed_hazard_r_squared": 0.9980585726241805,
+        "negative_log_likelihood": 70561.01270728707,
+        "aic": 141128.02541457413,
+        "fitted_rows": [
+          {
+            "weight": 2,
+            "distance": 3,
+            "shots": 140000,
+            "errors": 417,
+            "logical_error_rate": 0.0029785714285714,
+            "predicted_ler": 0.0033327243063726365,
+            "predicted_over_observed": 1.1189002467438107
+          },
+          {
+            "weight": 3,
+            "distance": 3,
+            "shots": 60000,
+            "errors": 446,
+            "logical_error_rate": 0.0074333333333333,
+            "predicted_ler": 0.007498134637087219,
+            "predicted_over_observed": 1.0087176641821372
+          },
+          {
+            "weight": 4,
+            "distance": 3,
+            "shots": 50000,
+            "errors": 414,
+            "logical_error_rate": 0.00828,
+            "predicted_ler": 0.007498134637087219,
+            "predicted_over_observed": 0.9055718160733357
+          },
+          {
+            "weight": 5,
+            "distance": 3,
+            "shots": 40000,
+            "errors": 424,
+            "logical_error_rate": 0.0106,
+            "predicted_ler": 0.012036161827326818,
+            "predicted_over_observed": 1.1354869648421526
+          },
+          {
+            "weight": 6,
+            "distance": 3,
+            "shots": 40000,
+            "errors": 461,
+            "logical_error_rate": 0.011525,
+            "predicted_ler": 0.012036161827326818,
+            "predicted_over_observed": 1.0443524362105698
+          },
+          {
+            "weight": 7,
+            "distance": 3,
+            "shots": 30000,
+            "errors": 480,
+            "logical_error_rate": 0.016,
+            "predicted_ler": 0.016825558913910656,
+            "predicted_over_observed": 1.051597432119416
+          },
+          {
+            "weight": 8,
+            "distance": 3,
+            "shots": 30000,
+            "errors": 564,
+            "logical_error_rate": 0.0188,
+            "predicted_ler": 0.016825558913910656,
+            "predicted_over_observed": 0.894976537973971
+          },
+          {
+            "weight": 12,
+            "distance": 3,
+            "shots": 20000,
+            "errors": 548,
+            "logical_error_rate": 0.0274,
+            "predicted_ler": 0.02693161912347567,
+            "predicted_over_observed": 0.9829058074261193
+          },
+          {
+            "weight": 16,
+            "distance": 3,
+            "shots": 20000,
+            "errors": 682,
+            "logical_error_rate": 0.0341,
+            "predicted_ler": 0.037534490667012976,
+            "predicted_over_observed": 1.1007182013786798
+          },
+          {
+            "weight": 2,
+            "distance": 5,
+            "shots": 1390000,
+            "errors": 401,
+            "logical_error_rate": 0.000288489208633,
+            "predicted_ler": 0.00028315748206023583,
+            "predicted_over_observed": 0.981518454024259
+          },
+          {
+            "weight": 3,
+            "distance": 5,
+            "shots": 660000,
+            "errors": 400,
+            "logical_error_rate": 0.0006060606060606,
+            "predicted_ler": 0.0006382831112915385,
+            "predicted_over_observed": 1.0531671336310384
+          },
+          {
+            "weight": 4,
+            "distance": 5,
+            "shots": 500000,
+            "errors": 407,
+            "logical_error_rate": 0.000814,
+            "predicted_ler": 0.0006382831112915385,
+            "predicted_over_observed": 0.7841315863532413
+          },
+          {
+            "weight": 5,
+            "distance": 5,
+            "shots": 380000,
+            "errors": 401,
+            "logical_error_rate": 0.0010552631578947,
+            "predicted_ler": 0.0010267323387305285,
+            "predicted_over_observed": 0.9729633135102265
+          },
+          {
+            "weight": 6,
+            "distance": 5,
+            "shots": 340000,
+            "errors": 405,
+            "logical_error_rate": 0.0011911764705882,
+            "predicted_ler": 0.0010267323387305285,
+            "predicted_over_observed": 0.8619481362182215
+          },
+          {
+            "weight": 7,
+            "distance": 5,
+            "shots": 250000,
+            "errors": 409,
+            "logical_error_rate": 0.001636,
+            "predicted_ler": 0.0014384736119566223,
+            "predicted_over_observed": 0.8792625989954904
+          },
+          {
+            "weight": 8,
+            "distance": 5,
+            "shots": 260000,
+            "errors": 406,
+            "logical_error_rate": 0.0015615384615384,
+            "predicted_ler": 0.0014384736119566223,
+            "predicted_over_observed": 0.9211899978047335
+          },
+          {
+            "weight": 12,
+            "distance": 5,
+            "shots": 160000,
+            "errors": 402,
+            "logical_error_rate": 0.0025125,
+            "predicted_ler": 0.0023133424303732847,
+            "predicted_over_observed": 0.9207333056212078
+          },
+          {
+            "weight": 16,
+            "distance": 5,
+            "shots": 130000,
+            "errors": 404,
+            "logical_error_rate": 0.0031076923076923,
+            "predicted_ler": 0.003240203971219144,
+            "predicted_over_observed": 1.0426398917289323
+          },
+          {
+            "weight": 2,
+            "distance": 7,
+            "shots": 10000000,
+            "errors": 210,
+            "logical_error_rate": 2.1e-05,
+            "predicted_ler": 2.4024246051336992e-05,
+            "predicted_over_observed": 1.144011716730333
+          },
+          {
+            "weight": 3,
+            "distance": 7,
+            "shots": 4010000,
+            "errors": 200,
+            "logical_error_rate": 4.987531172069826e-05,
+            "predicted_ler": 5.416337001200613e-05,
+            "predicted_over_observed": 1.0859755687407229
+          },
+          {
+            "weight": 4,
+            "distance": 7,
+            "shots": 3680000,
+            "errors": 200,
+            "logical_error_rate": 5.434782608695653e-05,
+            "predicted_ler": 5.416337001200613e-05,
+            "predicted_over_observed": 0.9966060082209128
+          },
+          {
+            "weight": 5,
+            "distance": 7,
+            "shots": 2470000,
+            "errors": 200,
+            "logical_error_rate": 8.097165991902834e-05,
+            "predicted_ler": 8.714185758458006e-05,
+            "predicted_over_observed": 1.0762019411695638
+          },
+          {
+            "weight": 6,
+            "distance": 7,
+            "shots": 2370000,
+            "errors": 200,
+            "logical_error_rate": 8.438818565400843e-05,
+            "predicted_ler": 8.714185758458006e-05,
+            "predicted_over_observed": 1.0326310123772737
+          },
+          {
+            "weight": 7,
+            "distance": 7,
+            "shots": 1930000,
+            "errors": 201,
+            "logical_error_rate": 0.0001041450777202,
+            "predicted_ler": 0.00012211060364439817,
+            "predicted_over_observed": 1.1725048011626293
+          },
+          {
+            "weight": 8,
+            "distance": 7,
+            "shots": 1670000,
+            "errors": 200,
+            "logical_error_rate": 0.0001197604790419,
+            "predicted_ler": 0.00012211060364439817,
+            "predicted_over_observed": 1.0196235404307248
+          },
+          {
+            "weight": 12,
+            "distance": 7,
+            "shots": 1030000,
+            "errors": 200,
+            "logical_error_rate": 0.0001941747572815,
+            "predicted_ler": 0.0001964561048921038,
+            "predicted_over_observed": 1.0117489401943345
+          },
+          {
+            "weight": 16,
+            "distance": 7,
+            "shots": 770000,
+            "errors": 203,
+            "logical_error_rate": 0.0002636363636363,
+            "predicted_ler": 0.0002752850121685368,
+            "predicted_over_observed": 1.0441845289151397
+          }
+        ]
+      }
+    ]
+  }
+}

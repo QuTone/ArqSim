@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from heteqsys import (
+from arqsim import (
     EvaluationConfig,
     run_evaluation,
 )
-from heteqsys.api import load_evaluation_report_document
-from heteqsys.architecture import (
+from arqsim.api import load_evaluation_report_document
+from arqsim.architecture import (
     ArchitectureValidationError,
     LogicalLayoutGrid,
     LogicalLayoutRequest,
@@ -16,19 +16,19 @@ from heteqsys.architecture import (
     SubmoduleLayoutRequest,
     SubmoduleLayoutResult,
 )
-from heteqsys.architecture.specification import (
+from arqsim.architecture.specification import (
     ArchitectureSpecification,
     Submodule,
 )
-from heteqsys.compiler.layout import materialize_compute_layout
-from heteqsys.evaluation import (
+from arqsim.compiler.layout import materialize_compute_layout
+from arqsim.evaluation import (
     PhysicalFootprintModel,
     estimate_physical_footprint,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.report_v1 import render_evaluation_report_v1
-from heteqsys.schema import normalize_json
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.report_v1 import render_evaluation_report_v1
+from arqsim.schema import normalize_json
+from arqsim.specification import build_architecture_specification
 
 
 PROFILE_COMPUTE_OWNERS = {
@@ -212,7 +212,7 @@ def test_11_custom_grid_origin_flows_through_report_validation() -> None:
     )
     config = EvaluationConfig(
         profile_id="1.1",
-        workflow_id="logical-layout-report-e2e",
+        run_label="logical-layout-report-e2e",
         logical_layout=layout,
     )
 
@@ -538,7 +538,7 @@ def test_sc_report_v1_slot_receipt_retains_compiler_routing_metadata(
         _circuit(),
         EvaluationConfig(
             profile_id="1.2",
-            workflow_id=f"sc-report-layout-{custom}",
+            run_label=f"sc-report-layout-{custom}",
             logical_layout=logical_layout,
         ),
     )
@@ -580,7 +580,7 @@ def test_sc_report_v1_slot_receipt_retains_compiler_routing_metadata(
 def test_report_v1_buffer_projection_preserves_canonical_coordinates() -> None:
     report = run_evaluation(
         _circuit(),
-        EvaluationConfig(profile_id="2.2", workflow_id="buffer-projection"),
+        EvaluationConfig(profile_id="2.2", run_label="buffer-projection"),
     )
     specification = report.specification
     receipt = render_evaluation_report_v1(report)["specification"]
@@ -894,7 +894,7 @@ def test_22_both_store_load_overrides_keep_absolute_canonical_identity() -> None
         _circuit(),
         EvaluationConfig(
             profile_id="2.2",
-            workflow_id="both-store-load-overrides",
+            run_label="both-store-load-overrides",
             logical_layout=request,
         ),
     )

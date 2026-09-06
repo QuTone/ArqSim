@@ -55,7 +55,12 @@ export function LeftPanel({
   experimentParams,
   onExperimentParamsChange,
 }: LeftPanelProps) {
-  const [openSections, setOpenSections] = useState<string[]>(["quantum-program", "device-library", "architecture"]);
+  const [openSections, setOpenSections] = useState<string[]>([
+    "quantum-program",
+    "device-library",
+    "architecture",
+    "experiment-setup",
+  ]);
 
   const sections = [
     { id: "quantum-program",  title: "Quantum Program",       icon: Cpu },

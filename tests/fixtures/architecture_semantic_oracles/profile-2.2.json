@@ -354,8 +354,8 @@
           "capacity": 2,
           "id": "bell_engine:memory_compute_link",
           "owner": {
-            "module": null,
-            "submodule": null
+            "module": "memory_compute_link/bell_engine",
+            "submodule": "memory_compute_link/bell_engine/pair_generator"
           }
         },
         {
@@ -371,7 +371,7 @@
           "id": "store_load_buffer",
           "owner": {
             "module": "sc_compute_node/sc_compute",
-            "submodule": null
+            "submodule": "sc_compute_node/sc_compute/store_load_buffer"
           }
         },
         {
@@ -386,7 +386,7 @@
           "capacity": 1,
           "id": "resource_move",
           "owner": {
-            "module": "sc_compute_node/sc_msf",
+            "module": null,
             "submodule": null
           }
         }
@@ -394,7 +394,7 @@
       "program": [
         {
           "consumes": {},
-          "duration_s": 2.6e-05,
+          "duration_s": 1.3e-05,
           "engines": {
             "compute:sc_compute_node/sc_compute": 1
           },
@@ -606,7 +606,7 @@
         },
         {
           "consumes": {},
-          "duration_s": 2.6e-05,
+          "duration_s": 1.3e-05,
           "engines": {
             "compute:sc_compute_node/sc_compute": 1
           },
@@ -830,7 +830,7 @@
       },
       "completed_program_instructions": 18,
       "completed_work_s_by_opcode": {
-        "EXECUTE_COMPUTE": 0.00010399999999999647,
+        "EXECUTE_COMPUTE": 7.799999999999734e-05,
         "FENCE": 0.0,
         "LOAD_QUBITS": 0.018000000000000002,
         "MOVE_QUBITS": 6.499999999999822e-05,
@@ -841,8 +841,8 @@
       },
       "completion_schedule": [
         {
-          "duration_s": 2.6e-05,
-          "end_s": 2.6e-05,
+          "duration_s": 1.3e-05,
+          "end_s": 1.3e-05,
           "opcode": "EXECUTE_COMPUTE",
           "operation": "L0:EXECUTE_COMPUTE:q0,1",
           "plane": "program",
@@ -874,11 +874,11 @@
         },
         {
           "duration_s": 0.0,
-          "end_s": 2.6e-05,
+          "end_s": 1.3e-05,
           "opcode": "FENCE",
           "operation": "L0:FENCE:q-",
           "plane": "program",
-          "start_s": 2.6e-05
+          "start_s": 1.3e-05
         },
         {
           "duration_s": 1.299999999999999e-05,
@@ -1025,8 +1025,8 @@
           "start_s": 0.041052000000000005
         },
         {
-          "duration_s": 2.5999999999998247e-05,
-          "end_s": 0.041091,
+          "duration_s": 1.2999999999999123e-05,
+          "end_s": 0.041078,
           "opcode": "EXECUTE_COMPUTE",
           "operation": "L3:EXECUTE_COMPUTE:q2,3",
           "plane": "program",
@@ -1034,60 +1034,60 @@
         },
         {
           "duration_s": 0.0,
-          "end_s": 0.041091,
+          "end_s": 0.041078,
           "opcode": "FENCE",
           "operation": "L3:FENCE:q-",
           "plane": "program",
-          "start_s": 0.041091
+          "start_s": 0.041078
         },
         {
           "duration_s": 1.2999999999999123e-05,
-          "end_s": 0.041104,
+          "end_s": 0.041091,
           "opcode": "EXECUTE_COMPUTE",
           "operation": "L4:EXECUTE_COMPUTE:q2",
           "plane": "program",
-          "start_s": 0.041091
+          "start_s": 0.041078
         },
         {
           "duration_s": 1.2999999999999123e-05,
-          "end_s": 0.041104,
+          "end_s": 0.041091,
           "opcode": "MOVE_QUBITS",
           "operation": "deliver_magic_local",
           "plane": "resource",
+          "start_s": 0.041078
+        },
+        {
+          "duration_s": 0.0,
+          "end_s": 0.041091,
+          "opcode": "FENCE",
+          "operation": "L4:FENCE:q-",
+          "plane": "program",
+          "start_s": 0.041091
+        },
+        {
+          "duration_s": 1.2999999999999123e-05,
+          "end_s": 0.041104,
+          "opcode": "EXECUTE_COMPUTE",
+          "operation": "L5:EXECUTE_COMPUTE:q2,3",
+          "plane": "program",
           "start_s": 0.041091
         },
         {
           "duration_s": 0.0,
           "end_s": 0.041104,
           "opcode": "FENCE",
-          "operation": "L4:FENCE:q-",
-          "plane": "program",
-          "start_s": 0.041104
-        },
-        {
-          "duration_s": 1.2999999999999123e-05,
-          "end_s": 0.041117,
-          "opcode": "EXECUTE_COMPUTE",
-          "operation": "L5:EXECUTE_COMPUTE:q2,3",
-          "plane": "program",
-          "start_s": 0.041104
-        },
-        {
-          "duration_s": 0.0,
-          "end_s": 0.041117,
-          "opcode": "FENCE",
           "operation": "L5:FENCE:q-",
           "plane": "program",
-          "start_s": 0.041117
+          "start_s": 0.041104
         }
       ],
       "inflight_resource_events_at_program_completion": 1,
       "producer_blocked_s": {
-        "deliver_magic_local": 0.039091,
-        "prepare_logical_bell:memory_compute_link": 0.038117,
-        "prepare_magic": 0.038091
+        "deliver_magic_local": 0.039078,
+        "prepare_logical_bell:memory_compute_link": 0.038104,
+        "prepare_magic": 0.038078
       },
-      "program_state_blocked_s": 0.000987,
+      "program_state_blocked_s": 0.001,
       "resource_items_started": {
         "deliver_magic_local": 3,
         "prepare_logical_bell:memory_compute_link": 6,
@@ -1103,7 +1103,7 @@
         ],
         "msf_output": []
       },
-      "total_latency_s": 0.041117
+      "total_latency_s": 0.041104
     }
   },
   "results": {

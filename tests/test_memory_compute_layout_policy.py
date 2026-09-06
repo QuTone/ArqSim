@@ -4,21 +4,21 @@ from copy import deepcopy
 
 import pytest
 
-from heteqsys.architecture.errors import ArchitectureValidationError
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.logical_layout import (
+from arqsim.architecture.errors import ArchitectureValidationError
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.logical_layout import (
     LogicalLayoutGrid,
     LogicalLayoutRequest,
     SubmoduleLayoutRequest,
 )
-from heteqsys.architecture.logical_layout_policy import LogicalLayoutPolicy
-from heteqsys.architecture.gallery import get_architecture_profile
-from heteqsys.architecture.gallery.na_mcf import (
+from arqsim.architecture.logical_layout_policy import LogicalLayoutPolicy
+from arqsim.architecture.gallery import get_architecture_profile
+from arqsim.architecture.gallery.na_mcf import (
     NeutralAtomMemoryComputeLayoutPolicy,
     make_layout_policy,
 )
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.architecture.sizing import SizingResult
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.architecture.sizing import SizingResult
 
 
 MEMORY = SubmoduleKey("na_node", "na_memory", "memory_region")

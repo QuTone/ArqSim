@@ -12,7 +12,7 @@ import sys
 import pytest
 
 
-PACKAGE_ROOT = Path(__file__).parents[1] / "heteqsys"
+PACKAGE_ROOT = Path(__file__).parents[1] / "arqsim"
 PROJECT_ROOT = PACKAGE_ROOT.parent
 PYPROJECT = PROJECT_ROOT / "pyproject.toml"
 FORBIDDEN_REPOSITORY_ROOTS = {
@@ -42,7 +42,7 @@ def _module_name(path: Path) -> str:
         parts.pop()
     else:
         parts[-1] = Path(parts[-1]).stem
-    return ".".join(("heteqsys", *parts))
+    return ".".join(("arqsim", *parts))
 
 
 def _is_type_checking(node: ast.AST) -> bool:
@@ -129,7 +129,7 @@ def test_import_time_package_graph_is_acyclic() -> None:
 
     def known_module(name: str) -> str | None:
         candidate = name
-        while candidate.startswith("heteqsys"):
+        while candidate.startswith("arqsim"):
             if candidate in modules:
                 return candidate
             if "." not in candidate:
@@ -168,23 +168,23 @@ def test_import_time_package_graph_is_acyclic() -> None:
 
 
 def test_release_metadata_matches_the_public_package_contract() -> None:
-    import heteqsys
+    import arqsim
 
     project = _toml_section("project")
     name = re.search(r'(?m)^name\s*=\s*"([^"]+)"\s*$', project)
     version = re.search(r'(?m)^version\s*=\s*"([^"]+)"\s*$', project)
 
-    assert name is not None and name.group(1) == "heteqsys"
-    assert version is not None and version.group(1) == heteqsys.__version__
+    assert name is not None and name.group(1) == "arqsim"
+    assert version is not None and version.group(1) == arqsim.__version__
     assert re.search(r'(?m)^readme\s*=.*README\.md', project)
     assert re.search(r'(?m)^requires-python\s*=\s*">=3\.10"\s*$', project)
 
     scripts = _toml_section("project.scripts")
     assert re.search(
-        r'(?m)^heteqsys\s*=\s*"heteqsys\.cli:main"\s*$', scripts
+        r'(?m)^arqsim\s*=\s*"arqsim\.cli:main"\s*$', scripts
     )
     package_discovery = _toml_section("tool.setuptools.packages.find")
-    assert 'include = ["heteqsys*"]' in package_discovery
+    assert 'include = ["arqsim*"]' in package_discovery
 
 
 def test_declared_runtime_package_data_exists_in_the_source_tree() -> None:
@@ -203,9 +203,9 @@ def test_declared_runtime_package_data_exists_in_the_source_tree() -> None:
 
 
 def test_legacy_architecture_and_default_qec_construction_paths_are_deleted() -> None:
-    import heteqsys.architecture as architecture
-    import heteqsys.operation_profiles as operation_profiles
-    import heteqsys.qec as qec
+    import arqsim.architecture as architecture
+    import arqsim.operation_profiles as operation_profiles
+    import arqsim.qec as qec
 
     removed_paths = (
         PACKAGE_ROOT / "architecture" / "compact.py",
@@ -321,8 +321,8 @@ def test_architecture_core_does_not_depend_on_the_bundled_gallery() -> None:
             if any(
                 imported == "gallery"
                 or imported.startswith("gallery.")
-                or imported == "heteqsys.architecture.gallery"
-                or imported.startswith("heteqsys.architecture.gallery.")
+                or imported == "arqsim.architecture.gallery"
+                or imported.startswith("arqsim.architecture.gallery.")
                 for imported in imports
             ):
                 violations.append(f"{name}:{node.lineno}: {imports}")
@@ -333,20 +333,20 @@ def test_architecture_core_does_not_depend_on_the_bundled_gallery() -> None:
 
 
 def test_minimal_runtime_source_has_no_replaced_component_chain() -> None:
-    from heteqsys import evaluation
-    from heteqsys.evaluation import components
+    from arqsim import evaluation
+    from arqsim.evaluation import components
 
     assert components.RUNTIME_COMPONENT_ROLES == (
         "runtime_realizer",
         "scheduler",
         "execution_backend",
-        "outcome_model",
+        "measurement_provider",
     )
     assert tuple(components.RuntimeComponentSet.__dataclass_fields__) == (
         "runtime_realizer",
         "scheduler",
         "execution_backend",
-        "outcome_model",
+        "measurement_provider",
     )
     for deleted_name in (
         "BindingPolicy",
@@ -368,8 +368,8 @@ def test_minimal_runtime_source_has_no_replaced_component_chain() -> None:
 
 
 def test_dead_wrappers_registries_and_runtime_overrides_are_deleted() -> None:
-    from heteqsys.architecture.state import ArchitectureState
-    from heteqsys.evaluation import evaluate
+    from arqsim.architecture.state import ArchitectureState
+    from arqsim.evaluation import evaluate
 
     removed_paths = (
         PACKAGE_ROOT / "evaluation" / "scheduler.py",
@@ -420,8 +420,8 @@ def test_readme_python_quickstart_runs_through_the_public_facade() -> None:
     readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
     example = PROJECT_ROOT / "examples" / "quickstart.py"
 
-    assert "from heteqsys import" in readme
-    assert "heteqsys evaluate" in readme
+    assert "from arqsim import" in readme
+    assert "arqsim evaluate" in readme
     assert example.is_file()
     quickstart = re.search(
         r"(?ms)^## Python quickstart\s+.*?^```python\s*$\n(.*?)^```\s*$",
@@ -437,13 +437,21 @@ def test_readme_python_quickstart_runs_through_the_public_facade() -> None:
         timeout=60,
     )
     assert completed.returncode == 0, completed.stderr
-    values = [float(line) for line in completed.stdout.splitlines()]
-    assert len(values) == 2
-    assert all(value > 0 for value in values)
+    rows = [line.split(":", 1) for line in completed.stdout.splitlines()]
+    assert [row[0] for row in rows] == [
+        "Latency (s)", "Physical qubits", "Success probability"
+    ]
+    values = [float(row[1]) for row in rows]
+    assert all(value > 0 for value in values[:2])
+    assert 0 <= values[2] <= 1
 
 
 def test_local_markdown_links_resolve_inside_the_repository() -> None:
-    documents = [PROJECT_ROOT / "README.md", *sorted((PROJECT_ROOT / "docs").glob("*.md"))]
+    documents = [
+        PROJECT_ROOT / "README.md",
+        *sorted((PROJECT_ROOT / "docs").rglob("*.md")),
+        *sorted((PROJECT_ROOT / "examples").rglob("*.md")),
+    ]
     missing: list[str] = []
     link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 

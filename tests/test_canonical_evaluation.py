@@ -6,17 +6,17 @@ from dataclasses import replace
 
 import pytest
 
-from heteqsys.evaluation import (
+from arqsim.evaluation import (
     PhysicalFootprintModel,
     estimate_physical_footprint,
 )
-from heteqsys.operation_profiles import (
+from arqsim.operation_profiles import (
     OperationLatencyProfile,
     canonical_fidelity_profile,
     resolve_resource_protocol_bindings,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.specification import build_architecture_specification
 
 
 def _sizing_circuit() -> FTCircuit:

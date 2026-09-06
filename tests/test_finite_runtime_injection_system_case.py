@@ -6,8 +6,8 @@ from copy import deepcopy
 import json
 from pathlib import Path
 
-from heteqsys import EvaluationConfig
-from heteqsys.evaluation import RuntimeInjectionMode
+from arqsim import EvaluationConfig
+from arqsim.evaluation import RuntimeInjectionMode
 import pytest
 
 from system_cases.finite_runtime_injection_demo import run as injection_case
@@ -36,7 +36,7 @@ def test_manifest_strictly_freezes_the_owned_profile_23_request() -> None:
     )
     assert request["workload"]["semantic_hash"]
     assert config.profile_id == "2.3"
-    assert config.workflow_id == (
+    assert config.run_label == (
         "finite_runtime_injection_demo:clifford_t_toy__2.3"
     )
     assert config.fidelity_profile == "canonical_reference_v1"
@@ -82,10 +82,10 @@ def test_checked_in_report_strictly_replays_both_t_branches_and_fidelity() -> No
     ] == [1, 0]
     assert [
         item["steps"] for item in injection["invocations"]
-    ] == [
-        ["source", "reaction", "correction"],
-        ["source", "reaction"],
-    ]
+        ] == [
+            ["entangle", "measurement", "reaction", "correction"],
+            ["entangle", "measurement", "reaction"],
+        ]
     assert [
         item["logical_s_materialized"]
         for item in injection["invocations"]
@@ -107,18 +107,18 @@ def test_checked_in_report_strictly_replays_both_t_branches_and_fidelity() -> No
     assert results["resource_idle_cycles_total"] > 0
 
 
-def test_live_public_api_run_is_byte_identical_to_the_reference() -> None:
-    system_case = injection_case.load_system_case()
-    reference = injection_case.verify_reference(rerun=False)
-    live = injection_case.run_case(system_case)
+def test_immutable_predecessor_is_replay_only_after_locus_successor() -> None:
+    with pytest.raises(
+        injection_case.SystemCaseError,
+        match="immutable predecessor is replay-only",
+    ):
+        injection_case.verify_reference(rerun=True)
 
-    assert live.request == reference.request
-    assert live.report.to_json(indent=2) == reference.report.to_json(indent=2)
-    assert live.receipt == reference.receipt
-    assert live.report.report_hash == live.receipt["hashes"]["report"]
-    assert live.report.execution_trace.trace_hash == live.receipt[
-        "hashes"
-    ]["execution_trace"]
+    archived = injection_case.verify_reference(rerun=False)
+    assert archived.report["report_hash"] == archived.receipt["hashes"]["report"]
+    assert archived.report["artifacts"]["execution_plan"]["plan_hash"] == (
+        archived.receipt["hashes"]["execution_plan"]
+    )
 
 
 def test_manifest_rejects_an_unknown_contract_field(

@@ -37,6 +37,7 @@ interface ResourceEstimatesPanelProps {
   onConfigChange: (id: string) => void;
   programs: Array<{ id: string; label: string }>;
   configs: Array<{ id: string; label: string; type?: string }>;
+  showContextControls?: boolean;
 }
 
 export function ResourceEstimatesPanel({
@@ -49,6 +50,7 @@ export function ResourceEstimatesPanel({
   onConfigChange,
   programs,
   configs,
+  showContextControls = true,
 }: ResourceEstimatesPanelProps) {
   const [activeTab, setActiveTab] = useState<MetricTab>("space");
   const [compareMode, setCompareMode] = useState(false);
@@ -107,14 +109,16 @@ export function ResourceEstimatesPanel({
         </button>
       </div>
 
-      <ContextControlBar
-        selectedProgram={activeProgramId}
-        onProgramChange={onProgramChange}
-        selectedConfig={activeConfigId}
-        onConfigChange={onConfigChange}
-        programs={programs}
-        configs={configs}
-      />
+      {showContextControls && (
+        <ContextControlBar
+          selectedProgram={activeProgramId}
+          onProgramChange={onProgramChange}
+          selectedConfig={activeConfigId}
+          onConfigChange={onConfigChange}
+          programs={programs}
+          configs={configs}
+        />
+      )}
 
       <div className="min-h-0 flex-1 overflow-hidden">
         {compareMode && comparison}

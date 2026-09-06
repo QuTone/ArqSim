@@ -16,15 +16,15 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-from heteqsys.api import EvaluationConfig, EvaluationReport, run_evaluation
-from heteqsys.evaluation import EvaluationPolicy
-from heteqsys.operation_profiles import (
+from arqsim.api import EvaluationConfig, EvaluationReport, run_evaluation
+from arqsim.evaluation import EvaluationPolicy
+from arqsim.operation_profiles import (
     ArrivalDistribution,
     OperationLatencyProfile,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.schema import normalize_json, semantic_hash
-from heteqsys.specification import (
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.schema import normalize_json, semantic_hash
+from arqsim.specification import (
     ArchitectureSpecification,
     build_architecture_specification,
 )
@@ -106,9 +106,9 @@ def run_oracle(profile_id: str) -> EvaluationReport:
         oracle_circuit(),
         EvaluationConfig(
             profile_id=profile_id,
-            workflow_id=CASE.workflow_id,
+            run_label=CASE.workflow_id,
             latency_profile=oracle_latency_profile(),
-            evaluation_policy=EvaluationPolicy(trace_level="full", seed=0),
+            execution_policy=EvaluationPolicy(trace_level="full", seed=0),
         ),
     )
 

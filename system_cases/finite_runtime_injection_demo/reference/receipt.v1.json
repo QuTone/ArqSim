@@ -1,17 +1,17 @@
 {
   "case_id": "clifford_t_toy__2.3__seed_5",
   "hashes": {
-    "architecture": "07e6bfbc103942b2d117f3de5ad052c29118b90347b830fba0bd4c0f48e1dbee",
-    "compiler": "7dffd518e0ebe480fcbcb1fa8654080d705653c772bae7dfe84289c0e3a51877",
-    "config": "5dde0f382ddedc69eaa5002ffecc50b6c90b582116181438fa375556d7d41ba3",
-    "execution_plan": "de528be20f03693e6f546d306f3728825a9573d16a6b75781d628aa06ea9fb58",
-    "execution_trace": "c2db4ee37e2fc86e59bfed7197bb3fc4eed608ef857fde2b3af548b1e98a2444",
-    "logical_compilation": "08248f674b624899088c0564b825a88806412257a3f9d1d26e3721a4352650d5",
-    "report": "272acda4b6c6f4db5e4630b2beeaab36c290e230ca8d0170be01a6035614a745",
-    "report_json": "68c43276535680678c540575eb03e1b90a10aa762bd390f4721b678d55b751e6",
-    "request_json": "62f1e06b20c28b46b92b45edda4ec383dc20a890a74cff0bde5ea5cf40f836b5",
-    "semantic_manifest": "ec6456dd4f544f50e60da443f10134a495c62c201df0a9fdeaf868a93ca0c945",
-    "workload": "27234a4ff54f9889cc2e730a1af08771013f516397c0d6339485f55d45a42fe0"
+    "architecture": "46c80798b336ab7b5108c7807f368682ca69d26b48ba431eaa11139eff06ced1",
+    "compiler": "58932ea6c9a04a019110442f4015a564750e91a8c0e12e8f80b63338c0109638",
+    "config": "b8cb867fc4ad53bad1dcd90eae57b20ec6943367f00fd3c26070ca89cc13c6ec",
+    "execution_plan": "0ebfe8fcb3ecbe6488f54fb8a1341e9d29ab19bbb3acf02cf935cc88f36842e1",
+    "execution_trace": "552de5177f29a7af7e4fadc79b4ce05e997268feaccfabe749b540591ad2382e",
+    "logical_compilation": "c19b6f155d4fecbbaac6606ef1f1788ea1b1a769f97b2ae71f11e0694c4f89ae",
+    "report": "88b2ce8a1a5304fb0214a0bbf9bb304c1db106ca7742350a36a933c89672df58",
+    "report_json": "8420035ce3d65ef0bcfe07e469830fb646908484425072f9541c2199e4b6d1d7",
+    "request_json": "15b4b738dd8444019430b53c506e2e00bab23a4ebee75f59de1e57b70ac3ada5",
+    "semantic_manifest": "cdf093a319ea6a56d9cb0ffddb4fe443cfd1299b76bde8bc178a3fd201428cd5",
+    "workload": "cb874af3f8cf1ef2395f8a4ba8be1a4e478c97de30fd8580c49a2e2ecb747163"
   },
   "results": {
     "all_invariants_passed": true,
@@ -20,7 +20,7 @@
       "logical_bell_pair": 2,
       "magic_state": 2
     },
-    "event_count": 26,
+    "event_count": 28,
     "fidelity_complete_coverage": true,
     "invariant_checks": {
       "active_reservations_account_for_engine_usage": true,
@@ -39,11 +39,11 @@
       "transaction_versions_consistent": true
     },
     "logical_idle_cycles_by_location": {
-      "na_compute_node/na_compute": 102.67723833409018,
-      "na_compute_node/na_compute/store_load_buffer": 36.000000000000014,
+      "na_compute_node/na_compute": 104.67723833409018,
+      "na_compute_node/na_compute/store_load_buffer": 36.0,
       "na_compute_node/na_memory": 162.4300240284485
     },
-    "logical_idle_cycles_total": 301.1072623625387,
+    "logical_idle_cycles_total": 303.1072623625387,
     "logical_operation_counts": {
       "cx": 2,
       "h": 4,
@@ -54,7 +54,7 @@
       "sc_msf_node/sc_msf/magic_state_output_buffer": 87754.28228621715
     },
     "resource_idle_cycles_total": 87754.28228621715,
-    "success_probability": 0.9997625580721519,
+    "success_probability": 0.9997625527821175,
     "total_latency_s": 0.09921501201422428,
     "total_physical_qubits": 7357.0,
     "unprofiled": {
@@ -69,6 +69,7 @@
     "invocations": [
       {
         "logical_s_materialized": true,
+        "measurement_event_id": 8,
         "measurement_register": "instruction:2:source:1:operation:0:stage:0:bit",
         "outcome_bit": 1,
         "recipe_convention": "cx_data_magic_measure_magic_z_v1",
@@ -76,21 +77,24 @@
         "source_event_id": 7,
         "source_instruction_id": 2,
         "steps": [
-          "source",
+          "entangle",
+          "measurement",
           "reaction",
           "correction"
         ]
       },
       {
         "logical_s_materialized": false,
+        "measurement_event_id": 24,
         "measurement_register": "instruction:12:source:4:operation:0:stage:0:bit",
         "outcome_bit": 0,
         "recipe_convention": "cx_data_magic_measure_magic_z_v1",
         "recipe_invocation_id": "instruction:12:source:4:operation:0",
-        "source_event_id": 22,
+        "source_event_id": 23,
         "source_instruction_id": 12,
         "steps": [
-          "source",
+          "entangle",
+          "measurement",
           "reaction"
         ]
       }

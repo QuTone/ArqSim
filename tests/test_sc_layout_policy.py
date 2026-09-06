@@ -2,29 +2,29 @@ from __future__ import annotations
 
 import pytest
 
-from heteqsys.architecture.errors import ArchitectureValidationError
-from heteqsys.architecture.gallery.na_cf import (
+from arqsim.architecture.errors import ArchitectureValidationError
+from arqsim.architecture.gallery.na_cf import (
     PROFILE as NA_PROFILE,
     make_layout_policy as make_na_layout_policy,
 )
-from heteqsys.architecture.gallery.na_cf.layout import (
+from arqsim.architecture.gallery.na_cf.layout import (
     NeutralAtomComputeFactoryLayoutPolicy,
 )
-from heteqsys.architecture.gallery.sc_cf import (
+from arqsim.architecture.gallery.sc_cf import (
     PROFILE,
     make_layout_policy,
 )
-from heteqsys.architecture.gallery.sc_cf.layout import (
+from arqsim.architecture.gallery.sc_cf.layout import (
     SuperconductingCheckerboardLayoutPolicy,
 )
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.logical_layout import (
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.logical_layout import (
     LogicalLayoutGrid,
     LogicalLayoutRequest,
     SubmoduleLayoutRequest,
 )
-from heteqsys.architecture.logical_layout_policy import LogicalLayoutPolicy
-from heteqsys.architecture.sizing import SizingResult
+from arqsim.architecture.logical_layout_policy import LogicalLayoutPolicy
+from arqsim.architecture.sizing import SizingResult
 
 
 COMPUTE = SubmoduleKey("sc_node", "sc_compute", "compute_region")

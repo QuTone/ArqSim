@@ -4,14 +4,14 @@ from types import SimpleNamespace
 
 import pytest
 
-from heteqsys.architecture.isa import (
+from arqsim.architecture.isa import (
     ArchitectureInstruction,
     ArchitectureOpcode,
 )
-from heteqsys.architecture.state import (
+from arqsim.architecture.state import (
     ArchitectureState,
 )
-from heteqsys.evaluation import (
+from arqsim.evaluation import (
     BufferSpec,
     EngineSpec,
     EvaluationAnalysis,
@@ -26,7 +26,7 @@ from heteqsys.evaluation import (
     exclusive_time_breakdown,
     qubit_exposure,
 )
-from heteqsys.operation_profiles import FidelityProfile
+from arqsim.operation_profiles import FidelityProfile
 
 
 def _transition(
@@ -254,7 +254,7 @@ def test_summary_and_full_share_causal_analysis_facts() -> None:
 def test_reanalysis_does_not_reinvoke_engine_or_architecture_state(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import heteqsys.evaluation.engine as engine_module
+    import arqsim.evaluation.engine as engine_module
 
     plan = _inflight_plan("summary")
     result = evaluate(plan)

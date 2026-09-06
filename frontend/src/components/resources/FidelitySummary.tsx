@@ -49,6 +49,9 @@ export function FidelitySummary({ viewModel }: FidelitySummaryProps) {
           <p className="mt-3 font-mono text-[10px] text-muted-foreground/60">
             No probability is inferred by the frontend.
           </p>
+          <p className="mt-2 font-mono text-[10px] text-cyan-300/75">
+            Acceptance demo: Advanced → Runtime semantics → Finite T injection demo.
+          </p>
         </div>
       </div>
     );

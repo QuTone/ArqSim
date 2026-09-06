@@ -6,12 +6,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from heteqsys.architecture.isa import (
+from arqsim.architecture.isa import (
     ArchitectureInstruction,
     ArchitectureOpcode,
     ResourceMoveDispatchRecipe,
 )
-from heteqsys.evaluation import (
+from arqsim.evaluation import (
     BufferSpec,
     EngineSpec,
     EvaluationPolicy,
@@ -30,15 +30,15 @@ from heteqsys.evaluation import (
     evaluate,
     exclusive_time_breakdown,
 )
-from heteqsys.evaluation.components import (
+from arqsim.evaluation.components import (
     RuntimeComponentDescriptor,
     StateBoundRuntimeRealizer,
     build_runtime_component_set,
     default_direct_runtime_component_manifest,
     default_runtime_component_manifest,
 )
-from heteqsys.compiler import canonical_compiler_spec
-from heteqsys.operation_profiles import (
+from arqsim.compiler import canonical_compiler_spec
+from arqsim.operation_profiles import (
     ArrivalDistribution,
     FidelityProfile,
     OperationLatencyProfile,
@@ -46,9 +46,9 @@ from heteqsys.operation_profiles import (
     resolve_resource_protocol_bindings,
     with_effective_arrivals,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.schema import normalize_json
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.schema import normalize_json
+from arqsim.specification import build_architecture_specification
 
 
 def _compile_plan(*args, **kwargs) -> ExecutionPlan:
@@ -120,6 +120,36 @@ def test_cold_start_couples_resource_and_program_dags_through_state() -> None:
             "ready_empty_fraction": 1.0,
             "committed_full_fraction": 1.0,
         }
+    )
+
+
+def test_engine_owner_metadata_does_not_affect_scheduling_or_timing() -> None:
+    unowned = _cold_start_plan()
+    owned = replace(
+        unowned,
+        engines=tuple(
+            replace(
+                engine,
+                module=f"node/{engine.id}_module",
+                submodule=f"node/{engine.id}_module/{engine.id}_engine",
+            )
+            for engine in unowned.engines
+        ),
+    )
+
+    assert owned.plan_hash != unowned.plan_hash
+    unowned_result = evaluate(unowned)
+    owned_result = evaluate(owned)
+    assert owned_result.total_latency_s == unowned_result.total_latency_s
+    assert normalize_json(owned_result.discrete_time_log) == normalize_json(
+        unowned_result.discrete_time_log
+    )
+    assert exclusive_time_breakdown(owned_result) == exclusive_time_breakdown(
+        unowned_result
+    )
+    assert engine_utilization(owned_result, owned) == engine_utilization(
+        unowned_result,
+        unowned,
     )
 
 
@@ -263,6 +293,7 @@ def test_static_layerwise_aggregation_overlaps_magic_and_bell_production() -> No
                     produces={"magic": 1},
                     forwards={"factory_output": "magic"},
                     duration_s=0.1,
+                    target_links=("link",),
                 ),
             )
         ),
@@ -478,7 +509,9 @@ def test_protocol_batch_fills_available_slots_and_discards_excess(
         (EngineSpec("compute"), EngineSpec("factory")),
     )
 
+    original_plan = plan.to_dict()
     result = evaluate(plan)
+    assert plan.to_dict() == original_plan
     preparation = next(
         event
         for event in result.events
@@ -564,11 +597,29 @@ def test_fidelity_can_apply_architecture_failure_per_logical_qubit() -> None:
             }
         }
     )
-    estimate = estimate_fidelity(evaluate(plan), profile, plan=plan)
+    result = evaluate(plan)
+    estimate = estimate_fidelity(result, profile, plan=plan)
     assert estimate.log_success_by_operation["STORE_QUBITS"] == pytest.approx(
         2 * math.log1p(-probability)
     )
     assert estimate.success_probability == pytest.approx((1 - probability) ** 2)
+
+    altered = replace(result, trace=replace(
+        result.trace,
+        transitions=tuple(
+            replace(item, metadata={**dict(item.metadata), "qubits": [99], "amount": 100})
+            for item in result.transitions
+        ),
+    ))
+    assert estimate_fidelity(altered, profile, plan=plan).to_dict() == estimate.to_dict()
+    with pytest.raises(ValueError, match="matching ExecutionPlan"):
+        estimate_fidelity(result, profile)
+
+    empty_payload = replace(plan, program_dag=ProgramDAG((
+        replace(plan.program_dag.instructions[0], qubits=(), metadata={"amount": 2}),
+    )))
+    with pytest.raises(ValueError, match="non-empty typed item payload"):
+        estimate_fidelity(evaluate(empty_payload), profile, plan=empty_payload)
 
 
 def test_teleport_fidelity_keeps_bell_quality_and_cnot_as_named_channels() -> None:
@@ -585,6 +636,9 @@ def test_teleport_fidelity_keeps_bell_quality_and_cnot_as_named_channels() -> No
                     duration_s=0.5,
                     qubits=(3, 7),
                     consumes={"bell:link": 2},
+                    required_locations={"q:3": "left", "q:7": "left"},
+                    completion_locations={"q:3": "right", "q:7": "right"},
+                    target_links=("link",),
                 ),
             )
         ),
@@ -598,6 +652,7 @@ def test_teleport_fidelity_keeps_bell_quality_and_cnot_as_named_channels() -> No
             ),
         ),
         (),
+        initial_locations={"q:3": "left", "q:7": "left"},
     )
     bell_probability = 1e-10
     cnot_probability = 2e-8
@@ -698,7 +753,7 @@ def test_fidelity_applies_parameterized_ppm_failure_to_each_realized_weight() ->
 def test_plan_round_trip_preserves_semantic_hash() -> None:
     plan = _cold_start_plan()
     payload = plan.to_dict()
-    assert payload["schema_version"] == "arqsim.execution-plan.v6"
+    assert payload["schema_version"] == "arqsim.execution-plan.v9"
     assert payload["architecture_hash"] == plan.architecture_hash
     assert "system" not in payload
     assert "qec_hash" not in payload
@@ -724,8 +779,8 @@ def test_plan_round_trip_preserves_semantic_hash() -> None:
 
 
 def test_immutable_plan_and_trace_cache_semantic_hashes(monkeypatch) -> None:
-    import heteqsys.evaluation.plan as plan_module
-    import heteqsys.evaluation.result as result_module
+    import arqsim.evaluation.plan as plan_module
+    import arqsim.evaluation.result as result_module
 
     plan_hash_calls = 0
     original_plan_hash = plan_module.semantic_hash
@@ -799,13 +854,17 @@ def test_t_reaction_is_a_runtime_recipe_not_an_unconditional_static_node() -> No
         if item.opcode == ArchitectureOpcode.CLASSICAL_REACTION
     ]
     assert reactions == []
-    recipes = [
-        recipe
+    reaction_templates = [
+        template
         for instruction in plan.program_dag.instructions
-        for recipe in instruction.implementation_recipes
+        for template in instruction.continuation_templates
+        if template.step == "reaction"
     ]
-    assert len(recipes) == 2
-    assert all(recipe.reaction_duration_s == pytest.approx(10e-6) for recipe in recipes)
+    assert len(reaction_templates) == 2
+    assert all(
+        template.duration_s == pytest.approx(10e-6)
+        for template in reaction_templates
+    )
 
 
 def test_eager_resource_move_batches_ready_tokens_and_reserves_destinations() -> None:

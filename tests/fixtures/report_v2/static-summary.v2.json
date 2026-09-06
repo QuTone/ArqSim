@@ -41,8 +41,7 @@
           },
           {
             "capacity": 1,
-            "id": "resource_move",
-            "module": "sc_node/sc_msf"
+            "id": "resource_move"
           }
         ],
         "initial_locations": {
@@ -52,7 +51,7 @@
       },
       "architecture_hash": "1fe860dd815dea30818ef10ee31cf903c76ac1752232d606fb3962c79901b7b3",
       "latency_profile_hash": "82e18b0bb464b032eadcd78123dcf65b5f58e026419ad485d34dba2f1cfbbcb0",
-      "plan_hash": "775e1bddfffc3b4205fdf579ba503e477b11b7746c29f56cbcfa006299a42c60",
+      "plan_hash": "7e971bb5ef53acc404e9ae482a12f1e8e22d0af4d693eda11c10cfbe13b25a0e",
       "policy": {
         "magic_state_consumption": "bulk_wave",
         "max_events": 10000000,
@@ -208,7 +207,7 @@
                 "primitive_service": 1.3e-05
               },
               "gates": {
-                "rz": [
+                "s": [
                   0
                 ]
               },
@@ -497,7 +496,7 @@
                 1
               ],
               "resource_policy": "consume_ready_magic_states_at_dispatch",
-              "route_hash": "0a920a7af54eb1567348f63a1a6490f106685f5b7007c9056b8f531471d6144b",
+              "route_hash": "aed9a918640c38e28e01584f61bb1ac4193057c0518d5fc268f0568dfa3763c3",
               "route_metrics": {},
               "route_steps": [],
               "source_layer": 3,
@@ -558,8 +557,8 @@
         ]
       },
       "provenance": {
-        "compilation_hash": "1a9b720b4058d8606fcf92d57174fba5a7a175fa2e44ee0737a9eb84c1e271be",
-        "compiler_spec_hash": "912eb0f02129a9c9bd87c2f38b8d3af3f4c90082d95eaef7b7f52f657cf6c64e",
+        "compilation_hash": "8dd0f1e9a47b5ba61201d1470822ea2dca65d63bc8be72289950cb3bd11c64df",
+        "compiler_spec_hash": "cb260848d3113c8c425a814137671ba945ce41c5ba746be45adb3e15ed98da4b",
         "derived_engine_sources": {
           "resource_move": {
             "id": "sc_node/sc_magic_bus",
@@ -567,7 +566,7 @@
           }
         },
         "initialization": "cold_start",
-        "plan_builder_version": "arqsim-plan-builder-v4",
+        "plan_builder_version": "arqsim-plan-builder-v5",
         "program_dependency": "dag_derived_ft_layers",
         "program_resource_move_contention": "separate_domains",
         "resource_delivery_channels": 1,
@@ -646,7 +645,7 @@
         },
         "resource_protocol_bindings_hash": "4c27b59bd1e054bd1677849386651cea78b4708e4096d15f59fc6a0d4829517d",
         "runtime_injection_recipe_mode": "black_box",
-        "runtime_manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06"
+        "runtime_manifest_hash": "dca5abf003954822ac6783a56381bc772f6b04e60574fc942e02656e5b35921b"
       },
       "resource_dag": {
         "fill_policy": "greedy_fill_to_capacity",
@@ -722,7 +721,7 @@
       "runtime_components": {
         "components": {
           "execution_backend": {
-            "component_hash": "6466bc476c96a0b5f6d8ef297f317a9e092fe881bf317d349ad87041fa04a481",
+            "component_hash": "9fbdc77db3ffcf357f785b1e9b3764e41dcfd216a4aa4242a35fca2acfc282de",
             "component_id": "backend.profile.v1",
             "contract_version": "1",
             "effective_config": {
@@ -731,38 +730,38 @@
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "execution_backend",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           },
-          "outcome_model": {
-            "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
-            "component_id": "outcome.seeded_bernoulli.v1",
+          "measurement_provider": {
+            "component_hash": "275f8b7378a7b5ba1a610f73b34e582f643a4275874878cdc9c1e19593e8e939",
+            "component_id": "measurement.seeded_bernoulli.v1",
             "contract_version": "1",
             "effective_config": {
               "distribution": "independent_bernoulli_half",
-              "seed_identity": "program_work_lineage"
+              "seed_identity": "program_work_lineage_and_register"
             },
             "implementation_version": "1",
             "provider": "arqsim",
-            "role": "outcome_model",
-            "schema_version": "arqsim.runtime-component.v3"
+            "role": "measurement_provider",
+            "schema_version": "arqsim.runtime-component.v4"
           },
           "runtime_realizer": {
-            "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
-            "component_id": "runtime_realizer.state_bound.v2",
+            "component_hash": "0b5166ae14f63201d859b09229c756df0542f136389a9aaba722b6a137d167ba",
+            "component_id": "runtime_realizer.state_bound.v3",
             "contract_version": "1",
             "effective_config": {
               "binding": "fifo_first_free",
-              "continuation": "finite_injection_recipe_v1",
+              "continuation": "fully_scheduled_injection_recipe_v1",
               "deferred_program": "joint_magic_route",
               "deferred_resource": "state_bound_resource_move"
             },
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "runtime_realizer",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           },
           "scheduler": {
-            "component_hash": "60304b909a42e50cb511ed1cb9eb403744d951476717660580a8ba6247685226",
+            "component_hash": "6576c8ce29a08703c1f8f721ab9af363df6ba8a6d07ea533258bf992d63c9a5c",
             "component_id": "scheduler.program_first_eager.v1",
             "contract_version": "1",
             "effective_config": {
@@ -772,17 +771,19 @@
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "scheduler",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           }
         },
         "event_engine": {
-          "component_hash": "a653143af6817731cbf56982a48da087fe60ed2a891cc67afe52e0049c26198b",
-          "component_id": "event_engine.transactional_dynamic_frontier.v2",
+          "component_hash": "39c1420959e3bb1eb1f64e9927cf1168f5629a7d4a6122803acd9f92b59ec9ff",
+          "component_id": "event_engine.transactional_dynamic_frontier.v3",
           "contract_version": "1",
           "effective_config": {
             "commit_granularity": "single_candidate",
             "continuation_order": "activation_order_then_monotonic_schedule_id",
             "dispatch": "eager_when_ready",
+            "measurement_dispatch": "expected_logical_measurements_only",
+            "measurement_seed_stream": "logical_measurement.v1",
             "program_continuations": "finite_injection_recipe_v1",
             "program_horizon": "stop_without_resource_drain",
             "resource_fitting": "typed_dispatch_receipt_v1",
@@ -796,14 +797,14 @@
           "implementation_version": "1",
           "provider": "arqsim",
           "role": "event_engine",
-          "schema_version": "arqsim.runtime-component.v3"
+          "schema_version": "arqsim.runtime-component.v4"
         },
-        "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
-        "schema_version": "arqsim.runtime-manifest.v3"
+        "manifest_hash": "dca5abf003954822ac6783a56381bc772f6b04e60574fc942e02656e5b35921b",
+        "schema_version": "arqsim.runtime-manifest.v4"
       },
-      "schema_version": "arqsim.execution-plan.v6",
+      "schema_version": "arqsim.execution-plan.v9",
       "source": {
-        "circuit_hash": "75931e6927ab2b54101d8e5dc93cfac8d785e8de5253ca7364ea612d4e46ad05"
+        "circuit_hash": "ad336879260ae1f7b33800182cf6199cc61ea89b20762581842f457b422c2233"
       }
     },
     "execution_trace": {
@@ -835,8 +836,8 @@
         "token_sequence": {},
         "token_slots": {}
       },
-      "plan_hash": "775e1bddfffc3b4205fdf579ba503e477b11b7746c29f56cbcfa006299a42c60",
-      "schema_version": "arqsim.execution-trace.v3",
+      "plan_hash": "7e971bb5ef53acc404e9ae482a12f1e8e22d0af4d693eda11c10cfbe13b25a0e",
+      "schema_version": "arqsim.execution-trace.v4",
       "seed": 7,
       "terminal_inflight": [
         {
@@ -945,7 +946,7 @@
         "token_slots": {}
       },
       "total_latency_s": 0.001026,
-      "trace_hash": "55af91236c3a80f8c4f8097ada1a93400b34f8ec82533bcbac47f8245ac2d1a6",
+      "trace_hash": "c524e05815b19f6e97a8264521417fb3189925b798c37881807ce08afee8cb54",
       "transitions": [
         {
           "backend_artifact": {},
@@ -1072,10 +1073,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 0,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:0"
           },
@@ -1290,10 +1289,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 0,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:0"
           },
@@ -1354,10 +1351,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 1,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:1"
           },
@@ -1418,10 +1413,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 1,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:1"
           },
@@ -1469,7 +1462,7 @@
               "compute:sc_node/sc_compute": 1
             },
             "gates": {
-              "rz": [
+              "s": [
                 0
               ]
             },
@@ -1560,10 +1553,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 2,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:2"
           },
@@ -1617,7 +1608,7 @@
               "compute:sc_node/sc_compute": 1
             },
             "gates": {
-              "rz": [
+              "s": [
                 0
               ]
             },
@@ -1708,10 +1699,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 2,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:2"
           },
@@ -1772,10 +1761,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 3,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:3"
           },
@@ -1836,10 +1823,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 3,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:3"
           },
@@ -1984,10 +1969,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 4,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:4"
           },
@@ -2138,10 +2121,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 4,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:4"
           },
@@ -2202,10 +2183,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 5,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:5"
           },
@@ -2266,10 +2245,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 5,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:5"
           },
@@ -2715,7 +2692,7 @@
                 ]
               }
             ],
-            "runtime_route_cache_key": "1ad393a5b02871152d56ae260716046029a0db7b91769a25f2c61122a334da3d",
+            "runtime_route_cache_key": "691c77d97b89a582d7543b622b1c07ed60980f35b2919169af37132a4d0cf7bb",
             "runtime_route_resolution": "dispatch_time_joint_compilation",
             "source_layer": 3,
             "syndrome_protocol": {
@@ -2750,10 +2727,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 6,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:6"
           },
@@ -2871,7 +2846,7 @@
                 ]
               }
             ],
-            "runtime_route_cache_key": "1ad393a5b02871152d56ae260716046029a0db7b91769a25f2c61122a334da3d",
+            "runtime_route_cache_key": "691c77d97b89a582d7543b622b1c07ed60980f35b2919169af37132a4d0cf7bb",
             "runtime_route_resolution": "dispatch_time_joint_compilation",
             "source_layer": 3,
             "syndrome_protocol": {
@@ -2906,10 +2881,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 6,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:6"
           },
@@ -2972,10 +2945,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 7,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:7"
           },
@@ -3036,10 +3007,8 @@
           "produces": {},
           "program_lineage": {
             "parent_event_id": null,
-            "recipe_id": null,
-            "recipe_invocation_id": null,
+            "recipe_members": [],
             "source_instruction_id": 7,
-            "stage_index": null,
             "step": "source",
             "work_id": "program:7"
           },
@@ -3056,10 +3025,10 @@
       ]
     },
     "logical_compilation": {
-      "compilation_hash": "1a9b720b4058d8606fcf92d57174fba5a7a175fa2e44ee0737a9eb84c1e271be",
+      "compilation_hash": "8dd0f1e9a47b5ba61201d1470822ea2dca65d63bc8be72289950cb3bd11c64df",
       "compiler": {
-        "compiler_hash": "912eb0f02129a9c9bd87c2f38b8d3af3f4c90082d95eaef7b7f52f657cf6c64e",
-        "instruction_set": "heteqsys.hqisa.v1",
+        "compiler_hash": "cb260848d3113c8c425a814137671ba945ce41c5ba746be45adb3e15ed98da4b",
+        "instruction_set": "arqsim.hqisa.v1",
         "issue_policy": "conservative_layers",
         "mapping": {
           "backend": "row_major_checkerboard_sc",
@@ -3071,7 +3040,7 @@
             "guard_distance": 0
           }
         },
-        "schema_version": "heteqsys.logical-compiler-spec.v1"
+        "schema_version": "arqsim.logical-compiler-spec.v1"
       },
       "compute_units": [
         {
@@ -3316,7 +3285,7 @@
               "compiler_routing": 0.0,
               "primitive_service": 1.3e-05
             },
-            "route_hash": "0a920a7af54eb1567348f63a1a6490f106685f5b7007c9056b8f531471d6144b",
+            "route_hash": "aed9a918640c38e28e01584f61bb1ac4193057c0518d5fc268f0568dfa3763c3",
             "route_metrics": {},
             "route_steps": [],
             "syndrome_protocol": {
@@ -3364,15 +3333,15 @@
         "1": "sc_node/sc_compute/compute_region/slot_1"
       },
       "magic_state_consumption": "bulk_wave",
-      "schema_version": "heteqsys.logical-compilation-result.v1",
+      "schema_version": "arqsim.logical-compilation-result.v1",
       "source": {
         "architecture_hash": "1fe860dd815dea30818ef10ee31cf903c76ac1752232d606fb3962c79901b7b3",
-        "circuit_hash": "75931e6927ab2b54101d8e5dc93cfac8d785e8de5253ca7364ea612d4e46ad05",
+        "circuit_hash": "ad336879260ae1f7b33800182cf6199cc61ea89b20762581842f457b422c2233",
         "latency_profile_hash": "82e18b0bb464b032eadcd78123dcf65b5f58e026419ad485d34dba2f1cfbbcb0"
       }
     }
   },
-  "report_hash": "6dd5923938a11356b51efe2a8cf24694fd6046ecde9e10d119a43144a4858a43",
+  "report_hash": "e1b3037613c365436757a6dba6f5f77da54e3abc96dcf2ff4d0e267b53d84460",
   "request": {
     "config": {
       "compiler_spec": {
@@ -3468,7 +3437,7 @@
       "runtime_components": {
         "components": {
           "execution_backend": {
-            "component_hash": "6466bc476c96a0b5f6d8ef297f317a9e092fe881bf317d349ad87041fa04a481",
+            "component_hash": "9fbdc77db3ffcf357f785b1e9b3764e41dcfd216a4aa4242a35fca2acfc282de",
             "component_id": "backend.profile.v1",
             "contract_version": "1",
             "effective_config": {
@@ -3477,38 +3446,38 @@
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "execution_backend",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           },
-          "outcome_model": {
-            "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
-            "component_id": "outcome.seeded_bernoulli.v1",
+          "measurement_provider": {
+            "component_hash": "275f8b7378a7b5ba1a610f73b34e582f643a4275874878cdc9c1e19593e8e939",
+            "component_id": "measurement.seeded_bernoulli.v1",
             "contract_version": "1",
             "effective_config": {
               "distribution": "independent_bernoulli_half",
-              "seed_identity": "program_work_lineage"
+              "seed_identity": "program_work_lineage_and_register"
             },
             "implementation_version": "1",
             "provider": "arqsim",
-            "role": "outcome_model",
-            "schema_version": "arqsim.runtime-component.v3"
+            "role": "measurement_provider",
+            "schema_version": "arqsim.runtime-component.v4"
           },
           "runtime_realizer": {
-            "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
-            "component_id": "runtime_realizer.state_bound.v2",
+            "component_hash": "0b5166ae14f63201d859b09229c756df0542f136389a9aaba722b6a137d167ba",
+            "component_id": "runtime_realizer.state_bound.v3",
             "contract_version": "1",
             "effective_config": {
               "binding": "fifo_first_free",
-              "continuation": "finite_injection_recipe_v1",
+              "continuation": "fully_scheduled_injection_recipe_v1",
               "deferred_program": "joint_magic_route",
               "deferred_resource": "state_bound_resource_move"
             },
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "runtime_realizer",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           },
           "scheduler": {
-            "component_hash": "60304b909a42e50cb511ed1cb9eb403744d951476717660580a8ba6247685226",
+            "component_hash": "6576c8ce29a08703c1f8f721ab9af363df6ba8a6d07ea533258bf992d63c9a5c",
             "component_id": "scheduler.program_first_eager.v1",
             "contract_version": "1",
             "effective_config": {
@@ -3518,17 +3487,19 @@
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "scheduler",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           }
         },
         "event_engine": {
-          "component_hash": "a653143af6817731cbf56982a48da087fe60ed2a891cc67afe52e0049c26198b",
-          "component_id": "event_engine.transactional_dynamic_frontier.v2",
+          "component_hash": "39c1420959e3bb1eb1f64e9927cf1168f5629a7d4a6122803acd9f92b59ec9ff",
+          "component_id": "event_engine.transactional_dynamic_frontier.v3",
           "contract_version": "1",
           "effective_config": {
             "commit_granularity": "single_candidate",
             "continuation_order": "activation_order_then_monotonic_schedule_id",
             "dispatch": "eager_when_ready",
+            "measurement_dispatch": "expected_logical_measurements_only",
+            "measurement_seed_stream": "logical_measurement.v1",
             "program_continuations": "finite_injection_recipe_v1",
             "program_horizon": "stop_without_resource_drain",
             "resource_fitting": "typed_dispatch_receipt_v1",
@@ -3542,10 +3513,10 @@
           "implementation_version": "1",
           "provider": "arqsim",
           "role": "event_engine",
-          "schema_version": "arqsim.runtime-component.v3"
+          "schema_version": "arqsim.runtime-component.v4"
         },
-        "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
-        "schema_version": "arqsim.runtime-manifest.v3"
+        "manifest_hash": "dca5abf003954822ac6783a56381bc772f6b04e60574fc942e02656e5b35921b",
+        "schema_version": "arqsim.runtime-manifest.v4"
       },
       "schema_version": "arqsim.evaluation-config.v1",
       "workflow_id": "report-v2-static-fixture"
@@ -3579,10 +3550,8 @@
             {
               "classical_bits": [],
               "kind": "gate",
-              "name": "rz",
-              "parameters": [
-                0.39269908169872414
-              ],
+              "name": "s",
+              "parameters": [],
               "qubits": [
                 0
               ]
@@ -3630,8 +3599,8 @@
       "num_qubits": 2,
       "provenance": {},
       "representation": "clifford_t",
-      "schema_version": "heteqsys.ft-workload.v2",
-      "semantic_hash": "75931e6927ab2b54101d8e5dc93cfac8d785e8de5253ca7364ea612d4e46ad05"
+      "schema_version": "arqsim.ft-workload.v2",
+      "semantic_hash": "ad336879260ae1f7b33800182cf6199cc61ea89b20762581842f457b422c2233"
     }
   },
   "resolved_inputs": {
@@ -3998,9 +3967,9 @@
           "physical_error_probability": 0.001,
           "source": "LightStim paper-artifact circuit-level logical-operation experiments on the unrotated surface code",
           "source_files": {
-            "cnot": "Research/LightStim/paper_artifact/logical_ops/precomputed/fig3_cnot_trans.csv",
-            "h": "Research/LightStim/paper_artifact/logical_ops/precomputed/fig4_h.csv",
-            "s": "Research/LightStim/paper_artifact/logical_ops/precomputed/fig5_s.csv"
+            "cnot": "https://github.com/QuTone/LightStim/blob/59e5ba569dc10a721c46888ba0e098d60fb41419/paper_artifact/logical_ops/precomputed/fig3_cnot_trans.csv",
+            "h": "https://github.com/QuTone/LightStim/blob/59e5ba569dc10a721c46888ba0e098d60fb41419/paper_artifact/logical_ops/precomputed/fig4_h.csv",
+            "s": "https://github.com/QuTone/LightStim/blob/59e5ba569dc10a721c46888ba0e098d60fb41419/paper_artifact/logical_ops/precomputed/fig5_s.csv"
           },
           "sx": {
             "combination": "1-(1-p_H)^2*(1-p_S)",
@@ -4017,7 +3986,7 @@
           "physical_error_probability": 0.001,
           "r_squared": 0.9996354509980524,
           "source": "LightStim paper-artifact circuit-level rotated-SC Z-memory",
-          "source_file": "Research/LightStim/paper_artifact/memory/precomputed/fig1_surface_codes.csv",
+          "source_file": "https://github.com/QuTone/LightStim/blob/59e5ba569dc10a721c46888ba0e098d60fb41419/paper_artifact/memory/precomputed/fig1_surface_codes.csv",
           "source_points": [
             {
               "distance": 3,
@@ -4037,7 +4006,7 @@
           ]
         },
         "surface_ppm": {
-          "configuration": "heteqsys/operation_profiles/fidelity_profiles/unrotated_surface_ppm_p1e3.yaml",
+          "configuration": "arqsim/operation_profiles/fidelity_profiles/unrotated_surface_ppm_p1e3.yaml",
           "extrapolation_notice": "Only d in {3,5,7} and w in {2,3,4,5,6,7,8,12,16} were directly simulated",
           "fit": {
             "calibrated_distances": [
@@ -4067,9 +4036,15 @@
           "metric": "XOR of decoded logical-Z residuals (PPM parity)",
           "physical_error_probability": 0.001,
           "source": "LightStim circuit-level unrotated-SC multi-patch Z-product experiment",
-          "source_data": "Research/LightStim/benchmarks/logical_ops/results/multi_patch_ppm_results.csv",
-          "source_fit": "Research/LightStim/benchmarks/logical_ops/results/multi_patch_ppm_fit_p1e-3.json",
-          "source_notebook": "Research/LightStim/notebooks/LogicalOps/multi_patch_LS.ipynb",
+          "source_artifacts": {
+            "availability": "raw calibration data and fit artifact are not bundled with ArqSim",
+            "data_artifact_id": "lightstim.multi_patch_ppm_results.p1e3.v1",
+            "data_sha256": "e7bab6d9a611366f456efcaf6dc7da71049a161f8d935a032b12826cf3a2e326",
+            "experiment_url": "https://github.com/QuTone/LightStim/blob/59e5ba569dc10a721c46888ba0e098d60fb41419/benchmarks/logical_ops/run_logical_ops.py",
+            "fit_artifact_id": "lightstim.multi_patch_ppm_fit.p1e3.v1",
+            "fit_sha256": "503e43415dbb41f4b9a27f485a8258a7cc0b400ca81c8bb5df9af5fb7f6385cc",
+            "notebook_url": "https://github.com/QuTone/LightStim/blob/59e5ba569dc10a721c46888ba0e098d60fb41419/notebooks/LogicalOps/multi_patch_LS.ipynb"
+          },
           "weight_one_control": {
             "log10_distance_coefficient": -0.5692100384251828,
             "log10_intercept": -1.0455168530404118,
@@ -4137,16 +4112,16 @@
         "neutral_atom": 463.0,
         "superconducting": 463.0
       },
-      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "model_hash": "9adbb491fbddd40b421822664663fb70f0a2e41512e9b71b90b709bc949cc6dd",
       "model_id": "reference-space-v1",
       "provenance": {
         "bb_rule": "ceil(logical_patches/k) * (2*n + 158)",
         "factory_rule": "pinned QEC resource protocol; legacy model field is consistency-checked for report-v1 codec parity",
         "kind": "legacy_compatibility",
-        "source": "heteqsys.evaluation.footprint.estimate_physical_footprint",
+        "source": "arqsim.evaluation.footprint.estimate_physical_footprint",
         "surface_rule": "(2*d^2 - 1) with modality multiplier"
       },
-      "schema_version": "heteqsys.physical-footprint-model.v1",
+      "schema_version": "arqsim.physical-footprint-model.v1",
       "surface_capacity_multiplier": {
         "communication_qubits": 1.0,
         "logical_bell_pairs": 1.0,
@@ -4247,7 +4222,7 @@
         "idle_compute": 5.2568974167619455e-06,
         "non_clifford_operations": 3.439339024554871e-08,
         "resource_magic_state_output": 1.9689128389055774e-09,
-        "single_qubit_clifford": 5.226442762981891e-09,
+        "single_qubit_clifford": 1.7103306099044928e-07,
         "two_qubit_clifford": 1.9211980534659264e-08
       },
       "physical_space_qubits": {
@@ -4268,11 +4243,11 @@
         "MOVE_QUBITS": 1,
         "PREPARE_MAGIC_STATE": 1
       },
-      "complete_coverage": false,
+      "complete_coverage": true,
       "consumed_resource_counts": {
         "magic_state": 1
       },
-      "failure_probability": 5.317684004246814e-06,
+      "failure_probability": 5.483489726954005e-06,
       "idle_cycles_by_location": {
         "sc_node/sc_compute": 1987.0000000000002
       },
@@ -4282,6 +4257,7 @@
       "log_success_by_logical_operation": {
         "cx": -1.9211980534659264e-08,
         "h": -5.226442762981891e-09,
+        "s": -1.658066182274674e-07,
         "t": -3.439339024554871e-08
       },
       "log_success_by_operation": {},
@@ -4292,16 +4268,14 @@
       "logical_operation_counts": {
         "cx": 1,
         "h": 1,
-        "rz": 1,
+        "s": 1,
         "t": 1
       },
-      "profile_hash": "115ef1bdfe0f826319cd4698c2d939729c2fb9a2d7176f9ebe2c5b0242e8139b",
+      "profile_hash": "6f14b0d255b2090da9edd93d7c4ec96fcb11e2a2cbf29f7c919785a92c747a22",
       "resource_idle_cycles_by_location": {},
-      "success_probability": 0.9999946823159958,
+      "success_probability": 0.999994516510273,
       "unprofiled_idle_exposure_s": {},
-      "unprofiled_logical_operation_counts": {
-        "rz": 1
-      },
+      "unprofiled_logical_operation_counts": {},
       "unprofiled_operation_counts": {},
       "unprofiled_resource_idle_exposure_s": {},
       "unprofiled_resource_output_counts": {}
@@ -4393,8 +4367,8 @@
           "submodule_type": "buffer"
         }
       ],
-      "estimate_hash": "5140369b8aea0f543eb28564bb0f2f6be7262e752fdc2b3237720efb2363195b",
-      "model_hash": "8bd2e3a22bb0a23ca42c52cfb4e991d2548c8ca377305554d3c24fddb7063286",
+      "estimate_hash": "f284aa78db96b763f3d58e017b52c2aec27a2aa764d95ebf3921cd952c77c962",
+      "model_hash": "9adbb491fbddd40b421822664663fb70f0a2e41512e9b71b90b709bc949cc6dd",
       "model_id": "reference-space-v1",
       "schema_version": "arqsim.physical-footprint-estimate.v2",
       "total_physical_qubits": 5855.0
@@ -4405,7 +4379,7 @@
     "summary": {
       "completed_program_instructions": 8,
       "event_count": 10,
-      "fidelity_complete_coverage": false,
+      "fidelity_complete_coverage": true,
       "invariant_checks": {
         "active_reservations_account_for_engine_usage": true,
         "active_reservations_account_for_output_slots": true,
@@ -4422,7 +4396,7 @@
         "token_locations_consistent": true,
         "transaction_versions_consistent": true
       },
-      "success_probability": 0.9999946823159958,
+      "success_probability": 0.999994516510273,
       "total_latency_s": 0.001026,
       "total_physical_qubits": 5855.0
     }

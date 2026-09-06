@@ -12,9 +12,9 @@ from tests.behavior_baseline_support import (
     refresh_case_inputs,
     semantic_baseline,
 )
-from heteqsys.api import run_evaluation
-from heteqsys.report_v1 import render_evaluation_report_v1
-from heteqsys.schema import normalize_json
+from arqsim.api import run_evaluation
+from arqsim.report_v1 import render_evaluation_report_v1
+from arqsim.schema import normalize_json
 
 
 def _write_json(path, payload) -> None:

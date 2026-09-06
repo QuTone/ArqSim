@@ -4,19 +4,23 @@ from dataclasses import replace
 
 import pytest
 
-from heteqsys.architecture.isa import (
+from arqsim.architecture.isa import (
     ArchitectureInstruction,
     ArchitectureOpcode,
     MagicRouteDispatchRecipe,
     MoveOperands,
     ResourceMoveDispatchRecipe,
 )
-from heteqsys.architecture.gallery import QuantileSizingConfig
-from heteqsys.compiler import BackendSpec, CompiledRouteStep, canonical_compiler_spec
-from heteqsys.compiler.errors import LogicalCompilerValidationError
-from heteqsys.compiler.layout import primary_qec_submodule, single_node_module
-from heteqsys.compiler.pipeline import DefaultCompilerPipeline
-from heteqsys.evaluation import (
+from arqsim.architecture.gallery import QuantileSizingConfig
+from arqsim.compiler import (
+    BackendSpec,
+    CompiledRouteStep,
+    LogicalCompilerValidationError,
+    canonical_compiler_spec,
+)
+from arqsim.compiler.layout import primary_qec_submodule, single_node_module
+from arqsim.compiler.pipeline import DefaultCompilerPipeline
+from arqsim.evaluation import (
     BufferSpec,
     EngineSpec,
     EvaluationPolicy,
@@ -28,22 +32,22 @@ from heteqsys.evaluation import (
     default_runtime_component_manifest,
     evaluate,
 )
-from heteqsys.evaluation.components import (
+from arqsim.evaluation.components import (
     build_runtime_component_set,
     default_direct_runtime_component_manifest,
 )
-from heteqsys.evaluation.lowering import (
+from arqsim.evaluation.lowering import (
     build_runtime_instruction_compiler,
     build_runtime_resource_compiler,
 )
-from heteqsys.operation_profiles import (
+from arqsim.operation_profiles import (
     OperationLatencyProfile,
     resolve_resource_protocol_bindings,
     with_effective_arrivals,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.schema import normalize_json, semantic_hash
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.schema import normalize_json, semantic_hash
+from arqsim.specification import build_architecture_specification
 
 
 def _compile_plan(*args, **kwargs) -> ExecutionPlan:
@@ -75,7 +79,7 @@ def _codec_plan() -> ExecutionPlan:
             (
                 ArchitectureInstruction(
                     0,
-                    ArchitectureOpcode.FENCE,
+                    ArchitectureOpcode.EXECUTE_COMPUTE,
                     required_locations={"0": "compute"},
                     metadata={"nested": {"values": [1, 2]}},
                 ),
@@ -133,7 +137,7 @@ def test_plan_dag_contents_detach_from_mutable_constructor_inputs() -> None:
     produced = {"buffer": 1}
     instruction = ArchitectureInstruction(
         0,
-        ArchitectureOpcode.FENCE,
+        ArchitectureOpcode.EXECUTE_COMPUTE,
         required_locations=required_locations,
         metadata=instruction_metadata,
     )
@@ -183,6 +187,21 @@ def test_plan_rejects_non_string_initial_locations(
     document = normalize_json(_codec_plan().to_dict())
     document["architectural_state"]["initial_locations"] = invalid_locations
     with pytest.raises(TypeError, match="must map strings to strings"):
+        ExecutionPlan.from_dict(document)
+
+
+def test_plan_rejects_initial_resource_and_logical_entity_id_collision() -> None:
+    plan = replace(_codec_plan(), initial_locations={"q:0": "compute"})
+    with pytest.raises(ValueError, match="conflict with initial location entities"):
+        replace(
+            plan,
+            buffers=(replace(plan.buffers[0], initial_contents=("q:0",)),),
+        )
+
+    document = plan.to_dict()
+    document["architectural_state"]["buffers"][0]["initial_contents"] = ["q:0"]
+    _rehash_plan_document(document)
+    with pytest.raises(ValueError, match="conflict with initial location entities"):
         ExecutionPlan.from_dict(document)
 
 
@@ -281,6 +300,62 @@ def test_plan_program_move_requires_typed_operands() -> None:
                 "source_slots": {"0": "source/slot_0"},
                 "destination_slots": {"0": "destination/slot_0"},
             },
+        )
+
+
+def test_plan_program_move_rejects_resource_flow_and_noop_location() -> None:
+    source = "node/compute/source"
+    destination = "node/compute/destination"
+    move = ArchitectureInstruction(
+        id=0,
+        opcode=ArchitectureOpcode.MOVE_QUBITS,
+        qubits=(0,),
+        required_locations={"q:0": source},
+        completion_locations={"q:0": destination},
+        move_operands=MoveOperands(
+            source_slots={0: f"{source}/S0"},
+            destination_slots={0: f"{destination}/D0"},
+        ),
+    )
+    plan = ExecutionPlan(
+        circuit_hash="circuit",
+        architecture_hash="architecture",
+        latency_profile_hash="latency",
+        policy=EvaluationPolicy(),
+        program_dag=ProgramDAG((move,)),
+        resource_dag=ResourceDAG(()),
+        buffers=(),
+        engines=(),
+        initial_locations={"q:0": source},
+    )
+    with_buffer = replace(
+        plan,
+        buffers=(BufferSpec("resource", 1, "magic_state"),),
+    )
+    with pytest.raises(ValueError, match="cannot carry Resource-buffer"):
+        replace(
+            with_buffer,
+            program_dag=ProgramDAG(
+                (replace(move, consumes={"resource": 1}),)
+            ),
+        )
+
+    assert move.move_operands is not None
+    with pytest.raises(ValueError, match="must change each entity"):
+        replace(
+            plan,
+            program_dag=ProgramDAG(
+                (
+                    replace(
+                        move,
+                        completion_locations={"q:0": source},
+                        move_operands=MoveOperands(
+                            source_slots=move.move_operands.source_slots,
+                            destination_slots={0: f"{source}/D0"},
+                        ),
+                    ),
+                )
+            ),
         )
 
 
@@ -506,7 +581,10 @@ def test_plan_builder_rejects_mismatched_compilation_sources(
         def compile(self, _circuit, _specification, _latency):
             return replace(result, **{field: invalid})
 
-    with pytest.raises(ValueError, match="source hashes do not match"):
+    with pytest.raises(
+        LogicalCompilerValidationError,
+        match="source hashes do not match",
+    ) as exc_info:
         _compile_plan(
             circuit,
             specification,
@@ -515,6 +593,7 @@ def test_plan_builder_rejects_mismatched_compilation_sources(
             compiler_pipeline=StaticPipeline(),
             resource_protocol_bindings=bindings,
         )
+    assert exc_info.value.details["actual_sources"][field] == invalid
 
 
 def _coverage_boundary_fixture():
@@ -733,8 +812,9 @@ def test_plan_builder_rejects_compiler_magic_consumption_mismatch() -> None:
     forged = replace(result, magic_state_consumption="incremental")
 
     with pytest.raises(
-        ValueError, match="magic-state consumption does not match"
-    ):
+        LogicalCompilerValidationError,
+        match="magic-state consumption does not match",
+    ) as exc_info:
         _build_with_static_compilation(
             circuit,
             specification,
@@ -742,6 +822,10 @@ def test_plan_builder_rejects_compiler_magic_consumption_mismatch() -> None:
             bindings,
             forged,
         )
+    assert exc_info.value.details == {
+        "expected_magic_state_consumption": "bulk_wave",
+        "actual_magic_state_consumption": "incremental",
+    }
 
 
 def test_custom_pipeline_route_state_controls_deferred_recipe_lowering() -> None:
@@ -844,17 +928,17 @@ def test_compilation_lineage_is_recorded_for_empty_and_nonempty_plans() -> None:
     )
 
 
-def _double_magic_same_qubit_circuit() -> FTCircuit:
+def _two_magic_one_layer_circuit() -> FTCircuit:
     return FTCircuit(
         representation="clifford_t",
-        num_qubits=1,
+        num_qubits=2,
         num_clbits=0,
         layers=(
             LogicalLayer(
                 0,
                 (
                     LogicalOperation("gate", "t", qubits=(0,)),
-                    LogicalOperation("gate", "tdg", qubits=(0,)),
+                    LogicalOperation("gate", "tdg", qubits=(1,)),
                 ),
             ),
         ),
@@ -862,7 +946,7 @@ def _double_magic_same_qubit_circuit() -> FTCircuit:
 
 
 def test_incremental_compilation_rejects_multi_magic_batch() -> None:
-    circuit = _double_magic_same_qubit_circuit()
+    circuit = _two_magic_one_layer_circuit()
     specification = build_architecture_specification(circuit, "1.1")
     requested_latency = OperationLatencyProfile()
     bindings = resolve_resource_protocol_bindings(
@@ -922,10 +1006,18 @@ def test_incremental_compilation_rejects_multi_magic_batch() -> None:
 
 
 def test_plan_builder_rejects_batch_above_magic_buffer_capacity() -> None:
-    _base_circuit, specification, latency, bindings, _base_result = (
-        _coverage_boundary_fixture()
+    circuit = _two_magic_one_layer_circuit()
+    specification = build_architecture_specification(
+        circuit,
+        "1.1",
+        policy_overrides={"protocols.magic_state.buffer_capacity": 1},
     )
-    circuit = _double_magic_same_qubit_circuit()
+    requested_latency = OperationLatencyProfile()
+    bindings = resolve_resource_protocol_bindings(
+        specification,
+        requested_latency,
+    )
+    latency = with_effective_arrivals(requested_latency, bindings)
     compiled = DefaultCompilerPipeline(
         compiler_spec=canonical_compiler_spec(specification),
     ).compile(circuit, specification, latency)
@@ -936,7 +1028,7 @@ def test_plan_builder_rejects_batch_above_magic_buffer_capacity() -> None:
         batch_index=0,
         batch_count=1,
         operation_indices=(0, 1),
-        operated_qubits=(0,),
+        operated_qubits=(0, 1),
         magic_count=2,
     )
     forged = replace(

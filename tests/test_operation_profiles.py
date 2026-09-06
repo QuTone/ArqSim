@@ -7,29 +7,29 @@ import random
 
 import pytest
 
-from heteqsys.api import EvaluationConfig, run_evaluation
-from heteqsys.architecture.isa import ArchitectureOpcode
-from heteqsys.operation_profiles import (
+from arqsim.api import EvaluationConfig, run_evaluation
+from arqsim.architecture.isa import ArchitectureOpcode
+from arqsim.operation_profiles import (
     ArrivalDistribution,
     NeutralAtomMovementProfile,
     OperationLatencyProfile,
     canonical_fidelity_profile,
     resolve_resource_protocol_bindings,
 )
-from heteqsys.operation_profiles.canonical_fidelity import (
+from arqsim.operation_profiles.canonical_fidelity import (
     bb_288_12_18_failure_per_logical_qubit_cycle,
     rotated_surface_memory_failure_for_rounds,
     rotated_surface_memory_failure_per_cycle,
     unrotated_surface_clifford_failure,
     unrotated_surface_ppm_failure,
 )
-from heteqsys.operation_profiles.fidelity_model_config import load_fidelity_fit
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.qec import (
+from arqsim.operation_profiles.fidelity_model_config import load_fidelity_fit
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.qec import (
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
 )
-from heteqsys.specification import build_architecture_specification
+from arqsim.specification import build_architecture_specification
 
 
 def test_neutral_atom_movement_profile_is_hash_stable_and_round_trips() -> None:
@@ -57,6 +57,26 @@ def test_operation_latency_profile_commits_to_movement_calibration() -> None:
 
     assert calibrated.profile_hash != baseline.profile_hash
     assert OperationLatencyProfile.from_dict(calibrated.to_dict()) == calibrated
+
+
+def test_required_modality_timings_distinguish_missing_from_explicit_zero() -> None:
+    missing = OperationLatencyProfile(
+        gate_duration_s={"superconducting": 1e-6},
+    )
+    with pytest.raises(ValueError, match="No gate duration.*neutral_atom"):
+        missing.gate_duration("neutral_atom")
+    with pytest.raises(ValueError, match="No reaction latency.*neutral_atom"):
+        missing.require_reaction_latency("neutral_atom")
+
+    explicit_zero = OperationLatencyProfile(
+        gate_duration_s={"neutral_atom": 0.0},
+        reaction_latency_by_modality_s={"neutral_atom": 0.0},
+    )
+    assert explicit_zero.gate_duration("neutral_atom") == 0.0
+    assert explicit_zero.require_reaction_latency("neutral_atom") == 0.0
+    assert OperationLatencyProfile.from_dict(
+        explicit_zero.to_dict()
+    ) == explicit_zero
 
 
 @pytest.mark.parametrize("aod_count", [0, -1, True, 1.5])

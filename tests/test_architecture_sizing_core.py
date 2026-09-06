@@ -5,31 +5,31 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from heteqsys.architecture.gallery.na_c_plus_sc_f import (
+from arqsim.architecture.gallery.na_c_plus_sc_f import (
     PROFILE as REMOTE_MAGIC_PROFILE,
 )
-from heteqsys.architecture.gallery.na_cf import (
+from arqsim.architecture.gallery.na_cf import (
     PROFILE,
     make_sizing_policy,
 )
-from heteqsys.architecture.gallery.na_cf.sizing import (
+from arqsim.architecture.gallery.na_cf.sizing import (
     NeutralAtomComputeFactorySizingPolicy,
 )
-from heteqsys.architecture.gallery.quantile import QuantileSizingConfig
-from heteqsys.architecture.gallery.sc_cf import (
+from arqsim.architecture.gallery.quantile import QuantileSizingConfig
+from arqsim.architecture.gallery.sc_cf import (
     PROFILE as SC_PROFILE,
     make_sizing_policy as make_sc_sizing_policy,
 )
-from heteqsys.architecture.gallery.sc_cf.sizing import (
+from arqsim.architecture.gallery.sc_cf.sizing import (
     SuperconductingComputeFactorySizingPolicy,
 )
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.sizing import (
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.sizing import (
     SizingPolicy,
     SizingResult,
 )
-from heteqsys.program.statistics import CircuitStatistics
-from heteqsys.qec import (
+from arqsim.program.statistics import CircuitStatistics
+from arqsim.qec import (
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
 )

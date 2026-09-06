@@ -98,12 +98,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "outcome_model": {
-          "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
-          "component_id": "outcome.seeded_bernoulli.v1",
+          "component_hash": "0b122f67265f86ab0821aed38428d3c5704944d160dabb4e46be43c55cce8979",
+          "component_id": "outcome.seeded_bernoulli.v2",
           "contract_version": "1",
           "effective_config": {
             "distribution": "independent_bernoulli_half",
-            "seed_identity": "program_work_lineage"
+            "seed_identity": "program_work_lineage_and_register"
           },
           "implementation_version": "1",
           "provider": "arqsim",
@@ -111,12 +111,12 @@
           "schema_version": "arqsim.runtime-component.v3"
         },
         "runtime_realizer": {
-          "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
-          "component_id": "runtime_realizer.state_bound.v2",
+          "component_hash": "508e2859ef6699054684ddf56cc20b6d7c0795cdef52a2cc4a029936d54dad34",
+          "component_id": "runtime_realizer.state_bound.v3",
           "contract_version": "1",
           "effective_config": {
             "binding": "fifo_first_free",
-            "continuation": "finite_injection_recipe_v1",
+            "continuation": "fully_scheduled_injection_recipe_v1",
             "deferred_program": "joint_magic_route",
             "deferred_resource": "state_bound_resource_move"
           },
@@ -162,19 +162,19 @@
         "role": "event_engine",
         "schema_version": "arqsim.runtime-component.v3"
       },
-      "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
+      "manifest_hash": "8deed83cf3e6fcabb2a6286a4142fc619199ad440e7507ed01d6387bfa38db00",
       "schema_version": "arqsim.runtime-manifest.v3"
     },
     "schema_version": "arqsim.evaluation-config.v1",
     "workflow_id": "finite_runtime_injection_demo:clifford_t_toy__2.3"
   },
   "schema_version": "arqsim.system-case-request.v1",
-  "semantic_manifest_hash": "ec6456dd4f544f50e60da443f10134a495c62c201df0a9fdeaf868a93ca0c945",
+  "semantic_manifest_hash": "cdf093a319ea6a56d9cb0ffddb4fe443cfd1299b76bde8bc178a3fd201428cd5",
   "system_case_id": "finite_runtime_injection_demo",
   "workload": {
     "path": "workload/clifford_t_toy.qasm",
     "representation": "clifford_t",
-    "semantic_hash": "27234a4ff54f9889cc2e730a1af08771013f516397c0d6339485f55d45a42fe0",
+    "semantic_hash": "cb874af3f8cf1ef2395f8a4ba8be1a4e478c97de30fd8580c49a2e2ecb747163",
     "sha256": "9bc60ca9aed83e8446ee82a13e5a2ca4a1c389bb3986287a50a6371da10d1280"
   }
 }

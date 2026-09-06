@@ -6,17 +6,17 @@ from decimal import Decimal
 from types import MappingProxyType, SimpleNamespace
 import pytest
 
-from heteqsys.architecture.isa import (
+from arqsim.architecture.isa import (
     ArchitectureInstruction,
     ArchitectureOpcode,
     ResourceMoveDispatchRecipe,
 )
-from heteqsys.architecture.recipes import ProgramWorkLineage
-from heteqsys.architecture.state import (
+from arqsim.architecture.recipes import ProgramRecipeMember, ProgramWorkLineage
+from arqsim.architecture.state import (
     ArchitectureState,
     TentativeBinding,
 )
-from heteqsys.evaluation import (
+from arqsim.evaluation import (
     BufferSpec,
     EngineSpec,
     EvaluationError,
@@ -27,11 +27,12 @@ from heteqsys.evaluation import (
     ResourceProcess,
     evaluate,
 )
-from heteqsys.evaluation.components import (
+from arqsim.evaluation.components import (
     BackendRequest,
     CandidateImplementation,
-    CompletionRequest,
-    EventOutcome,
+    LogicalMeasurementOutcome,
+    LogicalMeasurementRequest,
+    LogicalMeasurementResult,
     PreparedExecution,
     ProgramSchedulingRequest,
     RealizationRequest,
@@ -46,8 +47,8 @@ from heteqsys.evaluation.components import (
     default_event_engine_descriptor,
     default_runtime_component_manifest,
 )
-from heteqsys.schema import normalize_json
-from heteqsys.compiler.movement import compile_resource_move
+from arqsim.schema import normalize_json
+from arqsim.compiler.movement import compile_resource_move
 
 
 def _descriptor(role: str, suffix: str, **config) -> RuntimeComponentDescriptor:
@@ -148,7 +149,7 @@ def test_evaluator_builds_one_detached_view_per_immutable_program_instruction(
 def test_resource_move_binding_cache_is_endpoint_exact_and_token_independent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import heteqsys.compiler.movement as movement
+    import arqsim.compiler.movement as movement
 
     compile_calls: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
 
@@ -335,21 +336,27 @@ class HalfDurationBackend:
     def prepare(self, request: BackendRequest) -> PreparedExecution:
         return PreparedExecution(
             duration_s=request.candidate.duration_s / 2,
-            artifact={"kind": "fake-profile-artifact", "backend_fake": True},
+            artifact={"kind": "fake-timing-artifact", "backend_fake": True},
         )
 
 
-class FakeOutcome:
-    descriptor = _descriptor("outcome_model", "deterministic")
+class FakeMeasurementProvider:
+    descriptor = _descriptor("measurement_provider", "deterministic")
 
-    def resolve(self, request: CompletionRequest) -> EventOutcome:
-        return EventOutcome(
-            values={
-                "bit": request.event_id % 2,
-                "artifact_kind": request.backend_artifact.get("kind"),
-                "outcome_seed": request.outcome_seed,
-            },
-            metadata={"source": "fake"},
+    def __init__(self) -> None:
+        self.requests: list[LogicalMeasurementRequest] = []
+
+    def resolve(
+        self,
+        request: LogicalMeasurementRequest,
+    ) -> LogicalMeasurementResult:
+        self.requests.append(request)
+        assert isinstance(request.measurement_seed, int)
+        return LogicalMeasurementResult(
+            measurements=tuple(
+                LogicalMeasurementOutcome(register_id, 1)
+                for register_id in request.expected_measurements
+            )
         )
 
 
@@ -358,11 +365,11 @@ def _all_fake_components() -> RuntimeComponentSet:
         runtime_realizer=FakeRealizer(),
         scheduler=ReverseScheduler(),
         execution_backend=HalfDurationBackend(),
-        outcome_model=FakeOutcome(),
+        measurement_provider=FakeMeasurementProvider(),
     )
 
 
-def test_four_minimal_runtime_components_are_replaceable_without_engine_changes() -> None:
+def test_realizer_scheduler_and_timing_backend_are_replaceable() -> None:
     components = _all_fake_components()
     plan = _bind(_component_plan(), components)
 
@@ -377,14 +384,10 @@ def test_four_minimal_runtime_components_are_replaceable_without_engine_changes(
     assert program_zero["metadata"]["compiler_fake"] is True
     assert program_zero["backend_artifact"] == {
         "backend_fake": True,
-        "kind": "fake-profile-artifact",
+        "kind": "fake-timing-artifact",
     }
-    assert program_zero["outcome"]["values"]["bit"] in {0, 1}
-    assert (
-        program_zero["outcome"]["values"]["artifact_kind"]
-        == "fake-profile-artifact"
-    )
-    assert isinstance(program_zero["outcome"]["values"]["outcome_seed"], int)
+    assert program_zero["outcome"] == {}
+    assert program_zero["measurements"] == {}
 
     first_resource = next(event for event in events if event["plane"] == "resource")
     assert first_resource["produced_slots"] == {"destination": ["D1"]}
@@ -562,38 +565,177 @@ def test_invalid_scheduler_selection_is_rejected_before_dispatch(
     assert state.snapshot() == before
 
 
-class FailingOutcome:
-    descriptor = _descriptor("outcome_model", "failure")
+class FailingMeasurementProvider:
+    descriptor = _descriptor("measurement_provider", "failure")
 
-    def resolve(self, request: CompletionRequest) -> EventOutcome:
-        raise RuntimeError(f"outcome failed for {request.candidate_id}")
+    def resolve(self, request: LogicalMeasurementRequest) -> LogicalMeasurementResult:
+        raise RuntimeError(f"measurement failed for {request.candidate_id}")
 
 
-def test_outcome_failure_keeps_committed_reservation_uncompleted(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_ordinary_completion_does_not_call_measurement_provider() -> None:
     base = _base_components()
-    components = replace(base, outcome_model=FailingOutcome())
-    plan = ExecutionPlan(
+    components = replace(
+        base,
+        measurement_provider=FailingMeasurementProvider(),
+    )
+    plan = _bind(_component_plan(), components)
+
+    result = evaluate(plan, runtime_components=components)
+
+    assert all(event.outcome == {} for event in result.events)
+    assert all(event.measurements == {} for event in result.events)
+
+
+def test_provider_receives_only_engine_derived_gadget_measurements() -> None:
+    from tests.test_runtime_injection import _t_plan
+
+    provider = FakeMeasurementProvider()
+    components = replace(
+        _base_components(),
+        measurement_provider=provider,
+    )
+    plan = _bind(_t_plan(0), components)
+
+    result = evaluate(plan, runtime_components=components)
+
+    assert len(provider.requests) == 1
+    request = provider.requests[0]
+    assert request.lineage is not None
+    assert request.lineage.step == "measurement"
+    assert request.expected_measurements == ("t0:stage:0:bit",)
+    measured = [event for event in result.events if event.measurements]
+    assert len(measured) == 1
+    assert measured[0].measurements == {"t0:stage:0:bit": 1}
+    assert all(
+        event.outcome == {}
+        for event in result.events
+        if not event.measurements
+    )
+
+
+def _shared_t_plan() -> ExecutionPlan:
+    from tests.test_runtime_injection import _recipe_templates, _t_recipe
+
+    first = _t_recipe()
+    second = replace(
+        first,
+        invocation_id="t1",
+        source_operation_index=1,
+        qubits=(1,),
+        data_mapping={1: "compute/q1"},
+    )
+    members = (
+        ProgramRecipeMember(first.invocation_id, 0),
+        ProgramRecipeMember(second.invocation_id, 0),
+    )
+    templates = _recipe_templates(
+        first,
+        attempt_durations_s=(0.5,),
+        reaction_duration_s=0.1,
+        correction_duration_s=0.2,
+        initial_recipe_members=members,
+    ) + _recipe_templates(
+        second,
+        attempt_durations_s=(0.5,),
+        reaction_duration_s=0.1,
+        correction_duration_s=0.2,
+        include_initial_measurement=False,
+    )
+    return ExecutionPlan(
         "circuit",
         "architecture",
         "latency",
-        EvaluationPolicy(),
+        EvaluationPolicy(
+            seed=0,
+            runtime_injection_mode="finite_state_injection_v1",
+        ),
         ProgramDAG(
             (
                 ArchitectureInstruction(
                     0,
                     ArchitectureOpcode.EXECUTE_COMPUTE,
-                    produces={"out": 1},
+                    duration_s=0.5,
+                    layer_index=0,
+                    qubits=(0, 1),
+                    consumes={"magic": 2},
                     engines={"compute": 1},
+                    required_locations={
+                        "q:0": "compute",
+                        "q:1": "compute",
+                    },
+                    target_modules=("compute",),
+                    implementation_recipes=(first, second),
+                    continuation_templates=templates,
                 ),
             )
         ),
         ResourceDAG(()),
-        (BufferSpec("out", 1, "token"),),
+        (
+            BufferSpec(
+                "magic",
+                2,
+                "magic_state",
+                module="compute",
+                initial_contents=("m0", "m1"),
+            ),
+        ),
         (EngineSpec("compute"),),
-        runtime_components=components.manifest.to_dict(),
+        initial_locations={"q:0": "compute", "q:1": "compute"},
     )
+
+
+@pytest.mark.parametrize(
+    "returned_registers",
+    [
+        (),
+        ("logical:extra",),
+        ("t1:stage:0:bit", "t0:stage:0:bit"),
+    ],
+)
+def test_measurement_provider_must_return_the_exact_requested_registers(
+    returned_registers: tuple[str, ...],
+) -> None:
+    class WrongRegisterProvider:
+        descriptor = _descriptor(
+            "measurement_provider",
+            "wrong_registers",
+            returned=list(returned_registers),
+        )
+
+        def resolve(
+            self,
+            request: LogicalMeasurementRequest,
+        ) -> LogicalMeasurementResult:
+            return LogicalMeasurementResult(
+                tuple(
+                    LogicalMeasurementOutcome(register_id, 0)
+                    for register_id in returned_registers
+                )
+            )
+
+    components = replace(
+        _base_components(),
+        measurement_provider=WrongRegisterProvider(),
+    )
+    plan = _bind(_shared_t_plan(), components)
+
+    with pytest.raises(
+        EvaluationError,
+        match="results do not exactly match",
+    ):
+        evaluate(plan, runtime_components=components)
+
+
+def test_measurement_provider_failure_keeps_committed_reservation_uncompleted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from tests.test_runtime_injection import _t_plan
+
+    components = replace(
+        _base_components(),
+        measurement_provider=FailingMeasurementProvider(),
+    )
+    plan = _bind(_t_plan(0), components)
     state = ArchitectureState.from_plan(plan)
     monkeypatch.setattr(
         ArchitectureState,
@@ -601,13 +743,12 @@ def test_outcome_failure_keeps_committed_reservation_uncompleted(
         classmethod(lambda cls, _plan: state),
     )
 
-    with pytest.raises(RuntimeError, match="outcome failed"):
+    with pytest.raises(RuntimeError, match="measurement failed"):
         evaluate(plan, runtime_components=components)
 
-    assert state.version == 1
-    assert state.buffers["out"].pending_outputs == 1
+    assert state.version > 0
     assert state.engines["compute"].users == 1
-    assert set(state.active_reservations) == {0}
+    assert state.active_reservations
 
 
 def test_direct_plan_materializes_the_effective_manifest() -> None:
@@ -683,25 +824,25 @@ def test_manifest_parsing_requires_exact_fields_and_mandatory_hashes() -> None:
     assert plan.plan_hash == before
 
 
-def test_minimal_runtime_manifest_v3_has_exactly_four_roles_and_rejects_v1() -> None:
+def test_minimal_runtime_manifest_v4_has_exactly_four_roles_and_rejects_v3() -> None:
     canonical = default_runtime_component_manifest()
     direct = default_direct_runtime_component_manifest()
 
-    assert canonical.to_dict()["schema_version"] == "arqsim.runtime-manifest.v3"
+    assert canonical.to_dict()["schema_version"] == "arqsim.runtime-manifest.v4"
     assert set(canonical.components) == {
         "runtime_realizer",
         "scheduler",
         "execution_backend",
-        "outcome_model",
+        "measurement_provider",
     }
     assert {
         role: descriptor.component_id
         for role, descriptor in canonical.components.items()
     } == {
-        "runtime_realizer": "runtime_realizer.state_bound.v2",
+        "runtime_realizer": "runtime_realizer.state_bound.v3",
         "scheduler": "scheduler.program_first_eager.v1",
         "execution_backend": "backend.profile.v1",
-        "outcome_model": "outcome.seeded_bernoulli.v1",
+        "measurement_provider": "measurement.seeded_bernoulli.v1",
     }
     assert (
         direct.components["runtime_realizer"].component_id
@@ -709,12 +850,12 @@ def test_minimal_runtime_manifest_v3_has_exactly_four_roles_and_rejects_v1() -> 
     )
 
     legacy_manifest = canonical.to_dict()
-    legacy_manifest["schema_version"] = "arqsim.runtime-manifest.v1"
+    legacy_manifest["schema_version"] = "arqsim.runtime-manifest.v3"
     with pytest.raises(RuntimeComponentError, match="Unsupported runtime-manifest"):
         RuntimeComponentManifest.from_dict(legacy_manifest)
 
     legacy_plan = _component_plan().to_dict()
-    legacy_plan["schema_version"] = "arqsim.execution-plan.v4"
+    legacy_plan["schema_version"] = "arqsim.execution-plan.v8"
     with pytest.raises(ValueError, match="Unsupported execution-plan schema"):
         ExecutionPlan.from_dict(legacy_plan)
 
@@ -786,6 +927,68 @@ def test_minimal_runtime_numeric_seams_reject_coercion(invalid) -> None:
             operation=operation,
             base_duration_s=invalid,
             now_s=0.0,
+        )
+
+
+def test_logical_measurement_request_is_strict_and_typed() -> None:
+    plan = _component_plan()
+    state = ArchitectureState.from_plan(plan)
+    snapshot = state.snapshot()
+    operation = RuntimeOperationView.from_operation(
+        plan.program_dag.instructions[1],
+        plane="program",
+    )
+    reservation = state.commit(snapshot.propose(operation), operation)
+    request = LogicalMeasurementRequest(
+        snapshot=snapshot,
+        operation=operation,
+        reservation=reservation,
+        candidate_id="program:1",
+        event_id=0,
+        start_s=1.0,
+        end_s=2.0,
+        measurement_seed=3,
+        lineage=ProgramWorkLineage(
+            "program:1:measurement",
+            1,
+            parent_event_id=0,
+            recipe_members=(ProgramRecipeMember("t0", 0),),
+            step="measurement",
+        ),
+        expected_measurements=("logical:m0",),
+    )
+
+    assert request.expected_measurements == ("logical:m0",)
+    for changes in (
+        {"snapshot": object()},
+        {"operation": object()},
+        {"reservation": object()},
+        {"candidate_id": ""},
+        {"candidate_id": " program:1"},
+        {"event_id": True},
+        {"event_id": -1},
+        {"start_s": True},
+        {"start_s": -1.0},
+        {"end_s": 0.5},
+        {"measurement_seed": True},
+        {"measurement_seed": 1.0},
+        {"measurement_seed": "1"},
+        {"measurement_seed": -1},
+        {"operation": replace(operation, plane="resource")},
+        {"lineage": ProgramWorkLineage("program:1", 1)},
+        {"expected_measurements": ()},
+        {"expected_measurements": ("",)},
+        {"expected_measurements": ("logical:m0", "logical:m0")},
+    ):
+        with pytest.raises(RuntimeComponentError):
+            replace(request, **changes)
+
+    with pytest.raises(RuntimeComponentError, match="repeats"):
+        LogicalMeasurementResult(
+            (
+                LogicalMeasurementOutcome("logical:m0", 0),
+                LogicalMeasurementOutcome("logical:m0", 1),
+            )
         )
 
 
@@ -891,6 +1094,34 @@ class BooleanDurationRealizer:
             duration_s=True,
             lineage=request.lineage,
         )
+
+
+class RewritingLineageRealizer:
+    descriptor = _descriptor("runtime_realizer", "rewrites_lineage")
+
+    def realize(self, request: RealizationRequest) -> CandidateImplementation:
+        assert request.lineage is not None
+        return CandidateImplementation(
+            candidate_id=request.candidate_id,
+            operation=request.operation,
+            binding=request.snapshot.propose(request.operation),
+            duration_s=request.base_duration_s,
+            lineage=ProgramWorkLineage(
+                "program:rewritten",
+                request.lineage.source_instruction_id,
+            ),
+        )
+
+
+def test_runtime_realizer_cannot_rewrite_engine_owned_lineage() -> None:
+    components = replace(
+        _base_components(),
+        runtime_realizer=RewritingLineageRealizer(),
+    )
+    plan = _bind(_component_plan(), components)
+
+    with pytest.raises(EvaluationError, match="cannot rewrite Program work lineage"):
+        evaluate(plan, runtime_components=components)
 
 
 class BooleanDurationBackend:

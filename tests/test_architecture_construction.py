@@ -9,25 +9,25 @@ from typing import Any
 
 import pytest
 
-import heteqsys.architecture.construction as construction
-import heteqsys.specification as public_construction
-from heteqsys.architecture.gallery import (
+import arqsim.architecture.construction as construction
+import arqsim.specification as public_construction
+from arqsim.architecture.gallery import (
     QuantileSizingConfig,
     get_gallery_entry,
 )
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.logical_layout_policy import LogicalLayoutPolicy
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.architecture.sizing import SizingPolicy
-from heteqsys.architecture.specification import ArchitectureSpecification, QECBinding
-from heteqsys.program.statistics import CircuitStatistics
-from heteqsys.qec import get_magic_state_factory_profile
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.logical_layout_policy import LogicalLayoutPolicy
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.architecture.sizing import SizingPolicy
+from arqsim.architecture.specification import ArchitectureSpecification, QECBinding
+from arqsim.program.statistics import CircuitStatistics
+from arqsim.qec import get_magic_state_factory_profile
 from tests.architecture_semantic_oracle import oracle_circuit
 
 
 PROJECT_ROOT = Path(__file__).parents[1]
 CONSTRUCTION_PATH = (
-    PROJECT_ROOT / "heteqsys" / "architecture" / "construction.py"
+    PROJECT_ROOT / "arqsim" / "architecture" / "construction.py"
 )
 
 
@@ -176,10 +176,10 @@ def test_construction_boundary_has_no_legacy_or_execution_dependencies() -> None
         module == prefix or module.startswith(f"{prefix}.")
         for module in imported
         for prefix in (
-            "heteqsys.compiler",
-            "heteqsys.evaluation",
-            "heteqsys.specification",
-            "heteqsys.architecture.gallery",
+            "arqsim.compiler",
+            "arqsim.evaluation",
+            "arqsim.specification",
+            "arqsim.architecture.gallery",
         )
     )
     for forbidden_name in (

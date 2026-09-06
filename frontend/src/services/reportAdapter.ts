@@ -1,5 +1,7 @@
 import {
   ARCHITECTURE_PROFILE_V3,
+  ArchitectureBufferModel,
+  ArchitectureBufferSnapshotModel,
   ArchitectureHierarchyViewModel,
   ArchitectureInterconnectDocument,
   ArchitectureModuleDocument,
@@ -15,18 +17,20 @@ import {
   DynamicProgramWorkViewModel,
   EVALUATION_REPORT_V1,
   EVALUATION_REPORT_V2,
-  EXECUTION_TRACE_V3,
+  EngineOwnershipViewModel,
+  EXECUTION_TRACE_V4,
   EvaluationEventDocument,
   EvaluationReportDocument,
   EvaluationReportModel,
   EvaluationReportV1,
   EvaluationReportV2,
   EvaluationViewModels,
-  ExecutionPlanV6Document,
-  ExecutionTraceV3Document,
-  ExecutionTransitionV3Document,
+  ExecutionPlanV9Document,
+  ExecutionTraceV4Document,
+  ExecutionTransitionV4Document,
   JsonRecord,
   JsonValue,
+  LogicalGadgetSpanViewModel,
   OutputProgramModel,
   ProgramContinuationDocument,
   ProgramExecutionViewModel,
@@ -37,9 +41,17 @@ import {
   RuntimeEventSemanticsModel,
   RuntimeMeasurementViewModel,
   RuntimeProgramLineageViewModel,
+  ResourceOutputOverflowPolicy,
+  ResourceProcessModel,
   SpaceBreakdownViewModel,
+  TimelineBackpressureSpanViewModel,
   TimelineEventViewModel,
+  TimelineBufferTrackViewModel,
+  TimelineGadgetHostViewModel,
+  TimelineMilestoneViewModel,
   TimelineRowViewModel,
+  TimelineTrackGroupViewModel,
+  TimelineTrackKind,
   TimelineViewModel,
   TimeBreakdownViewModel,
 } from "@/types/evaluationReport";
@@ -519,7 +531,7 @@ const REPORT_V2_FIELDS = [
   "report_hash",
 ] as const;
 
-const TRANSITION_V3_FIELDS = [
+const TRANSITION_V4_FIELDS = [
   "transition_id",
   "kind",
   "time_s",
@@ -557,7 +569,7 @@ const TRANSITION_V3_FIELDS = [
   "continuation",
 ] as const;
 
-const EXECUTION_PLAN_V6_FIELDS = [
+const EXECUTION_PLAN_V8_FIELDS = [
   "schema_version",
   "source",
   "architecture_hash",
@@ -757,6 +769,28 @@ function validateCanonicalArchitecture(value: unknown, path: string): Record<str
   return architecture;
 }
 
+function validateRecipeMembers(value: unknown, path: string) {
+  const members = array(value, path).map((item, index) => {
+    const memberPath = `${path}[${index}]`;
+    const member = record(item, memberPath);
+    exactFields(member, memberPath, ["recipe_invocation_id", "stage_index"]);
+    return {
+      recipe_invocation_id: nonEmptyString(
+        member.recipe_invocation_id,
+        `${memberPath}.recipe_invocation_id`,
+      ),
+      stage_index: nonNegativeInteger(member.stage_index, `${memberPath}.stage_index`),
+    };
+  });
+  const keys = members.map(
+    (member) => `${member.recipe_invocation_id}:${member.stage_index}`,
+  );
+  if (new Set(keys).size !== keys.length) {
+    contractError(path, "unique recipe invocation/stage members");
+  }
+  return members;
+}
+
 function validateProgramLineage(
   value: unknown,
   path: string,
@@ -766,42 +800,46 @@ function validateProgramLineage(
     "work_id",
     "source_instruction_id",
     "parent_event_id",
-    "recipe_invocation_id",
-    "recipe_id",
-    "stage_index",
+    "recipe_members",
     "step",
   ]);
-  string(lineage.work_id, `${path}.work_id`);
+  nonEmptyString(lineage.work_id, `${path}.work_id`);
   nonNegativeInteger(lineage.source_instruction_id, `${path}.source_instruction_id`);
   const parentEventId = lineage.parent_event_id;
   if (parentEventId !== null) nonNegativeInteger(parentEventId, `${path}.parent_event_id`);
-  const recipeInvocationId = nullableString(
-    lineage.recipe_invocation_id,
-    `${path}.recipe_invocation_id`,
+  const recipeMembers = validateRecipeMembers(
+    lineage.recipe_members,
+    `${path}.recipe_members`,
   );
-  const recipeId = nullableString(lineage.recipe_id, `${path}.recipe_id`);
-  const stageIndex = lineage.stage_index;
-  if (stageIndex !== null) nonNegativeInteger(stageIndex, `${path}.stage_index`);
   const step = string(lineage.step, `${path}.step`);
-  if (!["source", "injection", "reaction", "correction"].includes(step)) {
-    contractError(`${path}.step`, '"source", "injection", "reaction", or "correction"');
+  if (![
+    "source",
+    "entangle",
+    "injection",
+    "measurement",
+    "reaction",
+    "correction",
+  ].includes(step)) {
+    contractError(
+      `${path}.step`,
+      '"source", "entangle", "injection", "measurement", "reaction", or "correction"',
+    );
   }
   if (step === "source") {
-    if (
-      parentEventId !== null ||
-      recipeInvocationId !== null ||
-      recipeId !== null ||
-      stageIndex !== null
-    ) {
-      contractError(path, "source work without parent or recipe-stage identity");
+    if (parentEventId !== null || recipeMembers.length > 0) {
+      contractError(path, "source work without parent or recipe members");
     }
-  } else if (
-    parentEventId === null ||
-    recipeInvocationId === null ||
-    recipeId === null ||
-    stageIndex === null
-  ) {
-    contractError(path, "continuation work with complete parent and recipe-stage identity");
+  } else if (step === "entangle") {
+    if (parentEventId !== null || recipeMembers.length === 0) {
+      contractError(path, "entangle source work with recipe members and no parent");
+    }
+  } else {
+    if (parentEventId === null || recipeMembers.length === 0) {
+      contractError(path, "continuation work with parent and recipe members");
+    }
+    if (step !== "measurement" && recipeMembers.length !== 1) {
+      contractError(path, `${step} work with exactly one recipe member`);
+    }
   }
   return lineage as unknown as ProgramWorkLineageDocument;
 }
@@ -858,15 +896,13 @@ function validateInjectionRecipe(value: unknown, path: string): void {
     "data_mapping",
     "compute_location",
     "compute_engine",
-    "reaction_duration_s",
-    "correction_duration_s",
     "convention",
   ]);
   if (
     string(recipe.schema_version, `${path}.schema_version`) !==
-    "arqsim.injection-recipe.v1"
+    "arqsim.injection-recipe.v2"
   ) {
-    contractError(`${path}.schema_version`, '"arqsim.injection-recipe.v1"');
+    contractError(`${path}.schema_version`, '"arqsim.injection-recipe.v2"');
   }
   if (string(recipe.kind, `${path}.kind`) !== "finite_state_injection") {
     contractError(`${path}.kind`, '"finite_state_injection"');
@@ -888,7 +924,6 @@ function validateInjectionRecipe(value: unknown, path: string): void {
     exactFields(stage, stagePath, [
       "index",
       "resource",
-      "attempt_duration_s",
       ...(hasNext ? ["failure_next_stage"] : []),
       ...(hasCorrection ? ["failure_correction"] : []),
     ]);
@@ -898,7 +933,6 @@ function validateInjectionRecipe(value: unknown, path: string): void {
     if (nonNegativeInteger(stage.index, `${stagePath}.index`) !== index) {
       contractError(`${stagePath}.index`, `contiguous value ${index}`);
     }
-    nonNegativeNumber(stage.attempt_duration_s, `${stagePath}.attempt_duration_s`);
     if (hasNext) {
       const nextStage = nonNegativeInteger(
         stage.failure_next_stage,
@@ -956,8 +990,6 @@ function validateInjectionRecipe(value: unknown, path: string): void {
   });
   nonEmptyString(recipe.compute_location, `${path}.compute_location`);
   nonEmptyString(recipe.compute_engine, `${path}.compute_engine`);
-  nonNegativeNumber(recipe.reaction_duration_s, `${path}.reaction_duration_s`);
-  nonNegativeNumber(recipe.correction_duration_s, `${path}.correction_duration_s`);
   const convention = string(recipe.convention, `${path}.convention`);
   if (!(SUPPORTED_INJECTION_CONVENTIONS as readonly string[]).includes(convention)) {
     contractError(
@@ -965,6 +997,99 @@ function validateInjectionRecipe(value: unknown, path: string): void {
       `one of ${SUPPORTED_INJECTION_CONVENTIONS.map((item) => JSON.stringify(item)).join(", ")}`,
     );
   }
+}
+
+const CONTINUATION_TEMPLATE_FIELDS = [
+  "recipe_members",
+  "step",
+  "opcode",
+  "duration_s",
+  "qubits",
+  "consumes",
+  "produces",
+  "forwards",
+  "engines",
+  "required_locations",
+  "completion_locations",
+  "target_modules",
+  "target_links",
+  "metadata",
+] as const;
+
+function positiveIntegerRecord(value: unknown, path: string): Record<string, number> {
+  const claims = record(value, path);
+  Object.entries(claims).forEach(([key, amount]) => {
+    if (key.length === 0 || key !== key.trim()) {
+      contractError(path, "non-empty plain string claim keys");
+    }
+    const quantity = nonNegativeInteger(amount, `${path}.${key}`);
+    if (quantity === 0) contractError(`${path}.${key}`, "a positive integer");
+  });
+  return claims as Record<string, number>;
+}
+
+function stringRecord(value: unknown, path: string): Record<string, string> {
+  const mapping = record(value, path);
+  Object.entries(mapping).forEach(([key, mapped]) => {
+    string(mapped, `${path}.${key}`);
+  });
+  return mapping as Record<string, string>;
+}
+
+function uniqueStrings(value: unknown, path: string): string[] {
+  const items = stringArray(value, path);
+  if (new Set(items).size !== items.length) {
+    contractError(path, "unique strings");
+  }
+  return items;
+}
+
+function validateContinuationTemplate(value: unknown, path: string): void {
+  const template = record(value, path);
+  exactFields(template, path, CONTINUATION_TEMPLATE_FIELDS);
+  const recipeMembers = validateRecipeMembers(
+    template.recipe_members,
+    `${path}.recipe_members`,
+  );
+  if (recipeMembers.length === 0) {
+    contractError(`${path}.recipe_members`, "at least one recipe member");
+  }
+  const step = string(template.step, `${path}.step`);
+  if (
+    step !== "injection" &&
+    step !== "measurement" &&
+    step !== "reaction" &&
+    step !== "correction"
+  ) {
+    contractError(
+      `${path}.step`,
+      '"injection", "measurement", "reaction", or "correction"',
+    );
+  }
+  if (step !== "measurement" && recipeMembers.length !== 1) {
+    contractError(`${path}.recipe_members`, `exactly one member for ${step} work`);
+  }
+  const opcode = nonEmptyString(template.opcode, `${path}.opcode`);
+  const expectedOpcode = step === "reaction" ? "CLASSICAL_REACTION" : "EXECUTE_COMPUTE";
+  if (opcode !== expectedOpcode) {
+    contractError(`${path}.opcode`, `${JSON.stringify(expectedOpcode)} for ${step} work`);
+  }
+  nonNegativeNumber(template.duration_s, `${path}.duration_s`);
+  const qubits = array(template.qubits, `${path}.qubits`).map((qubit, index) =>
+    nonNegativeInteger(qubit, `${path}.qubits[${index}]`),
+  );
+  if (new Set(qubits).size !== qubits.length) {
+    contractError(`${path}.qubits`, "unique non-negative integers");
+  }
+  positiveIntegerRecord(template.consumes, `${path}.consumes`);
+  positiveIntegerRecord(template.produces, `${path}.produces`);
+  stringRecord(template.forwards, `${path}.forwards`);
+  positiveIntegerRecord(template.engines, `${path}.engines`);
+  stringRecord(template.required_locations, `${path}.required_locations`);
+  stringRecord(template.completion_locations, `${path}.completion_locations`);
+  uniqueStrings(template.target_modules, `${path}.target_modules`);
+  uniqueStrings(template.target_links, `${path}.target_links`);
+  jsonRecord(template.metadata, `${path}.metadata`);
 }
 
 function validateProgramInstruction(value: unknown, path: string): void {
@@ -986,11 +1111,17 @@ function validateProgramInstruction(value: unknown, path: string): void {
       (recipe, index) => validateInjectionRecipe(recipe, `${path}.implementation_recipes[${index}]`),
     );
   }
+  if (instruction.continuation_templates !== undefined) {
+    array(instruction.continuation_templates, `${path}.continuation_templates`).forEach(
+      (template, index) =>
+        validateContinuationTemplate(template, `${path}.continuation_templates[${index}]`),
+    );
+  }
 }
 
-function validateExecutionPlanV6(value: unknown, path: string): ExecutionPlanV6Document {
-  const plan = schemaRecord(value, path, "arqsim.execution-plan.v6");
-  exactFields(plan, path, EXECUTION_PLAN_V6_FIELDS);
+function validateExecutionPlanV9(value: unknown, path: string): ExecutionPlanV9Document {
+  const plan = schemaRecord(value, path, "arqsim.execution-plan.v9");
+  exactFields(plan, path, EXECUTION_PLAN_V8_FIELDS);
 
   const source = record(plan.source, `${path}.source`);
   exactFields(source, `${path}.source`, ["circuit_hash"]);
@@ -1037,23 +1168,89 @@ function validateExecutionPlanV6(value: unknown, path: string): ExecutionPlanV6D
         contractError(`${instructionPath}.id`, "a unique Program instruction ID");
       }
       instructionIds.add(instructionId);
-      if (instruction.implementation_recipes === undefined) return;
       const recipes = array(
-        instruction.implementation_recipes,
+        instruction.implementation_recipes ?? [],
         `${instructionPath}.implementation_recipes`,
       );
       hasImplementationRecipes ||= recipes.length > 0;
+      const localRecipes = new Map<string, unknown[]>();
       recipes.forEach((recipeValue, recipeIndex) => {
         const recipePath = `${instructionPath}.implementation_recipes[${recipeIndex}]`;
+        const recipe = record(recipeValue, recipePath);
         const invocationId = nonEmptyString(
-          record(recipeValue, recipePath).invocation_id,
+          recipe.invocation_id,
           `${recipePath}.invocation_id`,
         );
         if (invocationIds.has(invocationId)) {
           contractError(`${recipePath}.invocation_id`, "a globally unique Plan recipe invocation ID");
         }
         invocationIds.add(invocationId);
+        localRecipes.set(invocationId, array(recipe.stages, `${recipePath}.stages`));
       });
+      const templateIdentities = new Set<string>();
+      array(
+        instruction.continuation_templates ?? [],
+        `${instructionPath}.continuation_templates`,
+      ).forEach((templateValue, templateIndex) => {
+        const templatePath = `${instructionPath}.continuation_templates[${templateIndex}]`;
+        const template = record(templateValue, templatePath);
+        const members = validateRecipeMembers(
+          template.recipe_members,
+          `${templatePath}.recipe_members`,
+        );
+        members.forEach((member, memberIndex) => {
+          const memberPath = `${templatePath}.recipe_members[${memberIndex}]`;
+          const stages = localRecipes.get(member.recipe_invocation_id);
+          if (stages === undefined) {
+            contractError(
+              `${memberPath}.recipe_invocation_id`,
+              "a recipe owned by the same Program instruction",
+            );
+          }
+          if (member.stage_index >= stages.length) {
+            contractError(`${memberPath}.stage_index`, "a stage in the owning recipe");
+          }
+        });
+        const memberIdentity = members
+          .map((member) => `${member.recipe_invocation_id}:${member.stage_index}`)
+          .join(",");
+        const identity = `${memberIdentity}:${String(template.step)}`;
+        if (templateIdentities.has(identity)) {
+          contractError(templatePath, "a unique recipe-member-set/step continuation template");
+        }
+        templateIdentities.add(identity);
+      });
+      const expectedTemplateIdentities = new Set<string>();
+      if (localRecipes.size > 0) {
+        expectedTemplateIdentities.add(
+          `${[...localRecipes.keys()].map((invocationId) => `${invocationId}:0`).join(",")}:measurement`,
+        );
+      }
+      localRecipes.forEach((stages, invocationId) => {
+        stages.forEach((stageValue, stageIndex) => {
+          const stage = record(
+            stageValue,
+            `${instructionPath}.recipe(${invocationId}).stages[${stageIndex}]`,
+          );
+          expectedTemplateIdentities.add(`${invocationId}:${stageIndex}:reaction`);
+          if (stageIndex > 0) {
+            expectedTemplateIdentities.add(`${invocationId}:${stageIndex}:injection`);
+            expectedTemplateIdentities.add(`${invocationId}:${stageIndex}:measurement`);
+          }
+          if (stage.failure_correction !== undefined) {
+            expectedTemplateIdentities.add(`${invocationId}:${stageIndex}:correction`);
+          }
+        });
+      });
+      if (
+        templateIdentities.size !== expectedTemplateIdentities.size ||
+        [...templateIdentities].some((identity) => !expectedTemplateIdentities.has(identity))
+      ) {
+        contractError(
+          `${instructionPath}.continuation_templates`,
+          "exact coverage of every recipe-member continuation step",
+        );
+      }
     },
   );
   if (runtimeInjectionMode === "black_box" && hasImplementationRecipes) {
@@ -1067,12 +1264,12 @@ function validateExecutionPlanV6(value: unknown, path: string): ExecutionPlanV6D
   jsonRecord(plan.architectural_state, `${path}.architectural_state`);
   jsonRecord(plan.provenance, `${path}.provenance`);
   jsonRecord(plan.runtime_components, `${path}.runtime_components`);
-  return plan as unknown as ExecutionPlanV6Document;
+  return plan as unknown as ExecutionPlanV9Document;
 }
 
-function validateTransitionV3(value: unknown, path: string): ExecutionTransitionV3Document {
+function validateTransitionV4(value: unknown, path: string): ExecutionTransitionV4Document {
   const transition = record(value, path);
-  exactFields(transition, path, TRANSITION_V3_FIELDS);
+  exactFields(transition, path, TRANSITION_V4_FIELDS);
   nonNegativeInteger(transition.transition_id, `${path}.transition_id`);
   const kind = string(transition.kind, `${path}.kind`);
   if (kind !== "dispatch" && kind !== "completion") {
@@ -1203,10 +1400,10 @@ function validateTransitionV3(value: unknown, path: string): ExecutionTransition
       contractError(`${path}.outcome.measurements`, "the typed measurements field");
     }
   }
-  return transition as unknown as ExecutionTransitionV3Document;
+  return transition as unknown as ExecutionTransitionV4Document;
 }
 
-function validateTraceV3(value: unknown, path: string): ExecutionTraceV3Document {
+function validateTraceV4(value: unknown, path: string): ExecutionTraceV4Document {
   const trace = record(value, path);
   exactFields(trace, path, [
     "schema_version",
@@ -1219,14 +1416,14 @@ function validateTraceV3(value: unknown, path: string): ExecutionTraceV3Document
     "terminal_inflight",
     "trace_hash",
   ]);
-  if (string(trace.schema_version, `${path}.schema_version`) !== EXECUTION_TRACE_V3) {
-    contractError(`${path}.schema_version`, JSON.stringify(EXECUTION_TRACE_V3));
+  if (string(trace.schema_version, `${path}.schema_version`) !== EXECUTION_TRACE_V4) {
+    contractError(`${path}.schema_version`, JSON.stringify(EXECUTION_TRACE_V4));
   }
   string(trace.plan_hash, `${path}.plan_hash`);
   integer(trace.seed, `${path}.seed`);
   nonNegativeNumber(trace.total_latency_s, `${path}.total_latency_s`);
   const transitions = array(trace.transitions, `${path}.transitions`).map((item, index) =>
-    validateTransitionV3(item, `${path}.transitions[${index}]`),
+    validateTransitionV4(item, `${path}.transitions[${index}]`),
   );
   transitions.forEach((transition, index) => {
     if (transition.transition_id !== index) {
@@ -1245,7 +1442,7 @@ function validateTraceV3(value: unknown, path: string): ExecutionTraceV3Document
   jsonRecord(trace.initial_state, `${path}.initial_state`);
   jsonRecord(trace.terminal_state, `${path}.terminal_state`);
   array(trace.terminal_inflight, `${path}.terminal_inflight`).forEach((item, index) => {
-    const transition = validateTransitionV3(item, `${path}.terminal_inflight[${index}]`);
+    const transition = validateTransitionV4(item, `${path}.terminal_inflight[${index}]`);
     if (transition.kind !== "dispatch" || transition.plane !== "resource") {
       contractError(
         `${path}.terminal_inflight[${index}]`,
@@ -1254,26 +1451,7 @@ function validateTraceV3(value: unknown, path: string): ExecutionTraceV3Document
     }
   });
   string(trace.trace_hash, `${path}.trace_hash`);
-  return trace as unknown as ExecutionTraceV3Document;
-}
-
-function recipeMeasurementRegister(
-  recipe: NonNullable<ProgramInstructionDocument["implementation_recipes"]>[number],
-  stageIndex: number,
-): string {
-  return `${recipe.invocation_id}:stage:${stageIndex}:bit`;
-}
-
-function recipeWorkId(
-  sourceInstructionId: number,
-  recipe: NonNullable<ProgramInstructionDocument["implementation_recipes"]>[number],
-  stageIndex: number,
-  step: "injection" | "reaction" | "correction",
-): string {
-  return (
-    `program:${sourceInstructionId}:recipe:${recipe.invocation_id}:` +
-    `stage:${stageIndex}:${step}`
-  );
+  return trace as unknown as ExecutionTraceV4Document;
 }
 
 function requireExactStringMembers(
@@ -1294,9 +1472,43 @@ function requireExactStringMembers(
  * Program view. Core remains authoritative for hashes, state replay, resource
  * reservations, and the complete continuation state machine.
  */
+
+function memberKeys(
+  members: readonly { recipe_invocation_id: string; stage_index: number }[],
+): string[] {
+  return members.map(
+    (member) => `${member.recipe_invocation_id}:${member.stage_index}`,
+  );
+}
+
+function recipeMemberWorkId(
+  sourceInstructionId: number,
+  member: { recipe_invocation_id: string; stage_index: number },
+  step: "injection" | "measurement" | "reaction" | "correction",
+): string {
+  return (
+    `program:${sourceInstructionId}:recipe:${member.recipe_invocation_id}:` +
+    `stage:${member.stage_index}:${step}`
+  );
+}
+
+function measurementWorkId(
+  sourceInstructionId: number,
+  members: readonly { recipe_invocation_id: string; stage_index: number }[],
+): string {
+  if (members.length === 1) {
+    return recipeMemberWorkId(sourceInstructionId, members[0], "measurement");
+  }
+  const stages = new Set(members.map((member) => member.stage_index));
+  if (stages.size !== 1) {
+    throw new Error("Shared measurement lineage must use one common recipe stage");
+  }
+  return `program:${sourceInstructionId}:stage:${members[0].stage_index}:shared-measurement`;
+}
+
 function validateProgramRuntimeProjection(
-  plan: ExecutionPlanV6Document,
-  trace: ExecutionTraceV3Document,
+  plan: ExecutionPlanV9Document,
+  trace: ExecutionTraceV4Document,
   path: string,
 ): void {
   if (trace.plan_hash !== plan.plan_hash) {
@@ -1305,6 +1517,7 @@ function validateProgramRuntimeProjection(
   if (trace.seed !== plan.policy.seed) {
     contractError(`${path}.seed`, "the frozen ExecutionPlan policy seed");
   }
+
   const instructionsById = new Map(
     plan.program_dag.instructions.map((instruction) => [instruction.id, instruction]),
   );
@@ -1321,18 +1534,36 @@ function validateProgramRuntimeProjection(
     });
   });
 
-  const completedByEventId = new Map<number, ExecutionTransitionV3Document>();
+  const completedByEventId = new Map<number, ExecutionTransitionV4Document>();
+  const openInvocations = new Map<number, Set<string>>();
+
+  const requireReceipt = (
+    transition: ExecutionTransitionV4Document,
+    transitionPath: string,
+    kind: ProgramContinuationDocument["kind"],
+    activatedWorkIds: readonly string[] = [],
+  ) => {
+    if (transition.continuation?.kind !== kind) {
+      contractError(`${transitionPath}.continuation.kind`, JSON.stringify(kind));
+    }
+    requireExactStringMembers(
+      transition.continuation.activated_work_ids,
+      activatedWorkIds,
+      `${transitionPath}.continuation.activated_work_ids`,
+    );
+  };
+
   trace.transitions.forEach((transition, transitionIndex) => {
     if (transition.plane !== "program") {
-      if (transition.kind === "completion") completedByEventId.set(transition.event_id, transition);
+      if (transition.kind === "completion") {
+        completedByEventId.set(transition.event_id, transition);
+      }
       return;
     }
 
     const transitionPath = `${path}.transitions[${transitionIndex}]`;
     const lineage = transition.program_lineage;
     if (lineage === null) {
-      // validateTransitionV3 already reports this path; retain a local guard for
-      // type narrowing if this validator is reused.
       contractError(`${transitionPath}.program_lineage`, "typed Program lineage");
     }
     const instruction = instructionsById.get(lineage.source_instruction_id);
@@ -1343,232 +1574,238 @@ function validateProgramRuntimeProjection(
       );
     }
 
-    let recipe:
-      | NonNullable<ProgramInstructionDocument["implementation_recipes"]>[number]
-      | null = null;
-    if (lineage.step === "source") {
-      if (lineage.work_id !== `program:${lineage.source_instruction_id}`) {
-        contractError(`${transitionPath}.program_lineage.work_id`, "the canonical source work ID");
-      }
-    } else {
-      const owner = recipeOwners.get(lineage.recipe_invocation_id ?? "");
+    lineage.recipe_members.forEach((member, memberIndex) => {
+      const memberPath = `${transitionPath}.program_lineage.recipe_members[${memberIndex}]`;
+      const owner = recipeOwners.get(member.recipe_invocation_id);
       if (owner === undefined || owner.instruction.id !== instruction.id) {
         contractError(
-          `${transitionPath}.program_lineage.recipe_invocation_id`,
+          `${memberPath}.recipe_invocation_id`,
           "a recipe owned by the source Program instruction",
         );
       }
-      recipe = owner.recipe;
-      if (lineage.recipe_id !== recipe.recipe_id) {
-        contractError(`${transitionPath}.program_lineage.recipe_id`, "the frozen Plan recipe_id");
+      if (member.stage_index >= owner.recipe.stages.length) {
+        contractError(`${memberPath}.stage_index`, "a stage in the frozen Plan recipe");
       }
-      const stageIndex = lineage.stage_index;
-      if (stageIndex === null || stageIndex >= recipe.stages.length) {
+    });
+
+    const recipes = instruction.implementation_recipes ?? [];
+    if (lineage.parent_event_id === null) {
+      const expectedStep = recipes.length > 0 ? "entangle" : "source";
+      if (lineage.step !== expectedStep) {
+        contractError(`${transitionPath}.program_lineage.step`, JSON.stringify(expectedStep));
+      }
+      requireExactStringMembers(
+        memberKeys(lineage.recipe_members),
+        recipes.map((recipe) => `${recipe.invocation_id}:0`),
+        `${transitionPath}.program_lineage.recipe_members`,
+      );
+      if (lineage.work_id !== `program:${instruction.id}`) {
+        contractError(`${transitionPath}.program_lineage.work_id`, "the canonical source work ID");
+      }
+    } else {
+      const parent = completedByEventId.get(lineage.parent_event_id);
+      if (parent?.plane !== "program" || parent.program_lineage === null) {
         contractError(
-          `${transitionPath}.program_lineage.stage_index`,
-          "a stage in the frozen Plan recipe",
+          `${transitionPath}.program_lineage.parent_event_id`,
+          "an earlier completed Program event",
         );
       }
-      if (lineage.work_id !== recipeWorkId(instruction.id, recipe, stageIndex, lineage.step)) {
+      const template = (instruction.continuation_templates ?? []).filter(
+        (candidate) =>
+          candidate.step === lineage.step &&
+          memberKeys(candidate.recipe_members).join("|") ===
+            memberKeys(lineage.recipe_members).join("|"),
+      );
+      if (template.length !== 1) {
         contractError(
-          `${transitionPath}.program_lineage.work_id`,
-          "the canonical recipe work ID",
+          `${transitionPath}.program_lineage.recipe_members`,
+          "one frozen continuation template for this member set and step",
         );
+      }
+      const expectedWorkId =
+        lineage.step === "measurement"
+          ? measurementWorkId(instruction.id, lineage.recipe_members)
+          : recipeMemberWorkId(
+              instruction.id,
+              lineage.recipe_members[0],
+              lineage.step as "injection" | "reaction" | "correction",
+            );
+      if (lineage.work_id !== expectedWorkId) {
+        contractError(`${transitionPath}.program_lineage.work_id`, "the canonical continuation work ID");
+      }
+
+      const parentLineage = parent.program_lineage;
+      if (lineage.step === "measurement") {
+        if (
+          !["entangle", "injection"].includes(parentLineage.step) ||
+          memberKeys(parentLineage.recipe_members).join("|") !==
+            memberKeys(lineage.recipe_members).join("|")
+        ) {
+          contractError(
+            `${transitionPath}.program_lineage.parent_event_id`,
+            "the matching entangle/injection completion",
+          );
+        }
+      } else if (lineage.step === "reaction") {
+        const member = lineage.recipe_members[0];
+        const registerId = `${member.recipe_invocation_id}:stage:${member.stage_index}:bit`;
+        if (
+          parentLineage.step !== "measurement" ||
+          !memberKeys(parentLineage.recipe_members).includes(memberKeys([member])[0]) ||
+          parent.measurements[registerId] === undefined
+        ) {
+          contractError(
+            `${transitionPath}.program_lineage.parent_event_id`,
+            `a measurement completion carrying ${JSON.stringify(registerId)}`,
+          );
+        }
+      } else if (lineage.step === "injection") {
+        const member = lineage.recipe_members[0];
+        const parentMember = parentLineage.recipe_members[0];
+        const owner = recipeOwners.get(member.recipe_invocation_id)!;
+        const previousStage = owner.recipe.stages[parentMember?.stage_index ?? -1];
+        if (
+          parentLineage.step !== "reaction" ||
+          parentMember?.recipe_invocation_id !== member.recipe_invocation_id ||
+          previousStage?.failure_next_stage !== member.stage_index
+        ) {
+          contractError(
+            `${transitionPath}.program_lineage.parent_event_id`,
+            "the preceding stage reaction completion",
+          );
+        }
+      } else if (lineage.step === "correction") {
+        if (
+          parentLineage.step !== "reaction" ||
+          memberKeys(parentLineage.recipe_members)[0] !==
+            memberKeys(lineage.recipe_members)[0]
+        ) {
+          contractError(
+            `${transitionPath}.program_lineage.parent_event_id`,
+            "the matching reaction completion",
+          );
+        }
       }
     }
 
     if (transition.kind !== "completion") return;
-    const continuation = transition.continuation;
-    if (continuation === null) {
-      contractError(`${transitionPath}.continuation`, "a typed Program completion receipt");
-    }
-
     if (lineage.step === "source") {
-      const recipes = instruction.implementation_recipes ?? [];
-      const expectedRegisters = recipes.map((item) => recipeMeasurementRegister(item, 0));
+      requireExactStringMembers(
+        Object.keys(transition.measurements),
+        [],
+        `${transitionPath}.measurements`,
+      );
+      requireReceipt(transition, transitionPath, "complete_source");
+    } else if (lineage.step === "entangle") {
+      requireExactStringMembers(
+        Object.keys(transition.measurements),
+        [],
+        `${transitionPath}.measurements`,
+      );
+      openInvocations.set(
+        instruction.id,
+        new Set(lineage.recipe_members.map((member) => member.recipe_invocation_id)),
+      );
+      requireReceipt(transition, transitionPath, "activate", [
+        measurementWorkId(instruction.id, lineage.recipe_members),
+      ]);
+    } else if (lineage.step === "measurement") {
+      const expectedRegisters = lineage.recipe_members.map(
+        (member) => `${member.recipe_invocation_id}:stage:${member.stage_index}:bit`,
+      );
       requireExactStringMembers(
         Object.keys(transition.measurements),
         expectedRegisters,
         `${transitionPath}.measurements`,
       );
-      if (recipes.length === 0) {
-        if (continuation.kind !== "complete_source") {
-          contractError(`${transitionPath}.continuation.kind`, '"complete_source" without recipes');
-        }
-      } else {
-        if (continuation.kind !== "activate") {
-          contractError(`${transitionPath}.continuation.kind`, '"activate" for recipe work');
-        }
-        requireExactStringMembers(
-          continuation.activated_work_ids,
-          recipes.map((item) => recipeWorkId(instruction.id, item, 0, "reaction")),
-          `${transitionPath}.continuation.activated_work_ids`,
-        );
-      }
-      completedByEventId.set(transition.event_id, transition);
-      return;
-    }
-
-    // The non-source branch above always resolves the frozen recipe and stage.
-    if (recipe === null || lineage.stage_index === null) {
-      contractError(`${transitionPath}.program_lineage`, "a frozen recipe-stage identity");
-    }
-    const stageIndex = lineage.stage_index;
-    const registerId = recipeMeasurementRegister(recipe, stageIndex);
-
-    if (lineage.step === "injection") {
-      const parent =
-        lineage.parent_event_id === null
-          ? undefined
-          : completedByEventId.get(lineage.parent_event_id);
-      const parentLineage = parent?.program_lineage;
-      if (
-        stageIndex === 0 ||
-        parent?.plane !== "program" ||
-        parentLineage?.step !== "reaction" ||
-        parentLineage.source_instruction_id !== instruction.id ||
-        parentLineage.recipe_invocation_id !== recipe.invocation_id ||
-        parentLineage.stage_index !== stageIndex - 1
-      ) {
-        contractError(
-          `${transitionPath}.program_lineage.parent_event_id`,
-          "the preceding recipe-stage reaction completion",
-        );
-      }
+      requireReceipt(
+        transition,
+        transitionPath,
+        "activate",
+        lineage.recipe_members.map((member) =>
+          recipeMemberWorkId(instruction.id, member, "reaction"),
+        ),
+      );
+    } else if (lineage.step === "injection") {
       requireExactStringMembers(
         Object.keys(transition.measurements),
-        [registerId],
+        [],
         `${transitionPath}.measurements`,
       );
-      if (continuation.kind !== "activate") {
-        contractError(`${transitionPath}.continuation.kind`, '"activate" after injection');
-      }
-      requireExactStringMembers(
-        continuation.activated_work_ids,
-        [recipeWorkId(instruction.id, recipe, stageIndex, "reaction")],
-        `${transitionPath}.continuation.activated_work_ids`,
-      );
+      requireReceipt(transition, transitionPath, "activate", [
+        measurementWorkId(instruction.id, lineage.recipe_members),
+      ]);
     } else if (lineage.step === "reaction") {
       requireExactStringMembers(
         Object.keys(transition.measurements),
         [],
         `${transitionPath}.measurements`,
       );
-      const parent =
-        lineage.parent_event_id === null
-          ? undefined
-          : completedByEventId.get(lineage.parent_event_id);
-      const parentLineage = parent?.program_lineage;
-      const validParentLineage =
-        stageIndex === 0
-          ? parent?.plane === "program" &&
-            parentLineage?.step === "source" &&
-            parentLineage.source_instruction_id === instruction.id
-          : parent?.plane === "program" &&
-            parentLineage?.step === "injection" &&
-            parentLineage.source_instruction_id === instruction.id &&
-            parentLineage.recipe_invocation_id === recipe.invocation_id &&
-            parentLineage.stage_index === stageIndex;
-      if (!validParentLineage || parent?.measurements[registerId] === undefined) {
-        contractError(
-          `${transitionPath}.program_lineage.parent_event_id`,
-          `a completed parent carrying measurement ${JSON.stringify(registerId)}`,
-        );
-      }
-      const bit = parent.measurements[registerId];
-      const stage = recipe.stages[stageIndex];
+      const member = lineage.recipe_members[0];
+      const owner = recipeOwners.get(member.recipe_invocation_id)!;
+      const parent = completedByEventId.get(lineage.parent_event_id!);
+      const registerId = `${member.recipe_invocation_id}:stage:${member.stage_index}:bit`;
+      const bit = parent!.measurements[registerId];
+      const stage = owner.recipe.stages[member.stage_index];
       if (bit === 1) {
-        if (continuation.kind !== "activate") {
-          contractError(`${transitionPath}.continuation.kind`, '"activate" after outcome 1');
-        }
-        const expectedWorkId =
-          stage.failure_next_stage === undefined
-            ? recipeWorkId(instruction.id, recipe, stageIndex, "correction")
-            : recipeWorkId(
-                instruction.id,
-                recipe,
-                stage.failure_next_stage,
-                "injection",
-              );
-        requireExactStringMembers(
-          continuation.activated_work_ids,
-          [expectedWorkId],
-          `${transitionPath}.continuation.activated_work_ids`,
-        );
+        const nextStep = stage.failure_next_stage === undefined ? "correction" : "injection";
+        const nextMember = {
+          recipe_invocation_id: member.recipe_invocation_id,
+          stage_index: stage.failure_next_stage ?? member.stage_index,
+        };
+        requireReceipt(transition, transitionPath, "activate", [
+          recipeMemberWorkId(instruction.id, nextMember, nextStep),
+        ]);
       } else {
-        if (continuation.kind !== "complete_source") {
-          contractError(
-            `${transitionPath}.continuation.kind`,
-            '"complete_source" after outcome 0',
-          );
+        const open = openInvocations.get(instruction.id);
+        if (open === undefined || !open.delete(member.recipe_invocation_id)) {
+          contractError(`${transitionPath}.continuation`, "termination of an open recipe invocation");
         }
-        requireExactStringMembers(
-          continuation.activated_work_ids,
-          [],
-          `${transitionPath}.continuation.activated_work_ids`,
+        const done = open.size === 0;
+        if (done) openInvocations.delete(instruction.id);
+        requireReceipt(
+          transition,
+          transitionPath,
+          done ? "complete_source" : "activate",
         );
       }
-    } else {
-      const parent =
-        lineage.parent_event_id === null
-          ? undefined
-          : completedByEventId.get(lineage.parent_event_id);
-      const parentLineage = parent?.program_lineage;
-      if (
-        parent?.plane !== "program" ||
-        parentLineage?.step !== "reaction" ||
-        parentLineage.source_instruction_id !== instruction.id ||
-        parentLineage.recipe_invocation_id !== recipe.invocation_id ||
-        parentLineage.stage_index !== stageIndex
-      ) {
-        contractError(
-          `${transitionPath}.program_lineage.parent_event_id`,
-          "the matching recipe-stage reaction completion",
-        );
-      }
+    } else if (lineage.step === "correction") {
       requireExactStringMembers(
         Object.keys(transition.measurements),
         [],
         `${transitionPath}.measurements`,
       );
-      requireExactStringMembers(
-        continuation.activated_work_ids,
-        [],
-        `${transitionPath}.continuation.activated_work_ids`,
-      );
-      if (continuation.kind !== "complete_source") {
-        contractError(
-          `${transitionPath}.continuation.kind`,
-          '"complete_source" after logical correction',
-        );
-      }
-      const correction = recipe.stages[stageIndex].failure_correction;
-      if (correction === undefined) {
-        contractError(
-          `${transitionPath}.program_lineage.stage_index`,
-          "a terminal recipe stage with a logical correction",
-        );
-      }
+      const member = lineage.recipe_members[0];
+      const owner = recipeOwners.get(member.recipe_invocation_id)!;
+      const correction = owner.recipe.stages[member.stage_index].failure_correction;
       const gates = record(transition.metadata.gates, `${transitionPath}.metadata.gates`);
-      exactFields(gates, `${transitionPath}.metadata.gates`, [correction]);
+      exactFields(gates, `${transitionPath}.metadata.gates`, [correction!]);
       const correctionQubits = array(
-        gates[correction],
+        gates[correction!],
         `${transitionPath}.metadata.gates.${correction}`,
-      ).map((qubit, qubitIndex) =>
-        nonNegativeInteger(
-          qubit,
-          `${transitionPath}.metadata.gates.${correction}[${qubitIndex}]`,
-        ),
+      ).map((qubit, index) =>
+        nonNegativeInteger(qubit, `${transitionPath}.metadata.gates.${correction}[${index}]`),
       );
       if (
-        correctionQubits.length !== recipe.qubits.length ||
-        correctionQubits.some((qubit, qubitIndex) => qubit !== recipe.qubits[qubitIndex])
+        correctionQubits.length !== owner.recipe.qubits.length ||
+        correctionQubits.some((qubit, index) => qubit !== owner.recipe.qubits[index])
       ) {
         contractError(
           `${transitionPath}.metadata.gates.${correction}`,
-          `the frozen recipe qubits [${recipe.qubits.join(", ")}]`,
+          `the frozen recipe qubits [${owner.recipe.qubits.join(", ")}]`,
         );
       }
+      const open = openInvocations.get(instruction.id);
+      if (open === undefined || !open.delete(member.recipe_invocation_id)) {
+        contractError(`${transitionPath}.continuation`, "termination of an open recipe invocation");
+      }
+      const done = open.size === 0;
+      if (done) openInvocations.delete(instruction.id);
+      requireReceipt(
+        transition,
+        transitionPath,
+        done ? "complete_source" : "activate",
+      );
     }
 
     completedByEventId.set(transition.event_id, transition);
@@ -1670,13 +1907,13 @@ export function parseEvaluationReportV2(value: unknown): EvaluationReportV2 {
   schemaRecord(
     artifacts.logical_compilation,
     "report.artifacts.logical_compilation",
-    "heteqsys.logical-compilation-result.v1",
+    "arqsim.logical-compilation-result.v1",
   );
-  const plan = validateExecutionPlanV6(
+  const plan = validateExecutionPlanV9(
     artifacts.execution_plan,
     "report.artifacts.execution_plan",
   );
-  const trace = validateTraceV3(artifacts.execution_trace, "report.artifacts.execution_trace");
+  const trace = validateTraceV4(artifacts.execution_trace, "report.artifacts.execution_trace");
   validateProgramRuntimeProjection(plan, trace, "report.artifacts.execution_trace");
 
   const results = record(root.results, "report.results");
@@ -1703,10 +1940,10 @@ export function parseEvaluationReportV2(value: unknown): EvaluationReportV2 {
 
   const completedTransitions = trace.transitions.filter((item) => item.kind === "completion");
   if (summary.event_count !== completedTransitions.length) {
-    contractError("report.results.summary.event_count", "the number of Trace-v3 completion transitions");
+    contractError("report.results.summary.event_count", "the number of Trace-v4 completion transitions");
   }
   if (summary.total_latency_s !== trace.total_latency_s) {
-    contractError("report.results.summary.total_latency_s", "Trace-v3 total_latency_s");
+    contractError("report.results.summary.total_latency_s", "Trace-v4 total_latency_s");
   }
   return value as EvaluationReportV2;
 }
@@ -1970,10 +2207,8 @@ export function architectureProfileToViewModel(
         label: words(interconnectId),
         endpoints: [...new Set(interconnect.endpoints.map((endpoint) => endpoint.split("/", 1)[0]))],
         access: accessByInterconnect.get(interconnectId) ?? [],
-        submodules: Object.entries(interconnect.modules).flatMap(([moduleId, module]) =>
-          Object.entries(module.submodules).map(([submoduleId, submodule]) =>
-            profileSubmoduleView(`${interconnectId}/${moduleId}`, submoduleId, submodule),
-          ),
+        modules: Object.entries(interconnect.modules).map(([moduleId, module]) =>
+          profileModuleView(interconnectId, moduleId, module),
         ),
       }),
     ),
@@ -2077,7 +2312,13 @@ function interconnectView(interconnect: ArchitectureInterconnectDocument) {
       interconnectSubmoduleId: access.submodule,
       localSubmoduleRefs: access.local_submodules,
     })),
-    submodules: interconnect.submodules.map(submoduleView),
+    modules: [{
+      id: "shared",
+      ref: `${interconnect.id}/shared`,
+      label: "Shared Components",
+      type: "interconnect",
+      submodules: interconnect.submodules.map(submoduleView),
+    }],
   };
 }
 
@@ -2198,9 +2439,10 @@ function canonicalArchitectureView(report: EvaluationReportV2): ArchitectureHier
       })),
     })),
     interconnects: architecture.interconnects.map((interconnect) => {
-      const sharedSubmodules = interconnect.modules.flatMap((module) =>
-        canonicalModuleView(interconnect.id, module).submodules,
+      const sharedModules = interconnect.modules.map((module) =>
+        canonicalModuleView(interconnect.id, module),
       );
+      const sharedSubmodules = sharedModules.flatMap((module) => module.submodules);
       const sharedBufferId = sharedSubmodules.find((item) => item.type === "buffer")?.id ?? "shared";
       return {
         id: interconnect.id,
@@ -2214,14 +2456,14 @@ function canonicalArchitectureView(report: EvaluationReportV2): ArchitectureHier
             localSubmoduleRefs: [localParts.join("/")],
           };
         }),
-        submodules: sharedSubmodules,
+        modules: sharedModules,
       };
     }),
   };
 }
 
 function completionTransitionEvent(
-  transition: ExecutionTransitionV3Document,
+  transition: ExecutionTransitionV4Document,
 ): CompletedEvaluationEventModel {
   return {
     event_id: transition.event_id,
@@ -2234,6 +2476,16 @@ function completionTransitionEvent(
     duration_s: transition.end_s - transition.start_s,
     metadata: transition.metadata,
     wait_reasons: transition.wait_reasons,
+    engineClaims: Object.fromEntries(
+      Object.entries(transition.engines).filter(
+        (entry): entry is [string, number] =>
+          typeof entry[1] === "number" && Number.isFinite(entry[1]),
+      ),
+    ),
+    tokenFlow: {
+      consumed: tokenFlowByBuffer(transition.consumed_tokens),
+      produced: tokenFlowByBuffer(transition.produced_tokens),
+    },
     runtime:
       transition.program_lineage !== null ||
       Object.keys(transition.measurements).length > 0 ||
@@ -2253,6 +2505,191 @@ function completionTransitionEvent(
   };
 }
 
+function tokenFlowByBuffer(value: JsonRecord): Record<string, readonly string[]> {
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([bufferId, tokens]) => {
+      if (!Array.isArray(tokens)) return [];
+      const tokenIds = tokens.filter(
+        (token): token is string => typeof token === "string",
+      );
+      return tokenIds.length === 0 ? [] : [[bufferId, tokenIds]];
+    }),
+  );
+}
+
+function engineOwnersFromPlan(
+  plan: ExecutionPlanV9Document,
+): Record<string, EngineOwnershipViewModel> {
+  const state = plan.architectural_state as { engines?: unknown };
+  if (!Array.isArray(state.engines)) return {};
+  const owners: Record<string, EngineOwnershipViewModel> = {};
+  for (const value of state.engines) {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) continue;
+    const engine = value as { id?: unknown; module?: unknown; submodule?: unknown };
+    if (typeof engine.id === "string") {
+      owners[engine.id] = {
+        moduleRef: typeof engine.module === "string" ? engine.module : null,
+        submoduleRef: typeof engine.submodule === "string" ? engine.submodule : null,
+      };
+    }
+  }
+  return owners;
+}
+
+function resourceProcessesFromPlan(
+  plan: ExecutionPlanV9Document,
+): ResourceProcessModel[] {
+  const dag = plan.resource_dag as { processes?: unknown };
+  if (!Array.isArray(dag.processes)) return [];
+  const processes = dag.processes.flatMap((value): ResourceProcessModel[] => {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return [];
+    const process = value as {
+      id?: unknown;
+      parallelism?: unknown;
+      produces?: unknown;
+      output_overflow_policy?: unknown;
+    };
+    if (
+      typeof process.id !== "string" ||
+      process.id.length === 0 ||
+      process.id !== process.id.trim() ||
+      typeof process.parallelism !== "number" ||
+      !Number.isInteger(process.parallelism) ||
+      process.parallelism <= 0 ||
+      (process.output_overflow_policy !== "block" &&
+        process.output_overflow_policy !== "discard_excess") ||
+      process.produces === null ||
+      typeof process.produces !== "object" ||
+      Array.isArray(process.produces)
+    ) {
+      return [];
+    }
+    const produceEntries = Object.entries(
+      process.produces as Record<string, unknown>,
+    );
+    if (
+      produceEntries.some(
+        ([bufferId, amount]) =>
+          bufferId.length === 0 ||
+          bufferId !== bufferId.trim() ||
+          typeof amount !== "number" ||
+          !Number.isInteger(amount) ||
+          amount <= 0,
+      )
+    ) {
+      return [];
+    }
+    return [{
+      id: process.id,
+      parallelism: process.parallelism,
+      produces: Object.fromEntries(
+        produceEntries.sort(([left], [right]) => left.localeCompare(right)),
+      ) as Record<string, number>,
+      outputOverflowPolicy:
+        process.output_overflow_policy as ResourceOutputOverflowPolicy,
+    }];
+  });
+  return processes.sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function architectureBuffersFromPlan(
+  plan: ExecutionPlanV9Document,
+): ArchitectureBufferModel[] {
+  const state = plan.architectural_state as { buffers?: unknown };
+  if (!Array.isArray(state.buffers)) return [];
+  return state.buffers.flatMap((value) => {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return [];
+    const buffer = value as {
+      id?: unknown;
+      module?: unknown;
+      submodule?: unknown;
+      token_kind?: unknown;
+      capacity?: unknown;
+      initial_contents?: unknown;
+    };
+    if (
+      typeof buffer.id !== "string" ||
+      typeof buffer.token_kind !== "string" ||
+      typeof buffer.capacity !== "number" ||
+      !Number.isInteger(buffer.capacity) ||
+      buffer.capacity <= 0 ||
+      (buffer.module !== undefined && typeof buffer.module !== "string") ||
+      (buffer.submodule !== undefined && typeof buffer.submodule !== "string") ||
+      !Array.isArray(buffer.initial_contents)
+    ) {
+      return [];
+    }
+    return [
+      {
+        id: buffer.id,
+        moduleRef: typeof buffer.module === "string" ? buffer.module : null,
+        submoduleRef: typeof buffer.submodule === "string" ? buffer.submodule : null,
+        tokenKind: buffer.token_kind,
+        capacity: buffer.capacity,
+        initialReady: buffer.initial_contents.length,
+      },
+    ];
+  });
+}
+
+function architectureBufferSnapshotsFromV2(
+  report: EvaluationReportV2,
+  buffers: readonly ArchitectureBufferModel[],
+): ArchitectureBufferSnapshotModel[] {
+  if (buffers.length === 0) return [];
+  const knownBufferIds = new Set(buffers.map((buffer) => buffer.id));
+  const snapshots = report.results.observations.discrete_time_log.flatMap((entry) => {
+    const time = entry.time_s;
+    const architectureState = entry.architecture_state_after;
+    if (
+      typeof time !== "number" ||
+      !Number.isFinite(time) ||
+      time < 0 ||
+      architectureState === null ||
+      typeof architectureState !== "object" ||
+      Array.isArray(architectureState)
+    ) {
+      return [];
+    }
+    const rawBuffers = architectureState.buffers;
+    if (rawBuffers === null || typeof rawBuffers !== "object" || Array.isArray(rawBuffers)) {
+      return [];
+    }
+    const states: Record<
+      string,
+      { ready: number; pendingIncoming: number }
+    > = {};
+    Object.entries(rawBuffers).forEach(([bufferId, rawState]) => {
+      if (
+        !knownBufferIds.has(bufferId) ||
+        rawState === null ||
+        typeof rawState !== "object" ||
+        Array.isArray(rawState)
+      ) {
+        return;
+      }
+      const state = rawState as { ready?: unknown; pending_incoming?: unknown };
+      if (
+        typeof state.ready === "number" &&
+        Number.isInteger(state.ready) &&
+        state.ready >= 0 &&
+        typeof state.pending_incoming === "number" &&
+        Number.isInteger(state.pending_incoming) &&
+        state.pending_incoming >= 0
+      ) {
+        states[bufferId] = {
+          ready: state.ready,
+          pendingIncoming: state.pending_incoming,
+        };
+      }
+    });
+    return Object.keys(states).length === 0
+      ? []
+      : [{ timeSeconds: time, states }];
+  });
+  return snapshots.sort((left, right) => left.timeSeconds - right.timeSeconds);
+}
+
 function lineageView(
   lineage: ProgramWorkLineageDocument,
 ): RuntimeProgramLineageViewModel {
@@ -2260,9 +2697,10 @@ function lineageView(
     workId: lineage.work_id,
     sourceInstructionId: lineage.source_instruction_id,
     parentEventId: lineage.parent_event_id,
-    recipeInvocationId: lineage.recipe_invocation_id,
-    recipeId: lineage.recipe_id,
-    stageIndex: lineage.stage_index,
+    recipeMembers: lineage.recipe_members.map((member) => ({
+      invocationId: member.recipe_invocation_id,
+      stageIndex: member.stage_index,
+    })),
     step: lineage.step,
   };
 }
@@ -2294,14 +2732,11 @@ function recipeView(
     sourceLayerIndex: recipe.source_layer_index,
     sourceOperationIndex: recipe.source_operation_index,
     qubits: recipe.qubits,
-    reactionDurationSeconds: recipe.reaction_duration_s,
-    correctionDurationSeconds: recipe.correction_duration_s,
     stages: recipe.stages.map((stage) => ({
       index: stage.index,
       stateKind: stage.resource.state_kind,
       resourceId: stage.resource.ref_id,
       bufferId: stage.resource.buffer_id,
-      attemptDurationSeconds: stage.attempt_duration_s,
       unfavorableAction:
         stage.failure_next_stage !== undefined
           ? ({ kind: "next_stage", stageIndex: stage.failure_next_stage } as const)
@@ -2392,15 +2827,22 @@ function modelFromV1(report: EvaluationReportV1): EvaluationReportModel {
     workflow_id: report.specification.workflow.id,
     circuit: report.workload.evaluated,
     architecture: architectureView(report),
+    engineOwners: {},
+    architectureBuffers: [],
+    architectureBufferSnapshots: [],
+    resourceProcesses: [],
     completed_events: report.evaluation.events.map((event) => ({
       ...event,
+      engineClaims: {},
+      tokenFlow: { consumed: {}, produced: {} },
       runtime: null,
     })),
+    inflight_events: [],
     output_program: {
       schemaVersion: null,
       runtimeInjectionMode: null,
       unavailableReason:
-        "Report v1 does not expose the canonical ExecutionPlan-v6 Program DAG.",
+        "Report v1 does not expose the canonical ExecutionPlan-v9 Program DAG.",
       instructions: [],
     },
     fidelity_evidence: emptyFidelityEvidence(),
@@ -2415,6 +2857,9 @@ function modelFromV2(report: EvaluationReportV2): EvaluationReportModel {
     workflow_id: string | null;
   };
   const trace = report.artifacts.execution_trace;
+  const architectureBuffers = architectureBuffersFromPlan(
+    report.artifacts.execution_plan,
+  );
   return {
     adapter_version: "arqsim.frontend-evaluation-model.v1",
     source_schema_version: EVALUATION_REPORT_V2,
@@ -2425,9 +2870,19 @@ function modelFromV2(report: EvaluationReportV2): EvaluationReportModel {
     workflow_id: config.workflow_id ?? report.workflow_id,
     circuit: report.request.workload,
     architecture: canonicalArchitectureView(report),
+    engineOwners: engineOwnersFromPlan(report.artifacts.execution_plan),
+    architectureBuffers,
+    architectureBufferSnapshots: architectureBufferSnapshotsFromV2(
+      report,
+      architectureBuffers,
+    ),
+    resourceProcesses: resourceProcessesFromPlan(
+      report.artifacts.execution_plan,
+    ),
     completed_events: trace.transitions
       .filter((transition) => transition.kind === "completion")
       .map(completionTransitionEvent),
+    inflight_events: trace.terminal_inflight.map(completionTransitionEvent),
     output_program: outputProgramFromV2(report),
     fidelity_evidence: fidelityEvidenceFromV2(report),
     summary: report.results.summary,
@@ -2509,53 +2964,346 @@ function eventLayer(event: EvaluationEventDocument): number | null {
   return typeof layer === "number" && Number.isInteger(layer) ? layer : null;
 }
 
-function sourceMeasurementsByInstruction(
-  events: readonly CompletedEvaluationEventModel[],
-): Map<number, readonly RuntimeMeasurementViewModel[]> {
-  const result = new Map<number, RuntimeMeasurementViewModel[]>();
-  for (const event of events) {
-    const lineage = event.runtime?.lineage;
-    const measurements = event.runtime?.measurements ?? [];
-    if (lineage === null || lineage === undefined || measurements.length === 0) continue;
-    const known = result.get(lineage.sourceInstructionId) ?? [];
-    result.set(lineage.sourceInstructionId, [...known, ...measurements]);
-  }
-  return result;
+
+function lineageInvocationIds(
+  lineage: RuntimeProgramLineageViewModel | null | undefined,
+): string[] {
+  return lineage === null || lineage === undefined
+    ? []
+    : [...new Set(lineage.recipeMembers.map((member) => member.invocationId))];
 }
 
-function associatedSourceMeasurements(
+function completedEventsById(
+  events: readonly CompletedEvaluationEventModel[],
+): Map<number, CompletedEvaluationEventModel> {
+  return new Map(events.map((event) => [event.event_id, event]));
+}
+
+function associatedParentMeasurements(
   event: CompletedEvaluationEventModel,
-  sourceMeasurements: ReadonlyMap<number, readonly RuntimeMeasurementViewModel[]>,
+  eventsById: ReadonlyMap<number, CompletedEvaluationEventModel>,
 ): readonly RuntimeMeasurementViewModel[] {
   const runtime = event.runtime;
   if (runtime?.lineage === null || runtime?.lineage === undefined) return [];
   if (runtime.measurements.length > 0) return [];
-  const candidates = sourceMeasurements.get(runtime.lineage.sourceInstructionId) ?? [];
-  if (runtime.lineage.recipeInvocationId === null || runtime.lineage.stageIndex === null) {
-    return candidates;
-  }
-  const registerPrefix =
-    `${runtime.lineage.recipeInvocationId}:stage:${runtime.lineage.stageIndex}:`;
-  return candidates.filter((measurement) =>
-    measurement.registerId.startsWith(registerPrefix),
+  const memberPrefixes = runtime.lineage.recipeMembers.map(
+    (member) => `${member.invocationId}:stage:${member.stageIndex}:`,
   );
+  const visited = new Set<number>();
+  let parentEventId = runtime.lineage.parentEventId;
+  while (parentEventId !== null && !visited.has(parentEventId)) {
+    visited.add(parentEventId);
+    const parent = eventsById.get(parentEventId);
+    if (parent === undefined) break;
+    const measurements = parent.runtime?.measurements ?? [];
+    if (measurements.length > 0) {
+      return memberPrefixes.length === 0
+        ? measurements
+        : measurements.filter((measurement) =>
+            memberPrefixes.some((prefix) => measurement.registerId.startsWith(prefix)),
+          );
+    }
+    parentEventId = parent.runtime?.lineage?.parentEventId ?? null;
+  }
+  return [];
+}
+
+function logicalGadgetLabel(
+  recipe: OutputProgramModel["instructions"][number]["recipes"][number],
+): string {
+  const operation = recipe.stages[0]?.stateKind === "t_magic" ? "T" : "RZ";
+  const operands = recipe.qubits.map((qubit) => `q${qubit}`).join(", ");
+  return `${operation}(${operands})`;
+}
+
+function logicalGadgetSpans(
+  report: EvaluationReportModel,
+): LogicalGadgetSpanViewModel[] {
+  const programEvents = report.completed_events.filter(
+    (event) => event.plane === "program" && event.runtime?.lineage != null,
+  );
+  const result: LogicalGadgetSpanViewModel[] = [];
+  report.output_program.instructions.forEach((instruction) => {
+    instruction.recipes.forEach((recipe) => {
+      const children = programEvents
+        .filter((event) =>
+          event.runtime!.lineage!.recipeMembers.some(
+            (member) => member.invocationId === recipe.invocationId,
+          ),
+        )
+        .sort(
+          (left, right) =>
+            left.start_s - right.start_s ||
+            left.end_s - right.end_s ||
+            left.event_id - right.event_id,
+        );
+      if (children.length === 0) return;
+      const terminal = [...children].sort(
+        (left, right) =>
+          right.end_s - left.end_s ||
+          right.start_s - left.start_s ||
+          right.event_id - left.event_id,
+      )[0];
+      const measurements = children
+        .flatMap((event) => event.runtime?.measurements ?? [])
+        .filter((measurement) =>
+          measurement.registerId.startsWith(`${recipe.invocationId}:stage:`),
+        );
+      const readySeconds = Math.min(
+        ...children.map(
+          (event) =>
+            metadataOptionalNumber(event.metadata, "program_ready_s") ??
+            event.start_s,
+        ),
+      );
+      const dispatchSeconds = Math.min(...children.map((event) => event.start_s));
+      const completionSeconds = terminal.end_s;
+      const uniqueChildren = [...new Map(
+        children.map((event) => [event.event_id, event]),
+      ).values()];
+      result.push({
+        invocationId: recipe.invocationId,
+        recipeId: recipe.recipeId,
+        sourceInstructionId: instruction.id,
+        sourceOperationIndex: recipe.sourceOperationIndex,
+        sourceLayerIndex: recipe.sourceLayerIndex,
+        qubits: recipe.qubits,
+        label: logicalGadgetLabel(recipe),
+        readySeconds,
+        dispatchSeconds,
+        completionSeconds,
+        queueWaitSeconds: Math.max(0, dispatchSeconds - readySeconds),
+        realizationElapsedSeconds: Math.max(
+          0,
+          completionSeconds - dispatchSeconds,
+        ),
+        activeServiceSeconds: uniqueChildren.reduce(
+          (total, event) => total + Math.max(0, event.end_s - event.start_s),
+          0,
+        ),
+        terminalEventId: terminal.event_id,
+        childEventIds: uniqueChildren.map((event) => event.event_id),
+        measurement: measurements.at(-1) ?? null,
+        correctionApplied: children.some(
+          (event) => event.runtime?.lineage?.step === "correction",
+        ),
+      });
+    });
+  });
+  return result.sort(
+    (left, right) =>
+      left.dispatchSeconds - right.dispatchSeconds ||
+      left.completionSeconds - right.completionSeconds ||
+      left.invocationId.localeCompare(right.invocationId),
+  );
+}
+
+function timelineGadgetHosts(
+  logicalGadgets: readonly LogicalGadgetSpanViewModel[],
+  rows: readonly TimelineRowViewModel[],
+): TimelineGadgetHostViewModel[] {
+  const eventsById = new Map(
+    rows.flatMap((row) => row.events).map((event) => [event.id, event]),
+  );
+  const groups = new Map<number, LogicalGadgetSpanViewModel[]>();
+  logicalGadgets.forEach((gadget) => {
+    const group = groups.get(gadget.sourceInstructionId) ?? [];
+    group.push(gadget);
+    groups.set(gadget.sourceInstructionId, group);
+  });
+
+  return [...groups.entries()].flatMap(([sourceInstructionId, rawGadgets]) => {
+    const gadgets = [...rawGadgets].sort(
+      (left, right) =>
+        left.sourceOperationIndex - right.sourceOperationIndex ||
+        left.invocationId.localeCompare(right.invocationId),
+    );
+    const childEventIds = [...new Set(gadgets.flatMap((gadget) => gadget.childEventIds))];
+    const children = childEventIds
+      .flatMap((eventId) => {
+        const event = eventsById.get(`event:${eventId}`);
+        return event === undefined ? [] : [event];
+      })
+      .sort(
+        (left, right) =>
+          left.startSeconds - right.startSeconds ||
+          left.endSeconds - right.endSeconds ||
+          left.id.localeCompare(right.id),
+      );
+    const anchor = children.find(
+      (event) => event.locus.kind !== "classical" && event.locus.kind !== "control",
+    );
+    if (anchor === undefined || children.length === 0) return [];
+
+    const readySeconds = Math.min(...gadgets.map((gadget) => gadget.readySeconds));
+    const dispatchSeconds = Math.min(...children.map((event) => event.startSeconds));
+    const completionSeconds = Math.max(
+      ...gadgets.map((gadget) => gadget.completionSeconds),
+    );
+    const operationNames = new Set(
+      gadgets.map((gadget) => gadget.label.split("(", 1)[0]),
+    );
+    const operation = operationNames.size === 1 ? [...operationNames][0] : "Gadget";
+    const qubits = [...new Set(gadgets.flatMap((gadget) => gadget.qubits))].sort(
+      (left, right) => left - right,
+    );
+    return [{
+      id: `gadget-host:${sourceInstructionId}`,
+      sourceInstructionId,
+      sourceLayerIndex: Math.min(
+        ...gadgets.map((gadget) => gadget.sourceLayerIndex),
+      ),
+      invocationIds: gadgets.map((gadget) => gadget.invocationId),
+      qubits,
+      label:
+        gadgets.length === 1
+          ? gadgets[0].label
+          : `${operation} × ${gadgets.length}`,
+      ownerTrackId: anchor.locus.trackId,
+      readySeconds,
+      dispatchSeconds,
+      completionSeconds,
+      queueWaitSeconds: Math.max(0, dispatchSeconds - readySeconds),
+      realizationElapsedSeconds: Math.max(
+        0,
+        completionSeconds - dispatchSeconds,
+      ),
+      activeServiceSeconds: children.reduce(
+        (total, event) => total + event.durationSeconds,
+        0,
+      ),
+      childEventIds: children.map((event) => Number(event.id.slice("event:".length))),
+      terminalEventIds: gadgets.map((gadget) => gadget.terminalEventId),
+    }];
+  }).sort(
+    (left, right) =>
+      left.dispatchSeconds - right.dispatchSeconds ||
+      left.completionSeconds - right.completionSeconds ||
+      left.sourceInstructionId - right.sourceInstructionId,
+  );
+}
+
+function timelineLane(event: CompletedEvaluationEventModel): TimelineEventViewModel["lane"] {
+  if (event.plane === "resource") return "resource";
+  const step = event.runtime?.lineage?.step;
+  if (step === "reaction" || event.opcode === "CLASSICAL_REACTION") return "classical";
+  if (["entangle", "injection", "measurement", "correction"].includes(step ?? "")) {
+    return "quantum";
+  }
+  return "program";
+}
+
+function timelineEventLabel(event: CompletedEvaluationEventModel): string {
+  switch (event.runtime?.lineage?.step) {
+    case "entangle":
+      return "T-gadget entangle (logical CX)";
+    case "injection":
+      return "Correction-stage entangle (logical CX)";
+    case "measurement":
+      return "Magic-state logical MZ";
+    case "reaction":
+      return "Classical Reaction";
+    case "correction": {
+      const summary = operationSummary(event.metadata);
+      if (summary === null) return "Logical Correction";
+      const [operation, ...operands] = summary.split(/\s+/);
+      return operands.length > 0
+        ? `Logical ${operation} correction (${operands.join(", ")})`
+        : `Logical ${operation} correction`;
+    }
+    default:
+      return words(event.opcode);
+  }
+}
+
+function semanticResourceName(tokenKind: string): string {
+  return words(tokenKind).toLowerCase();
+}
+
+function semanticWaitReason(
+  rawReason: string,
+  buffersById: ReadonlyMap<string, ArchitectureBufferModel>,
+): string {
+  const separator = rawReason.indexOf(":");
+  const kind = separator === -1 ? rawReason : rawReason.slice(0, separator);
+  const detail = separator === -1 ? "" : rawReason.slice(separator + 1);
+  const buffer = [...buffersById.values()]
+    .sort((left, right) => right.id.length - left.id.length)
+    .find(
+      (candidate) =>
+        detail === candidate.id || detail.startsWith(`${candidate.id}:`),
+    );
+  const resource = buffer === undefined
+    ? "required resource"
+    : semanticResourceName(buffer.tokenKind);
+  switch (kind) {
+    case "buffer_empty":
+      return `Waiting for ${resource}`;
+    case "buffer_full":
+      return `Waiting for ${resource} buffer space`;
+    case "engine_busy":
+    case "engine_capacity":
+      return "Waiting for execution capacity";
+    case "location_mismatch":
+    case "required_location":
+      return "Waiting for operand placement";
+    default:
+      return "Waiting for required resource";
+  }
+}
+
+function semanticWaitReasons(
+  event: CompletedEvaluationEventModel,
+  buffersById: ReadonlyMap<string, ArchitectureBufferModel>,
+): string[] {
+  return [...new Set(event.wait_reasons.map((reason) =>
+    semanticWaitReason(reason, buffersById),
+  ))];
+}
+
+function timelineWaitingSpan(
+  event: CompletedEvaluationEventModel,
+  semanticReasons: readonly string[],
+): TimelineEventViewModel["waitingSpan"] {
+  if (event.plane !== "program") return null;
+  const readySeconds = metadataOptionalNumber(event.metadata, "program_ready_s");
+  if (readySeconds === null || event.start_s <= readySeconds + Number.EPSILON) return null;
+  const resourceWait = metadataOptionalNumber(event.metadata, "resource_wait_s") ?? 0;
+  return {
+    plane: event.plane,
+    startSeconds: readySeconds,
+    endSeconds: event.start_s,
+    durationSeconds: event.start_s - readySeconds,
+    reason:
+      semanticReasons.join(" · ") ||
+      (resourceWait > 0
+        ? "Waiting for required resource"
+        : "Waiting for execution capacity"),
+  };
 }
 
 function timelineEventView(
   event: CompletedEvaluationEventModel,
-  sourceMeasurements: ReadonlyMap<number, readonly RuntimeMeasurementViewModel[]>,
-): TimelineEventViewModel {
+  eventsById: ReadonlyMap<number, CompletedEvaluationEventModel>,
+  gadgetLabelByInvocation: ReadonlyMap<string, string>,
+  buffersById: ReadonlyMap<string, ArchitectureBufferModel>,
+  trackCatalog: ReturnType<typeof timelineTrackCatalog>,
+  clippedEndSeconds: number | null = null,
+): Omit<TimelineEventViewModel, "locus"> {
   const runtime = event.runtime;
+  const recipeInvocationIds = lineageInvocationIds(runtime?.lineage);
+  const semanticReasons = semanticWaitReasons(event, buffersById);
+  const endSeconds = clippedEndSeconds ?? event.end_s;
   return {
     id: `event:${event.event_id}`,
-    label: words(event.opcode),
+    label: timelineEventLabel(event),
     opcode: event.opcode,
     plane: event.plane,
     instructionId: event.instruction_id,
     processId: event.process_id,
     startSeconds: event.start_s,
-    endSeconds: event.end_s,
-    durationSeconds: event.duration_s,
+    endSeconds,
+    durationSeconds: Math.max(0, endSeconds - event.start_s),
     layerIndex: eventLayer(event),
     operationSummary: operationSummary(event.metadata),
     qubits: metadataNumberArray(event.metadata, "qubits"),
@@ -2564,16 +3312,742 @@ function timelineEventView(
     programReadySeconds: metadataOptionalNumber(event.metadata, "program_ready_s"),
     resourceWaitSeconds: metadataOptionalNumber(event.metadata, "resource_wait_s"),
     targetModules: metadataStringArray(event.metadata, "target_modules"),
-    waitReasons: event.wait_reasons,
+    targetLinks: metadataStringArray(event.metadata, "target_links"),
+    waitReasons: semanticReasons,
     runtimeLineage: runtime?.lineage ?? null,
     measurements: runtime?.measurements ?? [],
-    sourceMeasurements: associatedSourceMeasurements(event, sourceMeasurements),
+    sourceMeasurements: associatedParentMeasurements(event, eventsById),
     continuation: runtime?.continuation ?? null,
     conditionalCorrection: runtime?.lineage?.step === "correction",
+    lane: timelineLane(event),
+    recipeInvocationIds,
+    logicalParentLabels: recipeInvocationIds.flatMap((invocationId) => {
+      const label = gadgetLabelByInvocation.get(invocationId);
+      return label === undefined ? [] : [label];
+    }),
+    continuesAfterWindow: clippedEndSeconds !== null && clippedEndSeconds < event.end_s,
+    waitingSpan: timelineWaitingSpan(event, semanticReasons),
+    milestones: timelineMilestones(
+      event,
+      buffersById,
+      trackCatalog,
+      clippedEndSeconds === null,
+    ),
   };
 }
 
-function timelineView(report: EvaluationReportModel, requestedLimit: number): TimelineViewModel {
+interface TimelineTrackDescriptor {
+  id: string;
+  label: string;
+  subtitle: string;
+  trackKind: TimelineTrackKind;
+  order: number;
+  ownerRefs: readonly string[];
+  structural: boolean;
+  parentTrackId: string | null;
+}
+
+interface TimelineTrackGroupDescriptor extends TimelineTrackGroupViewModel {
+  order: number;
+}
+
+function architectureLabel(value: string): string {
+  return words(value)
+    .replace(/\bNa\b/g, "NA")
+    .replace(/\bSc\b/g, "SC")
+    .replace(/\bMsf\b/g, "MSF")
+    .replace(/\bQec\b/g, "QEC");
+}
+
+function exactEngineSubmodule(
+  event: CompletedEvaluationEventModel,
+  engineOwners: Readonly<Record<string, EngineOwnershipViewModel>>,
+): string | null {
+  const owners = new Set(
+    Object.entries(event.engineClaims)
+      .filter(([, demand]) => demand > 0)
+      .flatMap(([engineId]) => {
+        const owner = engineOwners[engineId]?.submoduleRef;
+        return owner === null || owner === undefined ? [] : [owner];
+      }),
+  );
+  return owners.size === 1 ? [...owners][0] : null;
+}
+
+function timelineTrackCatalog(
+  architecture: ArchitectureHierarchyViewModel,
+): {
+  groups: ReadonlyMap<string, TimelineTrackGroupDescriptor>;
+  nodes: ReadonlyMap<string, TimelineTrackGroupDescriptor>;
+  modules: ReadonlyMap<string, TimelineTrackGroupDescriptor>;
+  submodules: ReadonlyMap<string, TimelineTrackDescriptor>;
+  interconnects: ReadonlyMap<string, TimelineTrackGroupDescriptor>;
+  connections: readonly TimelineTrackDescriptor[];
+} {
+  const groups = new Map<string, TimelineTrackGroupDescriptor>();
+  const nodes = new Map<string, TimelineTrackGroupDescriptor>();
+  const modules = new Map<string, TimelineTrackGroupDescriptor>();
+  const submodules = new Map<string, TimelineTrackDescriptor>();
+  const connections: TimelineTrackDescriptor[] = [];
+  let moduleOrder = 0;
+  for (const node of architecture.nodes) {
+    const nodeGroup = {
+      id: `node:${node.id}`,
+      label: architectureLabel(node.label),
+      subtitle: `${architectureLabel(node.modality)} node`,
+      kind: "node" as const,
+      order: 8_000 + nodes.size * 100,
+    };
+    nodes.set(node.id, nodeGroup);
+    groups.set(nodeGroup.id, nodeGroup);
+    for (const module of node.modules) {
+      const order = moduleOrder;
+      moduleOrder += 100;
+      modules.set(module.ref, {
+        id: `module:${module.ref}`,
+        label: architectureLabel(module.label),
+        subtitle: `Module · ${architectureLabel(node.label)}`,
+        kind: "module",
+        order,
+      });
+      groups.set(`module:${module.ref}`, modules.get(module.ref)!);
+      module.submodules.forEach((submodule, index) => {
+        submodules.set(submodule.ref, {
+          id: `submodule:${submodule.ref}`,
+          label: architectureLabel(submodule.label),
+          subtitle: `${architectureLabel(module.label)} · ${architectureLabel(node.label)}`,
+          trackKind: "submodule",
+          order: order + index + 1,
+          ownerRefs: [submodule.ref],
+          structural: false,
+          parentTrackId: `module:${module.ref}`,
+        });
+      });
+    }
+    node.connections.forEach((connection, index) => {
+      const endpointRefs = connection.endpoints.map((endpoint) =>
+        `${node.id}/${endpoint.replace(/^\/+/, "")}`,
+      );
+      connections.push({
+        id: `connection:${node.id}/${connection.id}`,
+        label: architectureLabel(connection.id),
+        subtitle: `Local connection · ${architectureLabel(node.label)}`,
+        trackKind: "transfer",
+        order: 9_000 + index,
+        ownerRefs: [`${node.id}/${connection.id}`, ...endpointRefs],
+        structural: false,
+        parentTrackId: `node:${node.id}`,
+      });
+    });
+  }
+  const interconnects = new Map<string, TimelineTrackGroupDescriptor>();
+  architecture.interconnects.forEach((interconnect, index) => {
+    const order = 10_000 + index * 100;
+    const endpointModuleLabels = interconnect.access.flatMap((access) => {
+      const localRef = access.localSubmoduleRefs[0];
+      if (localRef === undefined) return [];
+      const moduleId = localRef.split("/", 1)[0];
+      const module = architecture.nodes
+        .find((node) => node.id === access.nodeId)
+        ?.modules.find((candidate) => candidate.id === moduleId);
+      return [architectureLabel(module?.label ?? moduleId)];
+    });
+    interconnects.set(interconnect.id, {
+      id: `interconnect:${interconnect.id}`,
+      label:
+        endpointModuleLabels.length === 2
+          ? endpointModuleLabels.join(" ↔ ")
+          : architectureLabel(interconnect.label),
+      subtitle: `Interconnect · ${interconnect.id}`,
+      kind: "interconnect",
+      order,
+    });
+    groups.set(
+      `interconnect:${interconnect.id}`,
+      interconnects.get(interconnect.id)!,
+    );
+    let submoduleIndex = 0;
+    interconnect.modules.forEach((module) => {
+      module.submodules.forEach((submodule) => {
+        submodules.set(submodule.ref, {
+          id: `submodule:${submodule.ref}`,
+          label: architectureLabel(submodule.label),
+          subtitle: `${architectureLabel(module.label)} · Interconnect component`,
+          trackKind: "submodule",
+          order: order + submoduleIndex + 1,
+          ownerRefs: [submodule.ref],
+          structural: false,
+          parentTrackId: `interconnect:${interconnect.id}`,
+        });
+        submoduleIndex += 1;
+      });
+    });
+  });
+  return { groups, nodes, modules, submodules, interconnects, connections };
+}
+
+function bufferOwnerTrack(
+  buffer: ArchitectureBufferModel,
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+): TimelineTrackDescriptor {
+  if (buffer.submoduleRef !== null) {
+    const submodule = catalog.submodules.get(buffer.submoduleRef);
+    if (submodule !== undefined) return submodule;
+  }
+  if (buffer.moduleRef !== null) {
+    const module = catalog.modules.get(buffer.moduleRef);
+    if (module !== undefined) {
+      return {
+        ...module,
+        trackKind: "module",
+        ownerRefs: [buffer.moduleRef],
+        structural: false,
+        parentTrackId: null,
+      };
+    }
+    const interconnect = [...catalog.interconnects.entries()].find(
+      ([interconnectId]) =>
+        buffer.moduleRef === interconnectId ||
+        buffer.moduleRef?.startsWith(`${interconnectId}/`),
+    )?.[1];
+    if (interconnect !== undefined) {
+      return {
+        ...interconnect,
+        trackKind: "interconnect",
+        ownerRefs: [buffer.moduleRef],
+        structural: false,
+        parentTrackId: null,
+      };
+    }
+    return {
+      id: `module:${buffer.moduleRef}`,
+      label: architectureLabel(buffer.moduleRef),
+      subtitle: "Module",
+      trackKind: "module",
+      order: 9_000,
+      ownerRefs: [buffer.moduleRef],
+      structural: false,
+      parentTrackId: null,
+    };
+  }
+  return {
+    id: "resource:unbound",
+    label: "Unbound Resources",
+    subtitle: "No architecture owner declared",
+    trackKind: "resource",
+    order: 50_000,
+    ownerRefs: [],
+    structural: false,
+    parentTrackId: null,
+  };
+}
+
+function timelineMilestones(
+  event: CompletedEvaluationEventModel,
+  buffersById: ReadonlyMap<string, ArchitectureBufferModel>,
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+  includeCompletionFacts: boolean,
+): TimelineMilestoneViewModel[] {
+  const tokenFlow = event.tokenFlow ?? { consumed: {}, produced: {} };
+  const consumedTokenIds = new Set(Object.values(tokenFlow.consumed).flat());
+  const milestones: TimelineMilestoneViewModel[] = [];
+  const appendBufferMilestone = (
+    kind: "produced" | "delivered" | "consumed",
+    bufferId: string,
+    quantity: number,
+    timeSeconds: number,
+  ) => {
+    if (quantity <= 0) return;
+    const buffer = buffersById.get(bufferId);
+    const resourceName = buffer === undefined
+      ? "Resource"
+      : words(buffer.tokenKind);
+    const owner = buffer === undefined ? null : bufferOwnerTrack(buffer, catalog);
+    milestones.push({
+      id: `event:${event.event_id}:milestone:${kind}:${bufferId}`,
+      kind,
+      timeSeconds,
+      label: `${resourceName} ${kind}`,
+      quantity,
+      bufferId,
+      ownerTrackId: owner?.id ?? null,
+      ownerLabel: owner?.label ?? null,
+      outcome: null,
+    });
+  };
+
+  Object.entries(tokenFlow.consumed).forEach(([bufferId, tokenIds]) => {
+    // Consumption is committed at dispatch, not when the work later completes.
+    appendBufferMilestone("consumed", bufferId, tokenIds.length, event.start_s);
+  });
+  if (!includeCompletionFacts) return milestones;
+  Object.entries(tokenFlow.produced).forEach(([bufferId, tokenIds]) => {
+    const delivered = tokenIds.filter((tokenId) => consumedTokenIds.has(tokenId)).length;
+    appendBufferMilestone("delivered", bufferId, delivered, event.end_s);
+    appendBufferMilestone("produced", bufferId, tokenIds.length - delivered, event.end_s);
+  });
+  (event.runtime?.measurements ?? []).forEach((measurement, index) => {
+    milestones.push({
+      id: `event:${event.event_id}:milestone:measurement:${index}`,
+      kind: "measurement",
+      timeSeconds: event.end_s,
+      label: `Measurement = ${measurement.bit}`,
+      quantity: 1,
+      bufferId: null,
+      ownerTrackId: null,
+      ownerLabel: null,
+      outcome: measurement.bit,
+    });
+  });
+  return milestones;
+}
+
+function timelineBufferTracks(
+  report: EvaluationReportModel,
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+  displayDurationSeconds: number,
+): TimelineBufferTrackViewModel[] {
+  const buffers = report.architectureBuffers ?? [];
+  const snapshots = report.architectureBufferSnapshots ?? [];
+  // A summary trace has no state snapshots; extending the initial state across
+  // the whole run would look authoritative while hiding every transition.
+  if (buffers.length === 0 || snapshots.length === 0) return [];
+  const appendSegment = (
+    segments: TimelineBufferTrackViewModel["segments"],
+    startSeconds: number,
+    endSeconds: number,
+    ready: number,
+    pendingIncoming: number,
+    capacity: number,
+  ) => {
+    if (endSeconds <= startSeconds + Number.EPSILON) return segments;
+    const mutable = segments as Array<
+      TimelineBufferTrackViewModel["segments"][number]
+    >;
+    const previous = mutable.at(-1);
+    if (
+      previous !== undefined &&
+      Math.abs(previous.endSeconds - startSeconds) <= Number.EPSILON &&
+      previous.ready === ready &&
+      previous.pendingIncoming === pendingIncoming
+    ) {
+      mutable[mutable.length - 1] = { ...previous, endSeconds };
+    } else {
+      mutable.push({
+        startSeconds,
+        endSeconds,
+        ready,
+        pendingIncoming,
+        capacity,
+      });
+    }
+    return segments;
+  };
+
+  return buffers
+    .map((buffer) => {
+      const owner = bufferOwnerTrack(buffer, catalog);
+      const segments: TimelineBufferTrackViewModel["segments"] = [];
+      let ready = buffer.initialReady;
+      let pendingIncoming = 0;
+      let cursor = 0;
+      for (const snapshot of snapshots) {
+        if (snapshot.timeSeconds > displayDurationSeconds + Number.EPSILON) break;
+        const state = snapshot.states[buffer.id];
+        if (state === undefined) continue;
+        const boundary = Math.max(0, Math.min(snapshot.timeSeconds, displayDurationSeconds));
+        appendSegment(
+          segments,
+          cursor,
+          boundary,
+          ready,
+          pendingIncoming,
+          buffer.capacity,
+        );
+        ready = state.ready;
+        pendingIncoming = state.pendingIncoming;
+        cursor = boundary;
+      }
+      appendSegment(
+        segments,
+        cursor,
+        displayDurationSeconds,
+        ready,
+        pendingIncoming,
+        buffer.capacity,
+      );
+      const declaredName = buffer.submoduleRef?.split("/").at(-1);
+      const label = declaredName === undefined
+        ? `${words(buffer.tokenKind)} Buffer`
+        : architectureLabel(declaredName);
+      return {
+        track: {
+          id: `buffer:${buffer.id}`,
+          label,
+          subtitle: `${owner.label} · Capacity ${buffer.capacity}`,
+          ownerTrackId: owner.id,
+          ownerLabel: owner.label,
+          ownerKind:
+            owner.trackKind === "submodule"
+              ? ("submodule" as const)
+              : owner.trackKind === "interconnect"
+              ? ("interconnect" as const)
+              : owner.trackKind === "module"
+                ? ("module" as const)
+                : ("resource" as const),
+          tokenKind: buffer.tokenKind,
+          capacity: buffer.capacity,
+          segments,
+        },
+        order: owner.order,
+      };
+    })
+    .sort(
+      (left, right) =>
+        left.order - right.order || left.track.label.localeCompare(right.track.label),
+    )
+    .map(({ track }) => track);
+}
+
+interface VisibleTimelineEvent {
+  event: CompletedEvaluationEventModel;
+  /** A clipped event has no visible completion fact in this causal window. */
+  clipped: boolean;
+}
+
+function timelineBackpressureSpans(
+  process: ResourceProcessModel,
+  processEvents: readonly VisibleTimelineEvent[],
+  bufferTracksById: ReadonlyMap<string, TimelineBufferTrackViewModel>,
+  displayDurationSeconds: number,
+): TimelineBackpressureSpanViewModel[] {
+  const outputs = Object.entries(process.produces);
+  if (outputs.length === 0 || displayDurationSeconds <= 0) return [];
+
+  const outputTracks = outputs.flatMap(([bufferId, amount]) => {
+    const track = bufferTracksById.get(bufferId);
+    return track === undefined ? [] : [{ bufferId, amount, track }];
+  });
+  // discard_excess can only be known to be saturated when every destination
+  // is represented by an authoritative state track.
+  if (
+    process.outputOverflowPolicy === "discard_excess" &&
+    outputTracks.length !== outputs.length
+  ) {
+    return [];
+  }
+
+  const boundaries = new Set<number>([0, displayDurationSeconds]);
+  outputTracks.forEach(({ track }) => {
+    track.segments.forEach((segment) => {
+      boundaries.add(Math.max(0, Math.min(displayDurationSeconds, segment.startSeconds)));
+      boundaries.add(Math.max(0, Math.min(displayDurationSeconds, segment.endSeconds)));
+    });
+  });
+  processEvents.forEach(({ event }) => {
+    boundaries.add(Math.max(0, Math.min(displayDurationSeconds, event.start_s)));
+    boundaries.add(Math.max(0, Math.min(displayDurationSeconds, event.end_s)));
+  });
+  const orderedBoundaries = [...boundaries].sort((left, right) => left - right);
+
+  const bufferStateAt = (
+    track: TimelineBufferTrackViewModel,
+    timeSeconds: number,
+  ) => track.segments.find(
+    (segment) =>
+      segment.startSeconds <= timeSeconds + Number.EPSILON &&
+      timeSeconds < segment.endSeconds - Number.EPSILON,
+  );
+  const blockingBuffersAt = (timeSeconds: number): string[] => {
+    if (process.outputOverflowPolicy === "discard_excess") {
+      const fullBuffers: string[] = [];
+      for (const { bufferId, track } of outputTracks) {
+        const state = bufferStateAt(track, timeSeconds);
+        if (state === undefined) return [];
+        const freeSlots = state.capacity - state.ready - state.pendingIncoming;
+        if (freeSlots > 0) return [];
+        fullBuffers.push(bufferId);
+      }
+      return fullBuffers;
+    }
+
+    return outputTracks.flatMap(({ bufferId, amount, track }) => {
+      const state = bufferStateAt(track, timeSeconds);
+      if (state === undefined) return [];
+      const freeSlots = state.capacity - state.ready - state.pendingIncoming;
+      return freeSlots < amount ? [bufferId] : [];
+    });
+  };
+
+  const merged: Array<{
+    startSeconds: number;
+    endSeconds: number;
+    bufferIds: Set<string>;
+  }> = [];
+  for (let index = 0; index + 1 < orderedBoundaries.length; index += 1) {
+    const startSeconds = orderedBoundaries[index];
+    const endSeconds = orderedBoundaries[index + 1];
+    if (endSeconds <= startSeconds + Number.EPSILON) continue;
+    const sampleTime = startSeconds + (endSeconds - startSeconds) / 2;
+    const activeInstances = processEvents.filter(({ event }) =>
+      event.start_s <= sampleTime + Number.EPSILON &&
+      sampleTime < Math.min(event.end_s, displayDurationSeconds) - Number.EPSILON,
+    ).length;
+    if (activeInstances >= process.parallelism) continue;
+    const blockingBufferIds = blockingBuffersAt(sampleTime);
+    if (blockingBufferIds.length === 0) continue;
+
+    const previous = merged.at(-1);
+    if (
+      previous !== undefined &&
+      Math.abs(previous.endSeconds - startSeconds) <= Number.EPSILON
+    ) {
+      previous.endSeconds = endSeconds;
+      blockingBufferIds.forEach((bufferId) => previous.bufferIds.add(bufferId));
+    } else {
+      merged.push({
+        startSeconds,
+        endSeconds,
+        bufferIds: new Set(blockingBufferIds),
+      });
+    }
+  }
+
+  return merged.map((span, index) => ({
+    id: `backpressure:${process.id}:${index}`,
+    processId: process.id,
+    startSeconds: span.startSeconds,
+    endSeconds: span.endSeconds,
+    durationSeconds: span.endSeconds - span.startSeconds,
+    reason:
+      process.outputOverflowPolicy === "discard_excess"
+        ? "All output buffers full"
+        : "Required output capacity unavailable",
+    bufferIds: [...span.bufferIds].sort(),
+    outputOverflowPolicy: process.outputOverflowPolicy,
+  }));
+}
+
+function localConnectionTrack(
+  targetModules: readonly string[],
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+): TimelineTrackDescriptor | null {
+  if (targetModules.length < 2) return null;
+  const targets = new Set(targetModules);
+  const matches = catalog.connections.filter((connection) => {
+    const connectedModules = new Set(
+      connection.ownerRefs.slice(1).map((endpoint) =>
+        endpoint.split("/").slice(0, 2).join("/"),
+      ),
+    );
+    return (
+      connectedModules.size === targets.size &&
+      [...targets].every((moduleRef) => connectedModules.has(moduleRef))
+    );
+  });
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function internalMovementTrack(
+  moduleRef: string,
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+): TimelineTrackDescriptor {
+  const owner = catalog.modules.get(moduleRef);
+  return {
+    id: `movement:${moduleRef}`,
+    label: "Internal Movement",
+    subtitle: owner === undefined
+      ? architectureLabel(moduleRef)
+      : `${owner.label} · Local operand motion`,
+    trackKind: "transfer",
+    order: (owner?.order ?? 9_000) + 80,
+    ownerRefs: [moduleRef],
+    structural: false,
+    parentTrackId: owner?.id ?? null,
+  };
+}
+
+function pairGeneratorTrack(
+  linkId: string,
+  event: CompletedEvaluationEventModel,
+  engineOwners: Readonly<Record<string, EngineOwnershipViewModel>>,
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+): TimelineTrackDescriptor | null {
+  const exact = exactEngineSubmodule(event, engineOwners);
+  if (exact !== null) {
+    const exactTrack = catalog.submodules.get(exact);
+    if (exactTrack !== undefined) return exactTrack;
+  }
+  const candidates = [...catalog.submodules.entries()]
+    .filter(([ref]) =>
+      ref.startsWith(`${linkId}/`) &&
+      (ref.includes("/bell_engine/") || ref.endsWith("/pair_generator")),
+    )
+    .map(([, track]) => track);
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+function interconnectTransferTrack(
+  linkId: string,
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+): TimelineTrackDescriptor {
+  const owner = catalog.interconnects.get(linkId);
+  return {
+    id: `interconnect-transfer:${linkId}`,
+    label: "Teleportation",
+    subtitle: owner === undefined
+      ? `Interconnect · ${linkId}`
+      : `${owner.label} · Link transfer`,
+    trackKind: "transfer",
+    order: (owner?.order ?? 19_000) + 80,
+    ownerRefs: [linkId],
+    structural: false,
+    parentTrackId: owner?.id ?? null,
+  };
+}
+
+function moduleActivityTrack(
+  moduleRef: string,
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+): TimelineTrackDescriptor {
+  const owner = catalog.modules.get(moduleRef);
+  return {
+    id: `module-activity:${moduleRef}`,
+    label: "Module Activity",
+    subtitle: owner?.label ?? architectureLabel(moduleRef),
+    trackKind: "module",
+    order: (owner?.order ?? 9_000) + 90,
+    ownerRefs: [moduleRef],
+    structural: false,
+    parentTrackId: owner?.id ?? null,
+  };
+}
+
+function trackForEvent(
+  event: CompletedEvaluationEventModel,
+  eventView: Omit<TimelineEventViewModel, "locus">,
+  engineOwners: Readonly<Record<string, EngineOwnershipViewModel>>,
+  catalog: ReturnType<typeof timelineTrackCatalog>,
+): TimelineTrackDescriptor {
+  if (eventView.lane === "classical") {
+    return {
+      id: "classical:decoder",
+      label: "Classical Decoder",
+      subtitle: "Classical control",
+      trackKind: "classical",
+      order: 30_000,
+      ownerRefs: [],
+      structural: false,
+      parentTrackId: null,
+    };
+  }
+
+  // Visual ownership follows the operation's semantic locus. Engine claims
+  // remain contention/sub-lane evidence and never override explicit transfer
+  // or interconnect targets.
+  const uniqueLinks = [...new Set(eventView.targetLinks)].sort();
+  const uniqueModules = [...new Set(eventView.targetModules)].sort();
+
+  if (event.opcode === "MOVE_QUBITS" && uniqueModules.length === 1) {
+    return internalMovementTrack(uniqueModules[0], catalog);
+  }
+
+  if (uniqueLinks.length === 0) {
+    const connection = localConnectionTrack(uniqueModules, catalog);
+    if (connection !== null) return connection;
+  }
+
+  if (uniqueLinks.length === 1) {
+    const linkId = uniqueLinks[0];
+    if (event.opcode === "PREPARE_LOGICAL_BELL") {
+      const generator = pairGeneratorTrack(linkId, event, engineOwners, catalog);
+      if (generator !== null) return generator;
+    }
+    return interconnectTransferTrack(linkId, catalog);
+  }
+  if (uniqueLinks.length > 1) {
+    return {
+      id: `interconnect-transfer:${uniqueLinks.join("|")}`,
+      label: uniqueLinks.map(architectureLabel).join(" ↔ "),
+      subtitle: "Interconnect path",
+      trackKind: "transfer",
+      order: 19_500,
+      ownerRefs: uniqueLinks,
+      structural: false,
+      parentTrackId: null,
+    };
+  }
+
+  if (uniqueModules.length > 1) {
+    return {
+      id: `transfer:${uniqueModules.join("|")}`,
+      label: uniqueModules
+        .map((moduleRef) =>
+          catalog.modules.get(moduleRef)?.label ?? architectureLabel(moduleRef),
+        )
+        .join(" ↔ "),
+      subtitle: "Inter-module transfer",
+      trackKind: "transfer",
+      order: 20_000,
+      ownerRefs: uniqueModules,
+      structural: false,
+      parentTrackId: null,
+    };
+  }
+
+  const engineSubmodule = exactEngineSubmodule(event, engineOwners);
+  if (engineSubmodule !== null) {
+    const track = catalog.submodules.get(engineSubmodule);
+    if (track !== undefined) return track;
+  }
+
+  if (uniqueModules.length === 1) {
+    const moduleRef = uniqueModules[0];
+    return moduleActivityTrack(moduleRef, catalog);
+  }
+
+  if (event.opcode === "FENCE") {
+    return {
+      id: "control:program",
+      label: "Program Control",
+      subtitle: "Synchronization",
+      trackKind: "control",
+      order: 40_000,
+      ownerRefs: [],
+      structural: false,
+      parentTrackId: null,
+    };
+  }
+  if (event.plane === "resource") {
+    const fallback = event.process_id ?? "unbound";
+    return {
+      id: `resource:${fallback}`,
+      label: architectureLabel(fallback),
+      subtitle: "Unbound resource process",
+      trackKind: "resource",
+      order: 50_000,
+      ownerRefs: [],
+      structural: false,
+      parentTrackId: null,
+    };
+  }
+  return {
+    id: "control:program",
+    label: "Program Control",
+    subtitle: "Unbound program work",
+    trackKind: "control",
+    order: 40_000,
+    ownerRefs: [],
+    structural: false,
+    parentTrackId: null,
+  };
+}
+
+function timelineView(
+  report: EvaluationReportModel,
+  requestedLimit: number,
+  logicalGadgets: readonly LogicalGadgetSpanViewModel[],
+): TimelineViewModel {
   const allLayerIndices = report.circuit.layers.map((layer) => layer.index);
   const maxProgramLayers = Math.min(
     MAX_TIMELINE_LAYER_LIMIT,
@@ -2583,6 +4057,13 @@ function timelineView(report: EvaluationReportModel, requestedLimit: number): Ti
   const totalProgramLayerCount = allLayerIndices.length;
   const visibleProgramLayerCount = visibleLayerIndices.size;
   const events = report.completed_events;
+  const seenEventIds = new Set(events.map((event) => event.event_id));
+  const inflightEvents = (report.inflight_events ?? []).filter((event) => {
+    if (seenEventIds.has(event.event_id)) return false;
+    seenEventIds.add(event.event_id);
+    return true;
+  });
+  const eventsById = completedEventsById([...events, ...inflightEvents]);
 
   const eventsInVisibleLayers = events.filter(
     (event) => event.plane === "program" && visibleLayerIndices.has(eventLayer(event) ?? -1),
@@ -2592,15 +4073,29 @@ function timelineView(report: EvaluationReportModel, requestedLimit: number): Ti
       ? Math.max(...eventsInVisibleLayers.map((event) => event.end_s))
       : report.summary.total_latency_s;
 
-  const candidateEvents = events.filter((event) => {
-    const layer = eventLayer(event);
-    if (event.plane === "program" && layer !== null) return visibleLayerIndices.has(layer);
-    // Unlayered Program work and completed Resource work are shown only inside
-    // the causal time window. Resource events are never assigned a fake layer.
-    return event.end_s <= displayCutoff + Number.EPSILON;
-  });
-  const programEvents = candidateEvents.filter((event) => event.plane === "program");
-  const resourceEvents = candidateEvents.filter((event) => event.plane === "resource");
+  const candidateEvents = [
+    ...events
+      .filter((event) => {
+        const layer = eventLayer(event);
+        if (event.plane === "program" && layer !== null) return visibleLayerIndices.has(layer);
+        return event.start_s <= displayCutoff + Number.EPSILON;
+      })
+      .map((event) => ({
+        event,
+        clipped: event.end_s > displayCutoff + Number.EPSILON,
+      })),
+    ...inflightEvents
+      .filter((event) => {
+        const layer = eventLayer(event);
+        if (event.plane === "program" && layer !== null && !visibleLayerIndices.has(layer)) {
+          return false;
+        }
+        return event.start_s <= displayCutoff + Number.EPSILON;
+      })
+      .map((event) => ({ event, clipped: true })),
+  ].filter(({ event }) => event.opcode !== "FENCE");
+  const programEvents = candidateEvents.filter(({ event }) => event.plane === "program");
+  const resourceEvents = candidateEvents.filter(({ event }) => event.plane === "resource");
   const visibleEvents = [
     ...programEvents.slice(0, MAX_TIMELINE_EVENT_LIMIT),
     ...resourceEvents.slice(
@@ -2610,49 +4105,149 @@ function timelineView(report: EvaluationReportModel, requestedLimit: number): Ti
   ];
   const candidateEventCount = candidateEvents.length;
   const renderedEventCount = visibleEvents.length;
-  const sourceMeasurements = sourceMeasurementsByInstruction(events);
 
-  const rows = new Map<string, TimelineRowViewModel>();
-  for (const event of visibleEvents) {
-    const eventView = timelineEventView(event, sourceMeasurements);
-    const targetModules = metadataStringArray(event.metadata, "target_modules");
-    const resourceIdentity = event.process_id ?? targetModules[0] ?? "resource";
-    const programIdentity = targetModules[0] ?? "program";
-    const runtimeStep = eventView.runtimeLineage?.step;
-    const identity =
-      event.plane === "program"
-        ? `${programIdentity}${runtimeStep && runtimeStep !== "source" ? `:${runtimeStep}` : ""}`
-        : resourceIdentity;
-    const rowId = `${event.plane}:${identity}`;
-    const row = rows.get(rowId) ?? {
-      id: rowId,
-      label:
-        event.plane === "program" && runtimeStep && runtimeStep !== "source"
-          ? `Program · ${words(programIdentity)} · ${words(runtimeStep)}`
-          : `${event.plane === "program" ? "Program" : "Resource"} · ${words(identity)}`,
-      plane: event.plane,
-      events: [],
+  const gadgetLabelByInvocation = new Map(
+    logicalGadgets.map((gadget) => [gadget.invocationId, gadget.label]),
+  );
+  const trackCatalog = timelineTrackCatalog(report.architecture);
+  const buffersById = new Map(
+    (report.architectureBuffers ?? []).map((buffer) => [buffer.id, buffer]),
+  );
+  const rows = new Map<
+    string,
+    { row: TimelineRowViewModel; order: number }
+  >();
+  const processTrackIds = new Map<string, Set<string>>();
+  for (const { event, clipped } of visibleEvents) {
+    const eventDraft = timelineEventView(
+      event,
+      eventsById,
+      gadgetLabelByInvocation,
+      buffersById,
+      trackCatalog,
+      clipped ? displayCutoff : null,
+    );
+    const track = trackForEvent(
+      event,
+      eventDraft,
+      report.engineOwners,
+      trackCatalog,
+    );
+    const eventView: TimelineEventViewModel = {
+      ...eventDraft,
+      locus: {
+        kind: track.trackKind,
+        trackId: track.id,
+        ownerRefs: track.ownerRefs,
+      },
     };
-    (row.events as TimelineEventViewModel[]).push(eventView);
-    rows.set(rowId, row);
+    const entry = rows.get(track.id) ?? {
+      row: {
+        id: track.id,
+        label: track.label,
+        subtitle: track.subtitle,
+        trackKind: track.trackKind,
+        structural: track.structural,
+        parentTrackId: track.parentTrackId,
+        events: [],
+        backpressureSpans: [],
+      },
+      order: track.order,
+    };
+    (entry.row.events as TimelineEventViewModel[]).push(eventView);
+    rows.set(track.id, entry);
+    if (event.plane === "resource" && event.process_id !== null) {
+      const trackIds = processTrackIds.get(event.process_id) ?? new Set<string>();
+      trackIds.add(track.id);
+      processTrackIds.set(event.process_id, trackIds);
+    }
+
+  }
+
+  const visibleLogicalGadgets = logicalGadgets.filter((gadget) =>
+    visibleLayerIndices.has(gadget.sourceLayerIndex),
+  );
+  const displayDurationSeconds = Math.max(
+    displayCutoff,
+    ...visibleEvents.map(({ event, clipped }) =>
+      clipped ? Math.min(event.end_s, displayCutoff) : event.end_s,
+    ),
+    ...visibleLogicalGadgets.map((gadget) => gadget.completionSeconds),
+    0,
+  );
+  const bufferTracks = timelineBufferTracks(
+    report,
+    trackCatalog,
+    displayDurationSeconds,
+  );
+  const bufferTracksById = new Map(
+    bufferTracks.map((track) => [track.id.slice("buffer:".length), track]),
+  );
+  for (const process of report.resourceProcesses ?? []) {
+    const trackIds = processTrackIds.get(process.id);
+    if (trackIds === undefined || trackIds.size !== 1) continue;
+    const trackId = [...trackIds][0];
+    const entry = rows.get(trackId);
+    if (
+      entry === undefined ||
+      (
+        entry.row.trackKind !== "submodule" &&
+        entry.row.trackKind !== "module" &&
+        entry.row.trackKind !== "interconnect"
+      )
+    ) {
+      continue;
+    }
+    const processEvents = candidateEvents.filter(
+      ({ event }) => event.plane === "resource" && event.process_id === process.id,
+    );
+    const spans = timelineBackpressureSpans(
+      process,
+      processEvents,
+      bufferTracksById,
+      displayDurationSeconds,
+    );
+    (entry.row.backpressureSpans as TimelineBackpressureSpanViewModel[]).push(...spans);
   }
 
   const orderedRows = [...rows.values()]
-    .map((row) => ({
-      ...row,
-      events: [...row.events].sort(
-        (left, right) => left.startSeconds - right.startSeconds || left.endSeconds - right.endSeconds,
-      ),
+    .map(({ row, order }) => ({
+      row: {
+        ...row,
+        events: [...row.events].sort(
+          (left, right) =>
+            left.startSeconds - right.startSeconds ||
+            left.endSeconds - right.endSeconds ||
+            left.id.localeCompare(right.id),
+        ),
+        backpressureSpans: [...row.backpressureSpans].sort(
+          (left, right) =>
+            left.startSeconds - right.startSeconds ||
+            left.endSeconds - right.endSeconds ||
+            left.processId.localeCompare(right.processId) ||
+            left.id.localeCompare(right.id),
+        ),
+      },
+      order,
     }))
-    .sort((left, right) => {
-      if (left.plane !== right.plane) return left.plane === "program" ? -1 : 1;
-      return left.label.localeCompare(right.label);
-    });
-  const displayDurationSeconds = Math.max(
-    displayCutoff,
-    ...visibleEvents.map((event) => event.end_s),
-    0,
+    .sort(
+      (left, right) =>
+        left.order - right.order || left.row.label.localeCompare(right.row.label),
+    )
+    .map(({ row }) => row);
+  const gadgetHosts = timelineGadgetHosts(visibleLogicalGadgets, orderedRows);
+  const activeGroupIds = new Set(
+    orderedRows.flatMap((row) =>
+      row.parentTrackId === null ? [] : [row.parentTrackId],
+    ),
   );
+  const groups = [...trackCatalog.groups.values()]
+    .filter((group) => activeGroupIds.has(group.id))
+    .sort(
+      (left, right) =>
+        left.order - right.order || left.label.localeCompare(right.label),
+    )
+    .map(({ order: _order, ...group }) => group);
 
   return {
     fullDurationSeconds: report.summary.total_latency_s,
@@ -2664,12 +4259,19 @@ function timelineView(report: EvaluationReportModel, requestedLimit: number): Ti
     candidateEventCount,
     renderedEventCount,
     eventTruncated: renderedEventCount < candidateEventCount,
+    logicalGadgets: visibleLogicalGadgets,
+    gadgetHosts,
+    groups,
     rows: orderedRows,
+    bufferTracks,
   };
 }
 
-function programExecutionView(report: EvaluationReportModel): ProgramExecutionViewModel {
-  const sourceMeasurements = sourceMeasurementsByInstruction(report.completed_events);
+function programExecutionView(
+  report: EvaluationReportModel,
+  logicalGadgets: readonly LogicalGadgetSpanViewModel[],
+): ProgramExecutionViewModel {
+  const eventsById = completedEventsById(report.completed_events);
   const dynamicWork: DynamicProgramWorkViewModel[] = report.completed_events
     .filter(
       (event): event is CompletedEvaluationEventModel & {
@@ -2683,7 +4285,7 @@ function programExecutionView(report: EvaluationReportModel): ProgramExecutionVi
         event.runtime?.lineage !== null &&
         event.runtime?.lineage !== undefined &&
         (
-          event.runtime.lineage.step !== "source" ||
+          event.runtime.lineage.recipeMembers.length > 0 ||
           event.runtime.measurements.length > 0 ||
           event.runtime.continuation?.kind === "activate"
         ),
@@ -2700,13 +4302,15 @@ function programExecutionView(report: EvaluationReportModel): ProgramExecutionVi
       targetModules: metadataStringArray(event.metadata, "target_modules"),
       lineage: event.runtime.lineage,
       measurements: event.runtime.measurements,
-      sourceMeasurements: associatedSourceMeasurements(event, sourceMeasurements),
+      sourceMeasurements: associatedParentMeasurements(event, eventsById),
       continuation: event.runtime.continuation,
       conditionalCorrection: event.runtime.lineage.step === "correction",
+      recipeInvocationIds: lineageInvocationIds(event.runtime.lineage),
     }));
   return {
     outputProgram: report.output_program,
     dynamicWork,
+    logicalGadgets,
   };
 }
 
@@ -2833,6 +4437,7 @@ export function reportToViewModels(
   if (!Number.isFinite(requestedLimit) || requestedLimit <= 0) {
     throw new Error("maxProgramLayers must be a positive finite number");
   }
+  const logicalGadgets = logicalGadgetSpans(report);
   return {
     headline: {
       profileId: report.profile_id,
@@ -2846,7 +4451,7 @@ export function reportToViewModels(
       eventCount: report.summary.event_count,
     },
     architecture: report.architecture,
-    timeline: timelineView(report, requestedLimit),
+    timeline: timelineView(report, requestedLimit, logicalGadgets),
     timeBreakdown: timeBreakdownView(report),
     spaceBreakdown: spaceBreakdownView(report),
     fidelity: {
@@ -2865,6 +4470,6 @@ export function reportToViewModels(
         report.fidelity_evidence.unprofiled_resource_idle_exposure_s,
     },
     circuitStatistics: circuitStatisticsView(report),
-    programExecution: programExecutionView(report),
+    programExecution: programExecutionView(report, logicalGadgets),
   };
 }

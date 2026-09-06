@@ -10,24 +10,24 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from heteqsys.api import (
+from arqsim.api import (
     CANONICAL_FIDELITY_PRESET,
     EvaluationConfig,
     run_evaluation,
 )
-from heteqsys.evaluation import EvaluationPolicy, RuntimeInjectionMode
-from heteqsys.operation_profiles import (
+from arqsim.evaluation import ExecutionPolicy, RuntimeInjectionMode
+from arqsim.operation_profiles import (
     ArrivalDistribution,
     OperationLatencyProfile,
     reference_reaction_latency_profile_v1,
 )
-from heteqsys.program import (
+from arqsim.program import (
     FTCircuit,
     LogicalLayer,
     LogicalOperation,
     load_ft_workload,
 )
-from heteqsys.report_v2 import load_report_v2_document
+from arqsim.report_v2 import load_report_v2_document
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,9 +51,11 @@ def _static_report() -> str:
         circuit,
         EvaluationConfig(
             profile_id="1.2",
-            workflow_id="report-v2-static-fixture",
+            run_label="report-v2-static-fixture",
             latency_profile=latency,
-            evaluation_policy=EvaluationPolicy(trace_level="summary", seed=7),
+            execution_policy=ExecutionPolicy(
+                observation_level="summary", run_seed=7
+            ),
             fidelity_profile=CANONICAL_FIDELITY_PRESET,
         ),
     ).to_json()
@@ -76,12 +78,12 @@ def _dynamic_t_report() -> str:
         circuit,
         EvaluationConfig(
             profile_id="1.1",
-            workflow_id="report-v2-dynamic-t-fixture",
+            run_label="report-v2-dynamic-t-fixture",
             latency_profile=reference_reaction_latency_profile_v1(),
-            evaluation_policy=EvaluationPolicy(
-                trace_level="full",
-                seed=0,
-                runtime_injection_mode=(
+            execution_policy=ExecutionPolicy(
+                observation_level="full",
+                run_seed=5,
+                injection_lowering_mode=(
                     RuntimeInjectionMode.FINITE_STATE_INJECTION_V1
                 ),
             ),

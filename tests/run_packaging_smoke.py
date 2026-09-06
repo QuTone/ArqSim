@@ -5,7 +5,7 @@ Run from the repository root with::
     python tests/run_packaging_smoke.py
 
 The smoke is offline by default: the temporary virtual environment can see the
-caller's already-installed third-party dependencies, while ``heteqsys`` itself
+caller's already-installed third-party dependencies, while ``arqsim`` itself
 must come from the freshly built wheel. Build products and the virtual
 environment live under a temporary directory and are deleted on success.
 """
@@ -16,6 +16,7 @@ import json
 import os
 import re
 import shutil
+import site
 import subprocess
 import sys
 import tarfile
@@ -32,7 +33,8 @@ SOURCE_ENTRIES = (
     "MANIFEST.in",
     "README.md",
     "LICENSE",
-    "heteqsys",
+    "THIRD_PARTY_NOTICES.md",
+    "arqsim",
     "docs",
     "examples",
     "system_cases",
@@ -55,14 +57,14 @@ EXPECTED_METADATA_REQUIREMENTS = frozenset(
 )
 FORBIDDEN_PACKAGE_FILES = frozenset(
     {
-        "heteqsys/architecture/hierarchy.py",
-        "heteqsys/architecture/layout_policy.py",
-        "heteqsys/architecture/legacy_adapter.py",
-        "heteqsys/architecture/profile_compat.py",
-        "heteqsys/architecture/quantile_layout.py",
-        "heteqsys/architecture/spec.py",
-        "heteqsys/operation_profiles/protocol_selection.py",
-        "heteqsys/qec/configuration.py",
+        "arqsim/architecture/hierarchy.py",
+        "arqsim/architecture/layout_policy.py",
+        "arqsim/architecture/legacy_adapter.py",
+        "arqsim/architecture/profile_compat.py",
+        "arqsim/architecture/quantile_layout.py",
+        "arqsim/architecture/spec.py",
+        "arqsim/operation_profiles/protocol_selection.py",
+        "arqsim/qec/configuration.py",
     }
 )
 FORBIDDEN_CACHE_PARTS = frozenset(
@@ -144,7 +146,7 @@ def _build_artifacts(source: Path, artifacts: Path) -> tuple[Path, Path]:
 
 def _expected_package_files(source: Path) -> set[str]:
     expected: set[str] = set()
-    for path in (source / "heteqsys").rglob("*"):
+    for path in (source / "arqsim").rglob("*"):
         if not path.is_file() or "__pycache__" in path.parts:
             continue
         if path.suffix not in {".py", ".yaml"}:
@@ -164,7 +166,15 @@ def _is_release_source_file(path: Path) -> bool:
 
 def _expected_sdist_files(source: Path) -> set[str]:
     expected = _expected_package_files(source)
-    expected.update({"pyproject.toml", "MANIFEST.in", "README.md", "LICENSE"})
+    expected.update(
+        {
+            "pyproject.toml",
+            "MANIFEST.in",
+            "README.md",
+            "LICENSE",
+            "THIRD_PARTY_NOTICES.md",
+        }
+    )
     for tree_name in REPOSITORY_SOURCE_TREES:
         tree = source / tree_name
         expected.update(
@@ -217,7 +227,7 @@ def _inspect_wheel(wheel: Path, expected: set[str]) -> set[str]:
     actual_package_files = {
         name
         for name in wheel_names
-        if name.startswith("heteqsys/") and not name.endswith("/")
+        if name.startswith("arqsim/") and not name.endswith("/")
     }
     missing_wheel_files = sorted(expected - actual_package_files)
     unexpected_wheel_files = sorted(actual_package_files - expected)
@@ -238,8 +248,8 @@ def _inspect_wheel(wheel: Path, expected: set[str]) -> set[str]:
             f"expected={sorted(EXPECTED_METADATA_REQUIREMENTS)}, "
             f"actual={sorted(requirements)}"
         )
-    if metadata.get("Name") != "heteqsys" or metadata.get("Version") != "0.2.0":
-        raise RuntimeError("Wheel name/version metadata is not heteqsys 0.2.0")
+    if metadata.get("Name") != "arqsim" or metadata.get("Version") != "0.2.0":
+        raise RuntimeError("Wheel name/version metadata is not arqsim 0.2.0")
     if metadata.get("Author") != "Xiang Fang":
         raise RuntimeError("Wheel author metadata is not Xiang Fang")
     if metadata.get("Requires-Python") != ">=3.10":
@@ -256,8 +266,8 @@ def _inspect_wheel(wheel: Path, expected: set[str]) -> set[str]:
     )
     if expected_repository_url not in project_urls:
         raise RuntimeError("Wheel metadata does not contain the canonical repository URL")
-    if "heteqsys = heteqsys.cli:main" not in entry_points:
-        raise RuntimeError("Wheel does not contain the heteqsys console entry point")
+    if "arqsim = arqsim.cli:main" not in entry_points:
+        raise RuntimeError("Wheel does not contain the arqsim console entry point")
     return wheel_names
 
 
@@ -268,7 +278,7 @@ def _inspect_artifacts(source: Path, wheel: Path, sdist: Path) -> None:
     with tarfile.open(sdist, "r:gz") as archive:
         names = archive.getnames()
         source_manifest_name = next(
-            name for name in names if name.endswith("/heteqsys.egg-info/SOURCES.txt")
+            name for name in names if name.endswith("/arqsim.egg-info/SOURCES.txt")
         )
         source_manifest = archive.extractfile(source_manifest_name)
         if source_manifest is None:
@@ -338,15 +348,23 @@ def _build_wheel_from_sdist(root: Path, sdist: Path) -> Path:
     return wheels[0]
 
 
-def _create_virtual_environment(path: Path) -> tuple[Path, Path]:
+def _create_virtual_environment(
+    path: Path, *, env: dict[str, str]
+) -> tuple[Path, Path, Path]:
     _run(
-        [sys.executable, "-m", "venv", "--system-site-packages", str(path)],
+        [sys.executable, "-m", "venv", str(path)],
         cwd=path.parent,
+        env=env,
     )
     scripts = path / ("Scripts" if os.name == "nt" else "bin")
     python = scripts / ("python.exe" if os.name == "nt" else "python")
-    command = scripts / ("heteqsys.exe" if os.name == "nt" else "heteqsys")
-    return python, command
+    command = scripts / ("arqsim.exe" if os.name == "nt" else "arqsim")
+    purelib = _run(
+        [str(python), "-c", "import sysconfig; print(sysconfig.get_path('purelib'))"],
+        cwd=path.parent,
+        env=env,
+    ).stdout.strip()
+    return python, command, Path(purelib).resolve()
 
 
 def _validate_report(path: Path, *, schema_version: str) -> None:
@@ -369,10 +387,16 @@ def _validate_report(path: Path, *, schema_version: str) -> None:
 
 def _smoke_installed_wheel(root: Path, wheel: Path) -> None:
     root.mkdir()
-    venv_python, venv_command = _create_virtual_environment(root / "venv")
+    run_env = os.environ.copy()
+    for name in ("PYTHONPATH", "PYTHONHOME"):
+        run_env.pop(name, None)
+    run_env["MPLCONFIGDIR"] = str(root / "matplotlib")
+    venv_python, venv_command, installed_site = _create_virtual_environment(
+        root / "venv", env=run_env
+    )
     smoke = root / "installed-smoke"
     smoke.mkdir()
-    pip_env = os.environ.copy()
+    pip_env = run_env.copy()
     pip_env.update(
         {
             "PIP_DISABLE_PIP_VERSION_CHECK": "1",
@@ -386,21 +410,52 @@ def _smoke_installed_wheel(root: Path, wheel: Path) -> None:
         env=pip_env,
     )
 
+    # Nested --system-site-packages environments inherit the base interpreter's
+    # sites, not an invoking venv's dependencies. Append the caller's active
+    # site directories only after installation, preserving the new wheel's
+    # precedence without executing the caller's .pth/editable-install hooks.
+    caller_sites = {
+        Path(value).resolve()
+        for value in (*site.getsitepackages(), site.getusersitepackages())
+        if Path(value).is_dir()
+    }
+    dependency_paths = dict.fromkeys(
+        str(Path(value).resolve())
+        for value in sys.path
+        if value and Path(value).resolve() in caller_sites
+    )
+    (installed_site / "arqsim_smoke_dependencies.pth").write_text(
+        "".join(f"{value}\n" for value in dependency_paths), encoding="utf-8"
+    )
+    expected_package_path = installed_site / "arqsim" / "__init__.py"
+
     api_report = smoke / "api-report.json"
     api_script = textwrap.dedent(
         f"""
+        import importlib.util
         from pathlib import Path
-        import heteqsys
-        from heteqsys import (
+
+        expected_package_path = Path({str(expected_package_path)!r})
+        package_spec = importlib.util.find_spec("arqsim")
+        if (
+            package_spec is None
+            or package_spec.origin is None
+            or Path(package_spec.origin).resolve() != expected_package_path
+        ):
+            raise RuntimeError(
+                f"Expected fresh wheel at {{expected_package_path}}, got {{package_spec}}"
+            )
+        import arqsim
+        from arqsim import (
             EvaluationConfig,
             FTCircuit,
             run_evaluation,
         )
-        from heteqsys.program import LogicalLayer, LogicalOperation
+        from arqsim.program import LogicalLayer, LogicalOperation
 
-        package_path = Path(heteqsys.__file__).resolve()
-        if {str(REPOSITORY_ROOT)!r} in str(package_path):
-            raise RuntimeError(f"Imported source tree instead of wheel: {{package_path}}")
+        package_path = Path(arqsim.__file__).resolve()
+        if package_path != expected_package_path:
+            raise RuntimeError(f"Imported outside the fresh wheel: {{package_path}}")
         circuit = FTCircuit(
             representation="clifford_t",
             num_qubits=2,
@@ -410,12 +465,7 @@ def _smoke_installed_wheel(root: Path, wheel: Path) -> None:
                 LogicalLayer(
                     1,
                     (
-                        LogicalOperation(
-                            "gate",
-                            "rz",
-                            (0,),
-                            parameters=(0.39269908169872414,),
-                        ),
+                        LogicalOperation("gate", "s", (0,)),
                     ),
                 ),
                 LogicalLayer(2, (LogicalOperation("gate", "cx", (0, 1)),)),
@@ -426,8 +476,6 @@ def _smoke_installed_wheel(root: Path, wheel: Path) -> None:
         Path({str(api_report)!r}).write_text(report.to_json(), encoding="utf-8")
         """
     )
-    run_env = os.environ.copy()
-    run_env["MPLCONFIGDIR"] = str(root / "matplotlib")
     _run([str(venv_python), "-c", api_script], cwd=smoke, env=run_env)
     _validate_report(api_report, schema_version=REPORT_V2_SCHEMA)
 
@@ -439,7 +487,7 @@ def _smoke_installed_wheel(root: Path, wheel: Path) -> None:
             include "qelib1.inc";
             qreg q[2];
             h q[0];
-            rz(pi/8) q[0];
+            s q[0];
             cx q[0],q[1];
             t q[1];
             """
@@ -490,7 +538,7 @@ def _smoke_installed_wheel(root: Path, wheel: Path) -> None:
 
 
 def main() -> int:
-    with tempfile.TemporaryDirectory(prefix="heteqsys-packaging-smoke-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="arqsim-packaging-smoke-") as temporary:
         root = Path(temporary)
         source = root / "source"
         artifacts = root / "artifacts"

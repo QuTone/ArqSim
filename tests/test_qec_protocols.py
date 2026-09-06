@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from heteqsys.operation_profiles import (
+from arqsim.operation_profiles import (
     ArrivalDistribution,
     OperationLatencyProfile,
     ResolvedResourceProtocolBinding,
@@ -12,15 +12,15 @@ from heteqsys.operation_profiles import (
     apply_arrival_overrides,
     resolve_resource_protocol_bindings,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.qec import (
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.qec import (
     entanglement_distillation_profiles,
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
     magic_state_factory_profiles,
 )
-from heteqsys.schema import semantic_hash
-from heteqsys.specification import build_architecture_specification
+from arqsim.schema import semantic_hash
+from arqsim.specification import build_architecture_specification
 
 
 def _one_t_circuit() -> FTCircuit:

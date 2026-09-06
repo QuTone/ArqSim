@@ -1,0 +1,182 @@
+{
+  "case_id": "clifford_t_toy__2.3__seed_0",
+  "config": {
+    "compiler_spec": {
+      "preset": "canonical"
+    },
+    "evaluation_policy": {
+      "magic_state_consumption": "bulk_wave",
+      "max_events": 10000000,
+      "resource_fill_policy": "greedy_fill_to_capacity",
+      "runtime_injection_mode": "finite_state_injection_v1",
+      "seed": 0,
+      "selected_layers": [],
+      "store_load_policy": "dependency_aware_overlap",
+      "trace_level": "full"
+    },
+    "fidelity_profile": {
+      "preset": "canonical_reference_v1"
+    },
+    "footprint_model": {
+      "preset": "protocol_aware_reference_v1"
+    },
+    "latency_profile": {
+      "bell_pair_arrival": null,
+      "compute_protocol_by_modality": {
+        "neutral_atom": "gbc_transversal",
+        "superconducting": "pbc_lattice_surgery"
+      },
+      "gate_duration_s": {
+        "neutral_atom": 0.001,
+        "superconducting": 1e-06
+      },
+      "link_item_s": 0.001,
+      "local_magic_delivery_s": 0.0,
+      "magic_state_arrival": null,
+      "neutral_atom_movement": {
+        "aod_count": 4,
+        "provenance": {},
+        "reference_distance_um": 110.0,
+        "reference_move_duration_us": 200.0,
+        "schema_version": "arqsim.neutral-atom-movement-profile.v1",
+        "transfer_duration_us": 8.0,
+        "x_spacing_um": 19.0,
+        "y_spacing_um": 15.0
+      },
+      "provenance": {
+        "reaction_latency_profile": "reference_reaction_latency_profile_v1",
+        "reaction_latency_source": "reference classical-control assumptions",
+        "role": "named_timing_input",
+        "system_case": "finite_runtime_injection_demo_measurement_v3"
+      },
+      "reaction_latency_by_modality_s": {
+        "neutral_atom": 0.0005,
+        "superconducting": 1e-05
+      },
+      "store_load_protocol": "bb_surface_transfer",
+      "syndrome_profiles": {
+        "bb_surface_transfer": {
+          "cycle_time_s": 0.001,
+          "distance_module_role": "memory",
+          "provenance": {
+            "assumption": "qldpc_distance_adapter_measurement"
+          },
+          "round_mode": "qec_distance"
+        },
+        "gbc_transversal": {
+          "cycle_time_s": 0.001,
+          "provenance": {
+            "assumption": "one_round_correlated_decoding"
+          },
+          "round_mode": "fixed",
+          "rounds": 1
+        },
+        "pbc_lattice_surgery": {
+          "cycle_time_s": 1e-06,
+          "distance_module_role": "compute",
+          "provenance": {
+            "assumption": "surface_distance_merged_measurement"
+          },
+          "round_mode": "qec_distance"
+        }
+      }
+    },
+    "layout_policy_overrides": {},
+    "profile_id": "2.3",
+    "runtime_components": {
+      "components": {
+        "execution_backend": {
+          "component_hash": "9fbdc77db3ffcf357f785b1e9b3764e41dcfd216a4aa4242a35fca2acfc282de",
+          "component_id": "backend.profile.v1",
+          "contract_version": "1",
+          "effective_config": {
+            "timing_source": "candidate_implementation"
+          },
+          "implementation_version": "1",
+          "provider": "arqsim",
+          "role": "execution_backend",
+          "schema_version": "arqsim.runtime-component.v4"
+        },
+        "measurement_provider": {
+          "component_hash": "275f8b7378a7b5ba1a610f73b34e582f643a4275874878cdc9c1e19593e8e939",
+          "component_id": "measurement.seeded_bernoulli.v1",
+          "contract_version": "1",
+          "effective_config": {
+            "distribution": "independent_bernoulli_half",
+            "seed_identity": "program_work_lineage_and_register"
+          },
+          "implementation_version": "1",
+          "provider": "arqsim",
+          "role": "measurement_provider",
+          "schema_version": "arqsim.runtime-component.v4"
+        },
+        "runtime_realizer": {
+          "component_hash": "0b5166ae14f63201d859b09229c756df0542f136389a9aaba722b6a137d167ba",
+          "component_id": "runtime_realizer.state_bound.v3",
+          "contract_version": "1",
+          "effective_config": {
+            "binding": "fifo_first_free",
+            "continuation": "fully_scheduled_injection_recipe_v1",
+            "deferred_program": "joint_magic_route",
+            "deferred_resource": "state_bound_resource_move"
+          },
+          "implementation_version": "1",
+          "provider": "arqsim",
+          "role": "runtime_realizer",
+          "schema_version": "arqsim.runtime-component.v4"
+        },
+        "scheduler": {
+          "component_hash": "6576c8ce29a08703c1f8f721ab9af363df6ba8a6d07ea533258bf992d63c9a5c",
+          "component_id": "scheduler.program_first_eager.v1",
+          "contract_version": "1",
+          "effective_config": {
+            "program_order": "ascending_instruction_id",
+            "resource_order": "resource_dag_insertion_order"
+          },
+          "implementation_version": "1",
+          "provider": "arqsim",
+          "role": "scheduler",
+          "schema_version": "arqsim.runtime-component.v4"
+        }
+      },
+      "event_engine": {
+        "component_hash": "39c1420959e3bb1eb1f64e9927cf1168f5629a7d4a6122803acd9f92b59ec9ff",
+        "component_id": "event_engine.transactional_dynamic_frontier.v3",
+        "contract_version": "1",
+        "effective_config": {
+          "commit_granularity": "single_candidate",
+          "continuation_order": "activation_order_then_monotonic_schedule_id",
+          "dispatch": "eager_when_ready",
+          "measurement_dispatch": "expected_logical_measurements_only",
+          "measurement_seed_stream": "logical_measurement.v1",
+          "program_continuations": "finite_injection_recipe_v1",
+          "program_horizon": "stop_without_resource_drain",
+          "resource_fitting": "typed_dispatch_receipt_v1",
+          "timestamp_phases": [
+            "complete_all",
+            "program_plane_first",
+            "same_time_fixed_point",
+            "advance"
+          ]
+        },
+        "implementation_version": "1",
+        "provider": "arqsim",
+        "role": "event_engine",
+        "schema_version": "arqsim.runtime-component.v4"
+      },
+      "manifest_hash": "dca5abf003954822ac6783a56381bc772f6b04e60574fc942e02656e5b35921b",
+      "schema_version": "arqsim.runtime-manifest.v4"
+    },
+    "schema_version": "arqsim.evaluation-config.v1",
+    "workflow_id": "finite_runtime_injection_demo_measurement_v3:clifford_t_toy__2.3"
+  },
+  "schema_version": "arqsim.system-case-request.v1",
+  "semantic_manifest_hash": "d7e40c30b81fe48a2085675489d09b5b7b6f30a7fd4a8508585c4d784c248117",
+  "system_case_id": "finite_runtime_injection_demo_measurement_v3",
+  "workload": {
+    "path": "workload/clifford_t_toy.qasm",
+    "representation": "clifford_t",
+    "semantic_hash": "cb874af3f8cf1ef2395f8a4ba8be1a4e478c97de30fd8580c49a2e2ecb747163",
+    "sha256": "9bc60ca9aed83e8446ee82a13e5a2ca4a1c389bb3986287a50a6371da10d1280"
+  }
+}

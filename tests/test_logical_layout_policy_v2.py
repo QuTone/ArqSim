@@ -4,26 +4,26 @@ from copy import deepcopy
 
 import pytest
 
-from heteqsys.architecture.errors import ArchitectureValidationError
-from heteqsys.architecture.gallery.na_c_plus_sc_f import (
+from arqsim.architecture.errors import ArchitectureValidationError
+from arqsim.architecture.gallery.na_c_plus_sc_f import (
     PROFILE as REMOTE_MAGIC_PROFILE,
 )
-from heteqsys.architecture.gallery.na_cf import (
+from arqsim.architecture.gallery.na_cf import (
     PROFILE,
     make_layout_policy,
 )
-from heteqsys.architecture.gallery.na_cf.layout import (
+from arqsim.architecture.gallery.na_cf.layout import (
     NeutralAtomComputeFactoryLayoutPolicy,
 )
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.logical_layout import (
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.logical_layout import (
     LogicalLayoutGrid,
     LogicalLayoutRequest,
     SubmoduleLayoutRequest,
 )
-from heteqsys.architecture.logical_layout_policy import LogicalLayoutPolicy
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.architecture.sizing import SizingResult
+from arqsim.architecture.logical_layout_policy import LogicalLayoutPolicy
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.architecture.sizing import SizingResult
 
 
 COMPUTE = SubmoduleKey("na_node", "na_compute", "compute_region")

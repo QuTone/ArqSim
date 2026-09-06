@@ -14,8 +14,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "test:adapter": "node scripts/run-report-adapter-tests.mjs",
-    "test:backend": "python -m pytest -q backend/tests",
-    "typecheck": "tsc --noEmit",
+    "test:server": "python -m pytest -q ../server/tests",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint .",
     "preview": "vite preview"
   },

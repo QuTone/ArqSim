@@ -1,10 +1,11 @@
 schema_version: arqsim.system-case.v1
 id: finite_runtime_injection_demo
-title: Finite T-injection runtime vertical slice
+title: Fully scheduled T-injection runtime vertical slice
 purpose: >-
-  Make ArqSim's finite runtime-injection and location-aware fidelity
-  contracts reviewable in one small, deterministic, independently replayable
-  profile-2.3 System Case without changing black-box default semantics.
+  Make ArqSim's shared entangle, magic measurement, finite reaction/correction,
+  and location-aware fidelity contracts reviewable in one small, deterministic,
+  independently replayable profile-2.3 System Case without changing black-box
+  default semantics.
 
 ownership:
   source: arqsim_owned_toy_circuit
@@ -43,13 +44,13 @@ reference:
   files:
     request:
       path: reference/request.v1.json
-      sha256: 62f1e06b20c28b46b92b45edda4ec383dc20a890a74cff0bde5ea5cf40f836b5
+      sha256: 15b4b738dd8444019430b53c506e2e00bab23a4ebee75f59de1e57b70ac3ada5
     report:
       path: reference/report.v2.json
-      sha256: 68c43276535680678c540575eb03e1b90a10aa762bd390f4721b678d55b751e6
+      sha256: 8420035ce3d65ef0bcfe07e469830fb646908484425072f9541c2199e4b6d1d7
     receipt:
       path: reference/receipt.v1.json
-      sha256: c098d2490579a18255400de1a30de484fea9072d1c44e74cd5b00ff26b138ee7
+      sha256: 3111600f1bb2ac848ee759302528bb550c1098659dde8137b7594d2e5b4b74e1
 
 acceptance:
   expected_recipe_count: 2

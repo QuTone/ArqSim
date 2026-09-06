@@ -4,18 +4,18 @@ from copy import deepcopy
 
 import pytest
 
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.gallery import (
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.gallery import (
     QuantileSizingConfig,
     get_architecture_profile,
 )
-from heteqsys.architecture.gallery.na_mc_plus_sc_f import (
+from arqsim.architecture.gallery.na_mc_plus_sc_f import (
     RemoteMagicMemoryComputeSizingPolicy,
     make_sizing_policy,
 )
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.program.statistics import CircuitStatistics
-from heteqsys.qec import (
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.program.statistics import CircuitStatistics
+from arqsim.qec import (
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
 )

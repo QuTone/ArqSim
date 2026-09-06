@@ -6,10 +6,10 @@ from typing import Any
 
 import pytest
 
-from heteqsys import api as public_api
-from heteqsys import report_v1
-from heteqsys.cli import main as cli_main
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim import api as public_api
+from arqsim import report_v1
+from arqsim.cli import main as cli_main
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
 
 
 class _StubReport:
@@ -136,3 +136,35 @@ def test_cli_v1_adapter_failure_uses_the_versioned_error_contract(
     error = json.loads(captured.err)
     assert error["schema_version"] == "arqsim.error.v1"
     assert "dynamic recipes" in error["error"]["message"]
+
+
+def test_cli_incomplete_fidelity_preserves_nested_coverage_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    program = tmp_path / "uncovered.qasm"
+    output = tmp_path / "report.json"
+    program.write_text(
+        'OPENQASM 2.0;\ninclude "qelib1.inc";\n'
+        'qreg q[1];\nrz(pi/7) q[0];\n',
+        encoding="utf-8",
+    )
+
+    status = cli_main(
+        [
+            "evaluate", str(program), "--representation", "gate",
+            "--architecture", "2.3", "--output", str(output),
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert status == 2
+    assert captured.out == ""
+    assert not output.exists()
+    document = json.loads(captured.err)
+    assert document["schema_version"] == "arqsim.error.v1"
+    error = document["error"]
+    assert error["stage"] == "result_analysis"
+    assert error["code"] == "fidelity_coverage_incomplete"
+    gaps = error["details"]["coverage_gaps"]
+    assert any("rz" in key for key in gaps["unprofiled_logical_operation_counts"])

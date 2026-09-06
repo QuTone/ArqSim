@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from heteqsys.architecture.construction import construct_architecture
-from heteqsys.architecture.gallery.na_c_plus_sc_f import (
+from arqsim.architecture.construction import construct_architecture
+from arqsim.architecture.gallery.na_c_plus_sc_f import (
     PROFILE,
     make_layout_policy,
     make_sizing_policy,
 )
-from heteqsys.architecture.gallery.quantile import QuantileSizingConfig
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.specification import (
+from arqsim.architecture.gallery.quantile import QuantileSizingConfig
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.specification import (
     ArchitectureSpecification,
     QECBinding,
 )
-from heteqsys.program.statistics import CircuitStatistics
-from heteqsys.qec import (
+from arqsim.program.statistics import CircuitStatistics
+from arqsim.qec import (
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
 )

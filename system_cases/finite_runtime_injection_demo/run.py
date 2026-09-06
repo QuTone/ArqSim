@@ -26,22 +26,50 @@ REPOSITORY_ROOT = CASE_ROOT.parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from heteqsys import EvaluationConfig, EvaluationReport, run_evaluation
-from heteqsys.api import CANONICAL_FIDELITY_PRESET
-from heteqsys.evaluation import EvaluationPolicy, RuntimeInjectionMode
-from heteqsys.operation_profiles import (
+from arqsim import EvaluationConfig, EvaluationReport, run_evaluation
+from arqsim.api import CANONICAL_FIDELITY_PRESET
+from arqsim.evaluation import (
+    ExecutionPolicy,
+    ExecutionTrace,
+    RuntimeInjectionMode,
+)
+from arqsim.operation_profiles import (
     OperationLatencyProfile,
     reference_reaction_latency_profile_v1,
 )
-from heteqsys.program import FTCircuit, load_ft_workload, workload_stats
+from arqsim.program import FTCircuit, load_ft_workload, workload_stats
+from arqsim.schema import semantic_hash
 
 
 MANIFEST_PATH = CASE_ROOT / "manifest.yaml"
 SYSTEM_CASE_SCHEMA = "arqsim.system-case.v1"
+SUCCESSOR_SYSTEM_CASE_SCHEMA = "arqsim.system-case.v2"
 REQUEST_SCHEMA = "arqsim.system-case-request.v1"
 REPORT_SCHEMA = "arqsim.evaluation-report.v2"
 RECEIPT_SCHEMA = "arqsim.system-case-receipt.v1"
 CASE_ID = "clifford_t_toy__2.3__seed_5"
+LIVE_ACCEPTANCE_CASE_ID = "finite_runtime_injection_demo_measurement_v3"
+
+_SUCCESSOR_LINEAGES = {
+    "finite_runtime_injection_demo_locus_v2": {
+        "predecessor_id": "finite_runtime_injection_demo",
+        "change": "canonical_execution_locus_metadata_v2",
+    },
+    LIVE_ACCEPTANCE_CASE_ID: {
+        "predecessor_id": "finite_runtime_injection_demo_locus_v2",
+        "change": "logical_measurement_provider_plan_v9_seeded_branch_coverage",
+    },
+}
+_BRANCH_EXPECTATIONS = {
+    "finite_runtime_injection_demo": ([1, 0], 1),
+    "finite_runtime_injection_demo_locus_v2": ([1, 0], 1),
+    LIVE_ACCEPTANCE_CASE_ID: ([1, 0], 1),
+}
+_RUN_SEEDS = {
+    "finite_runtime_injection_demo": 5,
+    "finite_runtime_injection_demo_locus_v2": 5,
+    LIVE_ACCEPTANCE_CASE_ID: 0,
+}
 
 _TOP_LEVEL_FIELDS = {
     "schema_version",
@@ -56,6 +84,8 @@ _TOP_LEVEL_FIELDS = {
     "reference",
     "acceptance",
 }
+_SUCCESSOR_TOP_LEVEL_FIELDS = _TOP_LEVEL_FIELDS | {"lineage"}
+_LINEAGE_FIELDS = {"predecessor_id", "change"}
 _OWNERSHIP_FIELDS = {"source", "license", "contributors"}
 _WORKLOAD_FIELDS = {"path", "representation", "sha256", "expected"}
 _WORKLOAD_EXPECTED_FIELDS = {
@@ -136,6 +166,7 @@ _UniqueKeySafeLoader.add_constructor(
 class LoadedSystemCase:
     document: Mapping[str, Any]
     semantic_manifest_hash: str
+    case_root: Path
     workload_path: Path
     workload_sha256: str
 
@@ -148,6 +179,15 @@ class LoadedSystemCase:
 class SystemCaseRun:
     request: Mapping[str, Any]
     report: EvaluationReport
+    receipt: Mapping[str, Any]
+
+
+@dataclass(frozen=True)
+class ArchivedSystemCaseRun:
+    """Hash-checked historical evidence that is not rerun under newer lowering."""
+
+    request: Mapping[str, Any]
+    report: Mapping[str, Any]
     receipt: Mapping[str, Any]
 
 
@@ -199,11 +239,16 @@ def _sha256(path: Path) -> str:
     return _sha256_bytes(path.read_bytes())
 
 
-def _safe_case_path(relative: Any, *, label: str) -> Path:
+def _safe_case_path(
+    relative: Any,
+    *,
+    label: str,
+    case_root: Path = CASE_ROOT,
+) -> Path:
     raw = _plain_string(relative, label=label)
-    candidate = (CASE_ROOT / raw).resolve()
+    candidate = (case_root / raw).resolve()
     try:
-        candidate.relative_to(CASE_ROOT.resolve())
+        candidate.relative_to(case_root.resolve())
     except ValueError as exc:
         raise SystemCaseError(f"{label} escapes the System Case directory") from exc
     return candidate
@@ -264,18 +309,43 @@ def _load_json(path: Path, *, label: str) -> Any:
         raise SystemCaseError(f"Cannot load {label}: {path}") from exc
 
 
-def load_system_case(*, verify_reference_files: bool = True) -> LoadedSystemCase:
+def load_system_case(
+    *,
+    verify_reference_files: bool = True,
+    manifest_path: Path | None = None,
+    expected_id: str = "finite_runtime_injection_demo",
+) -> LoadedSystemCase:
     """Strictly load the manifest, owned workload, and frozen references."""
 
+    selected_manifest = MANIFEST_PATH if manifest_path is None else manifest_path
+    case_root = selected_manifest.resolve().parent
     try:
-        raw = MANIFEST_PATH.read_bytes()
+        raw = selected_manifest.read_bytes()
         document = _load_manifest_document(raw)
     except (OSError, yaml.YAMLError) as exc:
         raise SystemCaseError(f"Cannot load System Case manifest: {exc}") from exc
-    root = _exact_fields(document, _TOP_LEVEL_FIELDS, label="System Case")
-    if root["schema_version"] != SYSTEM_CASE_SCHEMA:
+    if isinstance(document, Mapping) and document.get("schema_version") == (
+        SUCCESSOR_SYSTEM_CASE_SCHEMA
+    ):
+        root = _exact_fields(
+            document,
+            _SUCCESSOR_TOP_LEVEL_FIELDS,
+            label="System Case",
+        )
+        lineage = _exact_fields(
+            root["lineage"], _LINEAGE_FIELDS, label="lineage"
+        )
+        expected_lineage = _SUCCESSOR_LINEAGES.get(root.get("id"))
+        if expected_lineage is None or dict(lineage) != expected_lineage:
+            raise SystemCaseError("Unexpected successor lineage")
+    else:
+        root = _exact_fields(document, _TOP_LEVEL_FIELDS, label="System Case")
+    if root["schema_version"] not in {
+        SYSTEM_CASE_SCHEMA,
+        SUCCESSOR_SYSTEM_CASE_SCHEMA,
+    }:
         raise SystemCaseError("Unsupported System Case schema")
-    if root["id"] != "finite_runtime_injection_demo":
+    if root["id"] != expected_id:
         raise SystemCaseError("Unexpected System Case id")
     _plain_string(root["title"], label="title")
     _plain_string(root["purpose"], label="purpose")
@@ -298,7 +368,9 @@ def load_system_case(*, verify_reference_files: bool = True) -> LoadedSystemCase
     )
     if workload["representation"] != "clifford_t":
         raise SystemCaseError("The demonstration workload must remain Clifford+T")
-    workload_path = _safe_case_path(workload["path"], label="workload.path")
+    workload_path = _safe_case_path(
+        workload["path"], label="workload.path", case_root=case_root
+    )
     if not workload_path.is_file():
         raise SystemCaseError(f"The owned workload is missing: {workload_path}")
     workload_sha256 = _sha256(workload_path)
@@ -324,9 +396,12 @@ def load_system_case(*, verify_reference_files: bool = True) -> LoadedSystemCase
     evaluation = _exact_fields(
         root["evaluation"], _EVALUATION_FIELDS, label="evaluation"
     )
+    expected_seed = _RUN_SEEDS.get(root["id"])
+    if expected_seed is None:
+        raise SystemCaseError("The System Case has no frozen run seed")
     expected_evaluation = {
-        "workflow_id": "finite_runtime_injection_demo:clifford_t_toy__2.3",
-        "seed": 5,
+        "workflow_id": f"{root['id']}:clifford_t_toy__2.3",
+        "seed": expected_seed,
         "trace_level": "full",
         "runtime_injection_mode": "finite_state_injection_v1",
         "reaction_profile": "reference_reaction_latency_profile_v1",
@@ -359,7 +434,11 @@ def load_system_case(*, verify_reference_files: bool = True) -> LoadedSystemCase
             _REFERENCE_FILE_FIELDS,
             label=f"reference.files.{name}",
         )
-        path = _safe_case_path(record["path"], label=f"reference {name} path")
+        path = _safe_case_path(
+            record["path"],
+            label=f"reference {name} path",
+            case_root=case_root,
+        )
         expected_hash = _plain_string(
             record["sha256"], label=f"reference {name} sha256"
         )
@@ -388,8 +467,12 @@ def load_system_case(*, verify_reference_files: bool = True) -> LoadedSystemCase
     ]
     if any(value not in {0, 1} for value in checked_outcomes):
         raise SystemCaseError("acceptance.expected_outcomes must contain only bits")
-    if checked_outcomes != [1, 0]:
-        raise SystemCaseError("The frozen seed must exercise both T branches")
+    branch_expectation = _BRANCH_EXPECTATIONS.get(root["id"])
+    if branch_expectation is None:
+        raise SystemCaseError("The System Case has no frozen branch expectation")
+    expected_outcomes, expected_corrections = branch_expectation
+    if checked_outcomes != expected_outcomes:
+        raise SystemCaseError("The fixed-seed logical measurement outcomes changed")
     expected_reaction_count = _plain_int(
         acceptance["expected_reaction_count"],
         label="acceptance.expected_reaction_count",
@@ -402,8 +485,8 @@ def load_system_case(*, verify_reference_files: bool = True) -> LoadedSystemCase
         label="acceptance.expected_logical_s_correction_count",
         minimum=0,
     )
-    if expected_correction_count != 1:
-        raise SystemCaseError("Exactly one outcome must materialize logical S")
+    if expected_correction_count != expected_corrections:
+        raise SystemCaseError("The fixed-seed logical-S branch count changed")
     for field in (
         "require_all_invariants",
         "require_fidelity_complete_coverage",
@@ -416,6 +499,7 @@ def load_system_case(*, verify_reference_files: bool = True) -> LoadedSystemCase
     system_case = LoadedSystemCase(
         document=root,
         semantic_manifest_hash=_semantic_manifest_hash(root),
+        case_root=case_root,
         workload_path=workload_path,
         workload_sha256=workload_sha256,
     )
@@ -441,7 +525,9 @@ def load_workload(system_case: LoadedSystemCase) -> FTCircuit:
             "input_role": "owned_demonstration_workload",
             "source": "arqsim_owned_toy_circuit",
             "license": "Apache-2.0",
-            "source_path": system_case.workload_path.relative_to(CASE_ROOT).as_posix(),
+            "source_path": system_case.workload_path.relative_to(
+                system_case.case_root
+            ).as_posix(),
             "source_sha256": system_case.workload_sha256,
         },
     )
@@ -458,17 +544,22 @@ def build_config(system_case: LoadedSystemCase) -> EvaluationConfig:
     )
     return EvaluationConfig(
         profile_id=system_case.document["architecture"]["profile_id"],
-        workflow_id=evaluation["workflow_id"],
+        run_label=evaluation["workflow_id"],
         latency_profile=latency,
-        evaluation_policy=EvaluationPolicy(
-            trace_level=evaluation["trace_level"],
-            seed=evaluation["seed"],
-            runtime_injection_mode=RuntimeInjectionMode(
+        execution_policy=ExecutionPolicy(
+            observation_level=evaluation["trace_level"],
+            run_seed=evaluation["seed"],
+            injection_lowering_mode=RuntimeInjectionMode(
                 evaluation["runtime_injection_mode"]
             ),
         ),
         fidelity_profile=CANONICAL_FIDELITY_PRESET,
     )
+
+
+def _case_id(system_case: LoadedSystemCase) -> str:
+    seed = system_case.document["evaluation"]["seed"]
+    return f"clifford_t_toy__2.3__seed_{seed}"
 
 
 def build_request(system_case: LoadedSystemCase) -> Mapping[str, Any]:
@@ -478,9 +569,11 @@ def build_request(system_case: LoadedSystemCase) -> Mapping[str, Any]:
         "schema_version": REQUEST_SCHEMA,
         "system_case_id": system_case.id,
         "semantic_manifest_hash": system_case.semantic_manifest_hash,
-        "case_id": CASE_ID,
+        "case_id": _case_id(system_case),
         "workload": {
-            "path": system_case.workload_path.relative_to(CASE_ROOT).as_posix(),
+            "path": system_case.workload_path.relative_to(
+                system_case.case_root
+            ).as_posix(),
             "representation": circuit.representation,
             "sha256": system_case.workload_sha256,
             "semantic_hash": circuit.semantic_hash,
@@ -538,29 +631,45 @@ def _runtime_injection_evidence(
             event
             for event in program_events
             if event.program_lineage is not None
-            and event.program_lineage.step == "source"
-            and register_id in event.measurements
+            and event.program_lineage.step == "entangle"
+            and any(
+                member.recipe_invocation_id == recipe.invocation_id
+                for member in event.program_lineage.recipe_members
+            )
         )
         if len(source_matches) != 1:
             raise SystemCaseError(
-                f"Recipe {recipe.invocation_id!r} has no unique measured source"
+                f"Recipe {recipe.invocation_id!r} has no unique entangle source"
             )
         source = source_matches[0]
         if source.metadata.get("gates", {}).get("t") is None:
-            raise SystemCaseError("Measured injection source does not retain source T")
+            raise SystemCaseError("Injection source does not retain logical T")
         continuations = tuple(
             sorted(
                 (
                     event
                     for event in program_events
                     if event.program_lineage is not None
-                    and event.program_lineage.recipe_invocation_id
-                    == recipe.invocation_id
+                    and any(
+                        member.recipe_invocation_id == recipe.invocation_id
+                        for member in event.program_lineage.recipe_members
+                    )
                 ),
                 key=lambda event: (event.start_s, event.event_id),
             )
         )
-        steps = ("source",) + tuple(
+        measurement_matches = tuple(
+            event
+            for event in continuations
+            if event.program_lineage.step == "measurement"
+            and register_id in event.measurements
+        )
+        if len(measurement_matches) != 1:
+            raise SystemCaseError(
+                f"Recipe {recipe.invocation_id!r} has no unique measurement phase"
+            )
+        measurement = measurement_matches[0]
+        steps = tuple(
             event.program_lineage.step for event in continuations
         )
         correction_events = tuple(
@@ -576,8 +685,9 @@ def _runtime_injection_evidence(
                 "recipe_invocation_id": recipe.invocation_id,
                 "source_instruction_id": source.program_lineage.source_instruction_id,
                 "source_event_id": source.event_id,
+                "measurement_event_id": measurement.event_id,
                 "measurement_register": register_id,
-                "outcome_bit": source.measurements[register_id],
+                "outcome_bit": measurement.measurements[register_id],
                 "steps": list(steps),
                 "logical_s_materialized": bool(correction_events),
                 "recipe_convention": recipe.convention,
@@ -600,10 +710,25 @@ def _runtime_injection_evidence(
         raise SystemCaseError("Not every source T materialized one reaction")
     if correction_count != acceptance["expected_logical_s_correction_count"]:
         raise SystemCaseError("Conditional logical-S branch count changed")
+    runtime_components = _mapping(
+        report.execution_plan.runtime_components,
+        label="runtime component manifest",
+    )
+    component_records = _mapping(
+        runtime_components.get("components"),
+        label="runtime component records",
+    )
+    measurement_provider = _mapping(
+        component_records.get("measurement_provider"),
+        label="logical measurement provider",
+    )
+    measurement_provider_id = measurement_provider.get("component_id")
+    if measurement_provider_id != "measurement.seeded_bernoulli.v1":
+        raise SystemCaseError("Unexpected logical measurement provider identity")
     return {
         "recipe_id": "surface_code.t_injection.v1",
         "recipe_convention": "cx_data_magic_measure_magic_z_v1",
-        "outcome_model": "seeded_bernoulli_half",
+        "measurement_provider": measurement_provider_id,
         "seed": report.execution_trace.seed,
         "invocations": evidence,
     }
@@ -640,7 +765,12 @@ def _build_receipt(
         raise SystemCaseError("The demo did not expose logical-qubit idling")
     if acceptance["require_resource_idle_fidelity"] and resource_idle_total <= 0:
         raise SystemCaseError("The demo did not expose resource-state idling")
-    expected_logical_counts = {"cx": 2, "h": 4, "s": 1, "t": 2}
+    expected_logical_counts = {"cx": 2, "h": 4, "t": 2}
+    expected_corrections = system_case.document["acceptance"][
+        "expected_logical_s_correction_count"
+    ]
+    if expected_corrections:
+        expected_logical_counts["s"] = expected_corrections
     if dict(fidelity.logical_operation_counts) != expected_logical_counts:
         raise SystemCaseError(
             "Fidelity did not account for the expected source gates and "
@@ -674,7 +804,7 @@ def _build_receipt(
         "schema_version": RECEIPT_SCHEMA,
         "status": "complete",
         "system_case_id": system_case.id,
-        "case_id": CASE_ID,
+        "case_id": _case_id(system_case),
         "hashes": {
             "semantic_manifest": system_case.semantic_manifest_hash,
             "request_json": _sha256_bytes(request_text.encode("utf-8")),
@@ -735,15 +865,136 @@ def run_case(system_case: LoadedSystemCase) -> SystemCaseRun:
 def _reference_paths(system_case: LoadedSystemCase) -> Mapping[str, Path]:
     files = system_case.document["reference"]["files"]
     return {
-        name: _safe_case_path(record["path"], label=f"reference {name} path")
+        name: _safe_case_path(
+            record["path"],
+            label=f"reference {name} path",
+            case_root=system_case.case_root,
+        )
         for name, record in files.items()
     }
 
 
-def verify_reference(*, rerun: bool = True) -> SystemCaseRun:
+def _verify_archived_reference(
+    system_case: LoadedSystemCase,
+) -> ArchivedSystemCaseRun:
+    """Verify immutable pre-successor Plan/Trace evidence without re-lowering."""
+
+    paths = _reference_paths(system_case)
+    request_text = paths["request"].read_text(encoding="utf-8")
+    stored_request = _load_json(paths["request"], label="reference request")
+    if _json_text(stored_request) != request_text:
+        raise SystemCaseError("Frozen request is not canonical JSON")
+    expected_request = build_request(system_case)
+    archived_request_identity = {
+        key: value for key, value in stored_request.items() if key != "config"
+    }
+    current_request_identity = {
+        key: value for key, value in expected_request.items() if key != "config"
+    }
+    if archived_request_identity != current_request_identity:
+        raise SystemCaseError("Frozen request identity differs from the manifest")
+    archived_config = _mapping(
+        stored_request.get("config"), label="archived request config"
+    )
+
+    report_text = paths["report"].read_text(encoding="utf-8")
+    report_document = _load_json(paths["report"], label="reference report")
+    if _json_text(report_document) != report_text:
+        raise SystemCaseError("Frozen Report v2 is not canonical JSON")
+    if report_document.get("schema_version") != REPORT_SCHEMA:
+        raise SystemCaseError("Frozen report schema changed")
+    if report_document.get("workflow_id") != system_case.document["evaluation"][
+        "workflow_id"
+    ]:
+        raise SystemCaseError("Frozen report workflow changed")
+    unsigned_report = {
+        key: value
+        for key, value in report_document.items()
+        if key != "report_hash"
+    }
+    if report_document.get("report_hash") != semantic_hash(unsigned_report):
+        raise SystemCaseError("Frozen Report v2 content hash differs")
+
+    artifacts = _mapping(report_document.get("artifacts"), label="report artifacts")
+    plan_document = _mapping(
+        artifacts.get("execution_plan"), label="archived ExecutionPlan"
+    )
+    plan_hash = plan_document.get("plan_hash")
+    unsigned_plan = {
+        key: value for key, value in plan_document.items() if key != "plan_hash"
+    }
+    if plan_hash != semantic_hash(unsigned_plan):
+        raise SystemCaseError("Archived ExecutionPlan content hash differs")
+    trace = ExecutionTrace.from_dict(
+        _mapping(artifacts.get("execution_trace"), label="archived ExecutionTrace")
+    )
+    if trace.plan_hash != plan_hash:
+        raise SystemCaseError("Archived trace does not bind the archived plan")
+
+    receipt_text = paths["receipt"].read_text(encoding="utf-8")
+    stored_receipt = _load_json(paths["receipt"], label="reference receipt")
+    if _json_text(stored_receipt) != receipt_text:
+        raise SystemCaseError("Frozen receipt is not canonical JSON")
+    if stored_receipt.get("schema_version") != RECEIPT_SCHEMA:
+        raise SystemCaseError("Frozen receipt schema changed")
+    if stored_receipt.get("system_case_id") != system_case.id:
+        raise SystemCaseError("Frozen receipt System Case id changed")
+
+    logical_compilation = _mapping(
+        artifacts.get("logical_compilation"), label="archived logical compilation"
+    )
+    compiler = _mapping(
+        logical_compilation.get("compiler"), label="archived compiler"
+    )
+    resolved_inputs = _mapping(
+        report_document.get("resolved_inputs"), label="report resolved inputs"
+    )
+    architecture = _mapping(
+        resolved_inputs.get("architecture"), label="archived architecture"
+    )
+    report_request = _mapping(
+        report_document.get("request"), label="archived report request"
+    )
+    report_workload = _mapping(
+        report_request.get("workload"), label="archived report workload"
+    )
+    expected_hashes = {
+        "semantic_manifest": system_case.semantic_manifest_hash,
+        "request_json": _sha256_bytes(request_text.encode("utf-8")),
+        "report_json": _sha256_bytes(report_text.encode("utf-8")),
+        "workload": report_workload.get("semantic_hash"),
+        "config": semantic_hash(archived_config),
+        "architecture": architecture.get("architecture_hash"),
+        "compiler": compiler.get("compiler_hash"),
+        "logical_compilation": logical_compilation.get("compilation_hash"),
+        "execution_plan": plan_hash,
+        "execution_trace": trace.trace_hash,
+        "report": report_document.get("report_hash"),
+    }
+    if stored_receipt.get("hashes") != expected_hashes:
+        raise SystemCaseError("Frozen receipt hashes do not bind the archived evidence")
+    return ArchivedSystemCaseRun(
+        request=stored_request,
+        report=report_document,
+        receipt=stored_receipt,
+    )
+
+
+def verify_reference(
+    *,
+    rerun: bool = False,
+    system_case: LoadedSystemCase | None = None,
+) -> SystemCaseRun | ArchivedSystemCaseRun:
     """Strictly reload/replay the reference and optionally compare a live run."""
 
-    system_case = load_system_case()
+    system_case = load_system_case() if system_case is None else system_case
+    if system_case.id != LIVE_ACCEPTANCE_CASE_ID:
+        if rerun:
+            raise SystemCaseError(
+                "The immutable predecessor is replay-only; run the measurement-v3 "
+                "successor for live byte-identical acceptance"
+            )
+        return _verify_archived_reference(system_case)
     paths = _reference_paths(system_case)
     request_text = paths["request"].read_text(encoding="utf-8")
     stored_request = _load_json(paths["request"], label="reference request")
@@ -788,12 +1039,20 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="strictly reload/replay references without a fresh public-API run",
     )
-    args = parser.parse_args(argv)
-    verified = verify_reference(rerun=not args.no_rerun)
+    parser.parse_args(argv)
+    # This named predecessor is immutable historical evidence.  The option is
+    # retained for command compatibility, but this runner never performs a
+    # current-code rerun; its locus-v2 successor owns that acceptance gate.
+    verified = verify_reference(rerun=False)
+    report_hash = (
+        verified.report.report_hash
+        if isinstance(verified.report, EvaluationReport)
+        else verified.report["report_hash"]
+    )
     print(
         "PASS "
         f"{verified.receipt['case_id']} "
-        f"report={verified.report.report_hash}"
+        f"report={report_hash}"
     )
     return 0
 

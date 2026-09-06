@@ -1,0 +1,69 @@
+schema_version: arqsim.system-case.v2
+id: finite_runtime_injection_demo_measurement_v3
+title: Fully scheduled T-injection with logical measurement provider
+purpose: >-
+  Preserve the finite runtime-injection vertical slice while freezing Plan v9,
+  Runtime Manifest v4, and the explicit LogicalMeasurementProvider contract.
+  This successor keeps the workload, architecture, timing, capacities, demands,
+  and scheduling policy unchanged. Its explicit seed changes from 5 to 0 only
+  to preserve deterministic coverage of both conditional branches under the
+  new logical-measurement seed identity.
+
+lineage:
+  predecessor_id: finite_runtime_injection_demo_locus_v2
+  change: logical_measurement_provider_plan_v9_seeded_branch_coverage
+
+ownership:
+  source: arqsim_owned_toy_circuit
+  license: Apache-2.0
+  contributors: [ArqSim authors]
+
+workload:
+  path: workload/clifford_t_toy.qasm
+  representation: clifford_t
+  sha256: 9bc60ca9aed83e8446ee82a13e5a2ca4a1c389bb3986287a50a6371da10d1280
+  expected:
+    num_qubits: 4
+    depth: 6
+    operation_count: 8
+    t_count: 2
+
+architecture:
+  profile_id: "2.3"
+  architecture_name: NA-MC + SC-F
+
+evaluation:
+  workflow_id: finite_runtime_injection_demo_measurement_v3:clifford_t_toy__2.3
+  seed: 0
+  trace_level: full
+  runtime_injection_mode: finite_state_injection_v1
+  reaction_profile: reference_reaction_latency_profile_v1
+  fidelity_preset: canonical_reference_v1
+
+outputs:
+  request_schema: arqsim.system-case-request.v1
+  report_schema: arqsim.evaluation-report.v2
+  receipt_schema: arqsim.system-case-receipt.v1
+
+reference:
+  mutation_policy: immutable_create_successor_do_not_overwrite
+  files:
+    request:
+      path: reference/request.v1.json
+      sha256: 6b2dccfc528c9e6bbc98b3dddf48d314932d72ce48361b3b49a5ce86d299745d
+    report:
+      path: reference/report.v2.json
+      sha256: 2eac894cf509f519b20d6673ad1c15e5d6bd58dc33245785fb84433b7d317c49
+    receipt:
+      path: reference/receipt.v1.json
+      sha256: e13c6a73a1d03d64a0c5f37ce347ab051ffd676b4da4e93ff5f0a3818a8cdc76
+
+acceptance:
+  expected_recipe_count: 2
+  expected_outcomes: [1, 0]
+  expected_reaction_count: 2
+  expected_logical_s_correction_count: 1
+  require_all_invariants: true
+  require_fidelity_complete_coverage: true
+  require_logical_idle_fidelity: true
+  require_resource_idle_fidelity: true

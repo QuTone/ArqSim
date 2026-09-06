@@ -270,8 +270,8 @@
           "capacity": 1,
           "id": "bell_engine:compute_msf_link",
           "owner": {
-            "module": null,
-            "submodule": null
+            "module": "compute_msf_link/bell_engine",
+            "submodule": "compute_msf_link/bell_engine/pair_generator"
           }
         },
         {
@@ -286,7 +286,7 @@
           "capacity": 1,
           "id": "resource_move",
           "owner": {
-            "module": "sc_msf_node/sc_msf",
+            "module": null,
             "submodule": null
           }
         }

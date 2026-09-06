@@ -4,28 +4,28 @@ from copy import deepcopy
 
 import pytest
 
-from heteqsys.architecture import (
+from arqsim.architecture import (
     LogicalLayoutGrid,
     LogicalLayoutRequest,
     SubmoduleLayoutRequest,
     get_architecture_profile,
 )
-from heteqsys.architecture.errors import ArchitectureValidationError
-from heteqsys.architecture.gallery.na_cf import (
+from arqsim.architecture.errors import ArchitectureValidationError
+from arqsim.architecture.gallery.na_cf import (
     make_layout_policy,
     make_sizing_policy,
 )
-from heteqsys.architecture.gallery.quantile import QuantileSizingConfig
-from heteqsys.architecture.identifiers import SubmoduleKey
-from heteqsys.architecture.logical_layout import LogicalLayoutResult
-from heteqsys.architecture.profile import ArchitectureProfile
-from heteqsys.architecture.resolver import resolve_architecture
-from heteqsys.architecture.sizing import SizingResult
-from heteqsys.architecture.specification import (
+from arqsim.architecture.gallery.quantile import QuantileSizingConfig
+from arqsim.architecture.identifiers import SubmoduleKey
+from arqsim.architecture.logical_layout import LogicalLayoutResult
+from arqsim.architecture.profile import ArchitectureProfile
+from arqsim.architecture.resolver import resolve_architecture
+from arqsim.architecture.sizing import SizingResult
+from arqsim.architecture.specification import (
     ArchitectureSpecification,
     QECBinding,
 )
-from heteqsys.qec import (
+from arqsim.qec import (
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
 )

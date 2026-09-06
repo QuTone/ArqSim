@@ -5,20 +5,20 @@ from dataclasses import replace
 
 import pytest
 
-from heteqsys.architecture.gallery import QuantileSizingConfig
-from heteqsys.architecture.isa import ArchitectureOpcode
-from heteqsys.compiler import (
+from arqsim.architecture.gallery import QuantileSizingConfig
+from arqsim.architecture.isa import ArchitectureOpcode
+from arqsim.compiler import (
     CompilerPipeline,
     DefaultCompilerPipeline,
     LogicalCompilationResult,
     canonical_compiler_spec,
 )
-from heteqsys.compiler.errors import LogicalCompilerValidationError
-from heteqsys.compiler.layout import (
+from arqsim.compiler.errors import LogicalCompilerValidationError
+from arqsim.compiler.layout import (
     primary_qec_submodule,
     single_node_module,
 )
-from heteqsys.evaluation import (
+from arqsim.evaluation import (
     EvaluationPolicy,
     ExecutionPlan,
     ExecutionTransitionKind,
@@ -27,18 +27,18 @@ from heteqsys.evaluation import (
     evaluate,
     lower_compilation_result,
 )
-from heteqsys.evaluation.components import build_runtime_component_set
-from heteqsys.evaluation.lowering import (
+from arqsim.evaluation.components import build_runtime_component_set
+from arqsim.evaluation.lowering import (
     build_runtime_instruction_compiler,
     build_runtime_resource_compiler,
 )
-from heteqsys.operation_profiles import (
+from arqsim.operation_profiles import (
     OperationLatencyProfile,
     resolve_resource_protocol_bindings,
     with_effective_arrivals,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.specification import build_architecture_specification
 
 
 _RELABELINGS = (

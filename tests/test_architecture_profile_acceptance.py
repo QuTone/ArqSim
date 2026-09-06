@@ -14,16 +14,16 @@ from pathlib import Path
 import pytest
 import yaml
 
-import heteqsys.architecture as architecture_package
-import heteqsys.architecture.profile as profile_module
-from heteqsys.architecture.gallery import (
+import arqsim.architecture as architecture_package
+import arqsim.architecture.profile as profile_module
+from arqsim.architecture.gallery import (
     GalleryEntry,
     get_architecture_profile,
     get_gallery_entry,
     list_architecture_profiles,
     list_gallery_entries,
 )
-from heteqsys.architecture.profile import (
+from arqsim.architecture.profile import (
     ARCHITECTURE_PROFILE_SCHEMA_VERSION,
     ArchitectureProfile,
     ProfileInterconnect,
@@ -33,12 +33,12 @@ from heteqsys.architecture.profile import (
     ProfileSubmodule,
     load_architecture_profile,
 )
-from heteqsys.schema import semantic_hash
+from arqsim.schema import semantic_hash
 
 
 PROJECT_ROOT = Path(__file__).parents[1]
-PROFILE_SOURCE = PROJECT_ROOT / "heteqsys" / "architecture" / "profile.py"
-GALLERY_DIR = PROJECT_ROOT / "heteqsys" / "architecture" / "gallery"
+PROFILE_SOURCE = PROJECT_ROOT / "arqsim" / "architecture" / "profile.py"
+GALLERY_DIR = PROJECT_ROOT / "arqsim" / "architecture" / "gallery"
 
 PROFILE_IDS = ("1.1", "1.2", "1.3", "2.1", "2.2", "2.3")
 PROFILE_HASHES = {
@@ -210,7 +210,7 @@ def test_gallery_is_an_explicit_runtime_index_not_an_architecture_level() -> Non
     assert all(isinstance(entry, GalleryEntry) for entry in entries)
     assert tuple(entry.profile for entry in entries) == profiles
     assert get_gallery_entry("1.3").profile is get_architecture_profile("1.3")
-    assert get_gallery_entry("heteqsys.1.3") is get_gallery_entry("1.3")
+    assert get_gallery_entry("arqsim.1.3") is get_gallery_entry("1.3")
     assert get_gallery_entry("arqsim.1.3") is get_gallery_entry("1.3")
     assert not hasattr(profile_module, "get_architecture_profile")
     assert not hasattr(profile_module, "list_architecture_profiles")

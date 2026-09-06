@@ -4,21 +4,21 @@ import math
 
 import pytest
 
-from heteqsys.architecture.specification import (
+from arqsim.architecture.specification import (
     ArchitectureSpecification,
     Module,
     Submodule,
 )
-from heteqsys.evaluation import (
+from arqsim.evaluation import (
     PhysicalFootprintModel,
     estimate_physical_footprint,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.qec import (
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.qec import (
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
 )
-from heteqsys.specification import (
+from arqsim.specification import (
     build_architecture_specification,
     sweep_architecture_specifications,
 )

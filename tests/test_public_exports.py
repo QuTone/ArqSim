@@ -15,7 +15,7 @@ EXPECTED_EXPORTS = {
         "LogicalCoordinate", "LogicalLayoutGrid", "LogicalLayoutPolicy",
         "LogicalLayoutRequest", "LogicalLayoutResult", "LogicalSlot", "Module", "Node",
         "ProfileInterconnect", "ProfileLocalConnection", "ProfileModule", "ProfileNode",
-        "ProfileSubmodule", "ProgramWorkLineage", "QECBinding", "QECResourceProtocolRef",
+        "ProfileSubmodule", "ProgramRecipeMember", "ProgramWorkLineage", "QECBinding", "QECResourceProtocolRef",
         "ResourceRef", "ResourceStateKind", "SizingPolicy", "SizingResult", "Submodule",
         "SubmoduleKey", "SubmoduleLayoutRequest", "SubmoduleLayoutResult",
         "UnsupportedArchitectureError", "build_angle_doubling_recipe",
@@ -26,30 +26,41 @@ EXPECTED_EXPORTS = {
         "BackendSpec", "COMPILATION_RESULT_SCHEMA_VERSION", "CompiledComputeUnit",
         "CompiledRouteResult", "CompiledRouteStep", "CompilerPipeline", "ComputeBatch",
         "ComputeDuration", "ComputePartition", "DefaultCompilerPipeline", "LayoutSlot",
-        "LogicalCompilationResult", "LogicalCompilerSpec", "LogicalLayout",
-        "LogicalPlacement", "LogicalRoutePlan", "Movement", "PlacementEntry", "RouteStep",
+        "LogicalCompilationResult", "LogicalCompilerError", "LogicalCompilerSpec",
+        "LogicalCompilerValidationError", "LogicalLayout", "LogicalMappingError",
+        "LogicalPlacement", "LogicalRoutePlan", "LogicalRoutingError", "Movement",
+        "PlacementEntry", "RouteStep",
         "SyndromeProtocolTiming", "canonical_compiler_spec", "compile_ft_circuit",
-        "validate_compilation_coverage",
+        "UnsupportedLogicalBackendError", "validate_compilation_coverage",
     },
     "evaluation": {
-        "AnalyticEstimate", "BackendRequest", "BufferSpec", "CandidateImplementation",
-        "CompletionRequest", "DeferredDispatchRequest", "EngineSpec", "EvaluationAnalysis",
-        "EvaluationError", "EvaluationPolicy", "EvaluationResult", "EventOutcome",
-        "ExecutionEvent", "ExecutionPlan", "ExecutionPlane", "ExecutionTrace",
-        "ExecutionTransition", "ExecutionTransitionKind", "FidelityEstimate", "LayerEstimate",
-        "OutcomeModel", "PhysicalFootprintModel", "PreparedExecution",
-        "ProfileExecutionBackend", "ProgramContinuationReceipt", "ProgramDAG",
-        "ProgramSchedulingRequest", "QubitExposure", "RealizationRequest", "ResourceBufferRef",
+        "AnalyticEstimate", "BackendRequest", "BlockReason", "BufferSnapshot", "BufferSpec",
+        "CandidateImplementation", "ContinuationDecision",
+        "ContinuationRequest", "DeferredDispatchRequest", "EngineSnapshot", "EngineSpec", "EvaluationAnalysis",
+        "EXECUTION_PLAN_SCHEMA_VERSION", "EvaluationError", "EvaluationPolicy", "EvaluationResult",
+        "ExecutionEvent", "ExecutionPlan", "ExecutionPlane", "ExecutionPolicy", "ExecutionTrace",
+        "ExecutionTransition", "ExecutionTransitionKind", "FidelityCoverageGaps", "FidelityEstimate",
+        "IncompleteFidelityCoverageError", "LayerEstimate",
+        "LogicalMeasurementOutcome", "LogicalMeasurementProvider",
+        "LogicalMeasurementRequest", "LogicalMeasurementResult",
+        "PhysicalFootprintEstimate", "PhysicalFootprintModel", "PreparedExecution",
+        "ExecutionTimingBackend", "ProgramContinuationReceipt", "ProgramDAG",
+        "ProgramSchedulingRequest", "QubitExposure", "RUNTIME_COMPONENT_ROLES",
+        "RUNTIME_COMPONENT_SCHEMA_VERSION", "RUNTIME_MANIFEST_SCHEMA_VERSION", "RealizationRequest", "ResourceBufferRef",
         "ResourceConsumption", "ResourceDAG", "ResourceProcess", "ResourceResidenceInterval",
         "ResourceSchedulingRequest", "ResourceTokenLedger", "ResourceTokenRecord",
         "RuntimeComponentDescriptor", "RuntimeComponentError", "RuntimeComponentManifest",
         "RuntimeComponentSet", "RuntimeInjectionMode", "RuntimeOperationView", "RuntimeRealizer",
-        "RuntimeScheduler", "TraceReplayError", "TraceStateProjection", "TraceValidationError",
+        "RuntimeScheduler", "StateBlockedError", "StateReservation", "StateSnapshot",
+        "StateTransitionError", "TentativeBinding",
+        "TraceReplayError", "TraceStateProjection", "TraceValidationError",
+        "UnsupportedRuntimeComponentError",
         "analyze_evaluation", "buffer_occupancy_statistics", "compile_and_lower",
         "default_runtime_component_manifest", "engine_utilization", "estimate_compiler_circuit_lower_bound",
         "estimate_fidelity", "estimate_physical_footprint", "estimate_static_layerwise_aggregation",
-        "evaluate", "exclusive_time_breakdown", "fidelity_breakdown", "lower_compilation_result",
-        "qubit_exposure", "replay_execution_trace", "resource_token_ledger", "space_breakdown",
+        "evaluate", "exclusive_time_breakdown", "fidelity_breakdown", "fidelity_coverage_gaps",
+        "lower_compilation_result", "qubit_exposure", "replay_execution_trace",
+        "require_complete_fidelity", "resource_token_ledger", "space_breakdown",
         "validate_discrete_time_log_document", "validate_execution_trace_document",
     },
     "operation_profiles": {
@@ -95,7 +106,7 @@ EXPECTED_EXPORTS = {
 
 def test_owner_scoped_wildcard_exports_are_exact() -> None:
     for subpackage, expected in EXPECTED_EXPORTS.items():
-        module = importlib.import_module(f"heteqsys.{subpackage}")
+        module = importlib.import_module(f"arqsim.{subpackage}")
         assert set(module.__all__) == expected
         assert len(module.__all__) == len(expected)
         assert all(hasattr(module, name) for name in expected)
@@ -121,6 +132,6 @@ def test_internal_and_deleted_names_do_not_leak_through_facades() -> None:
         "qec": {"QECCodeSpec", "QECProtocolSpec"},
     }
     for subpackage, names in forbidden.items():
-        module = importlib.import_module(f"heteqsys.{subpackage}")
+        module = importlib.import_module(f"arqsim.{subpackage}")
         assert names.isdisjoint(module.__all__)
         assert all(not hasattr(module, name) for name in names)

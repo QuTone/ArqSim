@@ -58,6 +58,6 @@
   "num_qubits": 2,
   "provenance": {},
   "representation": "clifford_t",
-  "schema_version": "heteqsys.ft-workload.v2",
-  "semantic_hash": "c4f34e1c4fa0f6c8dda83aed05ed5a2f0b76a63345413da6c589d7eb42a7c4d6"
+  "schema_version": "arqsim.ft-workload.v2",
+  "semantic_hash": "8fa7d2530380902736445b0e284f1bab4f9c6d93176ee12d865424b2f1988ba3"
 }

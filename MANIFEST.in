@@ -1,18 +1,21 @@
 include LICENSE
 include README.md
+include THIRD_PARTY_NOTICES.md
 include pyproject.toml
 
-recursive-include heteqsys *.py *.yaml
+recursive-include arqsim *.py *.yaml
 recursive-include docs *
 recursive-include examples *
 recursive-include tests *
 include system_cases/__init__.py
 recursive-include system_cases/finite_runtime_injection_demo *
+recursive-include system_cases/finite_runtime_injection_demo_locus_v2 *
+recursive-include system_cases/finite_runtime_injection_demo_measurement_v3 *
 
 prune build
 prune dist
 prune .pytest_cache
-prune heteqsys.egg-info
+prune arqsim.egg-info
 global-exclude *.py[cod]
 global-exclude __pycache__
 global-exclude .DS_Store

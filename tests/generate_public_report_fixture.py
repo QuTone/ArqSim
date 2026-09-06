@@ -13,14 +13,14 @@ import argparse
 import json
 from pathlib import Path
 
-from heteqsys.api import (
+from arqsim.api import (
     EvaluationConfig,
     load_evaluation_report_document,
     run_evaluation,
 )
-from heteqsys.program import FTCircuit
-from heteqsys.report_v1 import render_evaluation_report_v1
-from heteqsys.schema import normalize_json
+from arqsim.program import FTCircuit
+from arqsim.report_v1 import render_evaluation_report_v1
+from arqsim.schema import normalize_json
 
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -8,11 +8,11 @@ import math
 from pathlib import Path
 from typing import Any, Mapping
 
-from heteqsys.api import EvaluationConfig, EvaluationReport, run_evaluation
-from heteqsys.evaluation import EvaluationPolicy
-from heteqsys.operation_profiles import ArrivalDistribution, OperationLatencyProfile
-from heteqsys.program import FTCircuit, load_ft_workload
-from heteqsys.schema import normalize_json, semantic_hash
+from arqsim.api import EvaluationConfig, EvaluationReport, run_evaluation
+from arqsim.evaluation import EvaluationPolicy
+from arqsim.operation_profiles import ArrivalDistribution, OperationLatencyProfile
+from arqsim.program import FTCircuit, load_ft_workload
+from arqsim.schema import normalize_json, semantic_hash
 
 
 BASELINE_SCHEMA_VERSION = "arqsim.behavior-baseline.v1"
@@ -75,9 +75,9 @@ def baseline_config(case: BehaviorBaselineCase) -> EvaluationConfig:
     )
     return EvaluationConfig(
         profile_id=case.profile_id,
-        workflow_id=case.workflow_id,
+        run_label=case.workflow_id,
         latency_profile=latency,
-        evaluation_policy=EvaluationPolicy(trace_level="full", seed=0),
+        execution_policy=EvaluationPolicy(trace_level="full", seed=0),
     )
 
 
@@ -208,7 +208,7 @@ def semantic_baseline(
     evaluation_result = report.evaluation
     if evaluation_result is None:
         raise TypeError("Behavior baselines require native run diagnostics")
-    evaluation = evaluation_result.to_dict()
+    evaluation = evaluation_result.diagnostic_dict()
     events = [event.to_dict() for event in evaluation_result.events]
     log = normalize_json(evaluation_result.discrete_time_log)
     terminal = log[-1]

@@ -200,7 +200,7 @@
           "capacity": 1,
           "id": "resource_move",
           "owner": {
-            "module": "sc_node/sc_msf",
+            "module": null,
             "submodule": null
           }
         }
@@ -208,7 +208,7 @@
       "program": [
         {
           "consumes": {},
-          "duration_s": 2.6e-05,
+          "duration_s": 1.3e-05,
           "engines": {
             "compute:sc_node/sc_compute": 1
           },
@@ -304,7 +304,7 @@
         },
         {
           "consumes": {},
-          "duration_s": 2.6e-05,
+          "duration_s": 1.3e-05,
           "engines": {
             "compute:sc_node/sc_compute": 1
           },
@@ -487,15 +487,15 @@
       },
       "completed_program_instructions": 12,
       "completed_work_s_by_opcode": {
-        "EXECUTE_COMPUTE": 0.00010399999999999994,
+        "EXECUTE_COMPUTE": 7.799999999999994e-05,
         "FENCE": 0.0,
         "MOVE_QUBITS": 2.599999999999998e-05,
         "PREPARE_MAGIC_STATE": 0.002
       },
       "completion_schedule": [
         {
-          "duration_s": 2.6e-05,
-          "end_s": 2.6e-05,
+          "duration_s": 1.3e-05,
+          "end_s": 1.3e-05,
           "opcode": "EXECUTE_COMPUTE",
           "operation": "L0:EXECUTE_COMPUTE:q0,1",
           "plane": "program",
@@ -511,11 +511,11 @@
         },
         {
           "duration_s": 0.0,
-          "end_s": 2.6e-05,
+          "end_s": 1.3e-05,
           "opcode": "FENCE",
           "operation": "L0:FENCE:q-",
           "plane": "program",
-          "start_s": 2.6e-05
+          "start_s": 1.3e-05
         },
         {
           "duration_s": 1.299999999999999e-05,
@@ -566,8 +566,8 @@
           "start_s": 0.001039
         },
         {
-          "duration_s": 2.599999999999998e-05,
-          "end_s": 0.001065,
+          "duration_s": 1.299999999999999e-05,
+          "end_s": 0.001052,
           "opcode": "EXECUTE_COMPUTE",
           "operation": "L3:EXECUTE_COMPUTE:q2,3",
           "plane": "program",
@@ -575,11 +575,11 @@
         },
         {
           "duration_s": 0.0,
-          "end_s": 0.001065,
+          "end_s": 0.001052,
           "opcode": "FENCE",
           "operation": "L3:FENCE:q-",
           "plane": "program",
-          "start_s": 0.001065
+          "start_s": 0.001052
         },
         {
           "duration_s": 1.299999999999999e-05,
@@ -627,7 +627,7 @@
         "deliver_magic_local": 0.0,
         "prepare_magic": 0.0
       },
-      "program_state_blocked_s": 0.001935,
+      "program_state_blocked_s": 0.001961,
       "resource_items_started": {
         "deliver_magic_local": 2,
         "prepare_magic": 3

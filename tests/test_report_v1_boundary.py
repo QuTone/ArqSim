@@ -5,17 +5,17 @@ from pathlib import Path
 
 import pytest
 
-from heteqsys._run_artifacts import EvaluationRunArtifacts
-from heteqsys.architecture import get_architecture_profile
-from heteqsys.api import EvaluationConfig, EvaluationReport, run_evaluation
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.report_v1 import (
+from arqsim._run_artifacts import EvaluationRunArtifacts
+from arqsim.architecture import get_architecture_profile
+from arqsim.api import EvaluationConfig, EvaluationReport, run_evaluation
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.report_v1 import (
     ReportV1Renderer,
     render_evaluation_report_v1,
     render_policy_v1,
     render_profile_v2,
 )
-from heteqsys.schema import normalize_json
+from arqsim.schema import normalize_json
 from tests.behavior_baseline_support import CASE_BY_ID, load_case_inputs
 
 
@@ -100,7 +100,7 @@ def test_report_v1_helpers_are_one_way_plain_mapping_renderers() -> None:
     assert policy["schema_version"] == "arqsim.quantile-layout-policy.v1"
     assert policy["quantiles"]["compute"] == 0.75
 
-    source = Path(__file__).parents[1] / "heteqsys" / "report_v1.py"
+    source = Path(__file__).parents[1] / "arqsim" / "report_v1.py"
     text = source.read_text(encoding="utf-8")
     assert "ResolvedFTSystemSpec" not in text
     assert "architecture.legacy_adapter" not in text
@@ -113,12 +113,12 @@ def test_report_v1_helpers_are_one_way_plain_mapping_renderers() -> None:
         if isinstance(node, ast.ImportFrom) and node.module is not None
     }
     assert {
-        "heteqsys.architecture.legacy_adapter",
-        "heteqsys.architecture.profile_compat",
-        "heteqsys.architecture.spec",
-        "heteqsys.qec.configuration",
-        "heteqsys.compiler.pipeline",
-        "heteqsys.evaluation.plan",
+        "arqsim.architecture.legacy_adapter",
+        "arqsim.architecture.profile_compat",
+        "arqsim.architecture.spec",
+        "arqsim.qec.configuration",
+        "arqsim.compiler.pipeline",
+        "arqsim.evaluation.plan",
     }.isdisjoint(imported)
     assert not any(
         isinstance(node, ast.Attribute) and node.attr == "from_dict"
@@ -149,7 +149,7 @@ def test_report_v1_projection_covers_every_gallery_architecture(
             circuit,
             EvaluationConfig(
                 profile_id=profile_id,
-                workflow_id="gallery-smoke",
+                run_label="gallery-smoke",
             ),
         )
     )

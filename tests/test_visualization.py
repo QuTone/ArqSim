@@ -5,7 +5,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from heteqsys.visualization import (
+from arqsim.visualization import (
     plot_architecture_hierarchy,
     plot_architecture_profile,
     plot_architecture_specification,
@@ -14,16 +14,16 @@ from heteqsys.visualization import (
     plot_program_dag,
     plot_resource_dag,
 )
-from heteqsys.architecture import get_architecture_profile
-from heteqsys.evaluation import (
+from arqsim.architecture import get_architecture_profile
+from arqsim.evaluation import (
     PhysicalFootprintModel,
     estimate_physical_footprint,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.specification import build_architecture_specification
 
 from .test_evaluation import _cold_start_plan
-from heteqsys.evaluation import evaluate
+from arqsim.evaluation import evaluate
 
 
 def test_profile_visualization_reads_canonical_v3_for_local_and_multi_node(

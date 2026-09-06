@@ -1,26 +1,32 @@
 from __future__ import annotations
 
+import inspect
 from dataclasses import replace
 
 import pytest
 
-from heteqsys.compiler import (
+from arqsim.compiler import (
     BackendSpec,
     DefaultCompilerPipeline,
     LogicalCompilationResult,
+    LogicalCompilerError,
+    LogicalCompilerValidationError,
+    LogicalMappingError,
+    LogicalRoutingError,
+    UnsupportedLogicalBackendError,
 )
-from heteqsys.evaluation import (
+from arqsim.evaluation import (
     EvaluationPolicy,
     compile_and_lower,
     lower_compilation_result,
 )
-from heteqsys.operation_profiles import (
+from arqsim.operation_profiles import (
     OperationLatencyProfile,
     resolve_resource_protocol_bindings,
     with_effective_arrivals,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.specification import build_architecture_specification
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.specification import build_architecture_specification
 
 
 def _lowering_fixture():
@@ -47,6 +53,37 @@ def _lowering_fixture():
         magic_state_consumption=policy.magic_state_consumption,
     ).compile(circuit, specification, latency)
     return circuit, specification, latency, policy, bindings, compilation
+
+
+def test_level_two_lowering_parameter_names_are_descriptive() -> None:
+    assert tuple(inspect.signature(lower_compilation_result).parameters) == (
+        "circuit",
+        "specification",
+        "latency_profile",
+        "execution_policy",
+        "compilation",
+        "resource_delivery_channels",
+        "runtime_components",
+        "resource_protocol_bindings",
+    )
+    assert tuple(inspect.signature(compile_and_lower).parameters) == (
+        "circuit",
+        "specification",
+        "latency_profile",
+        "execution_policy",
+        "compiler_spec",
+        "compiler_pipeline",
+        "resource_delivery_channels",
+        "runtime_components",
+        "resource_protocol_bindings",
+    )
+
+
+def test_compiler_facade_exports_one_active_error_family() -> None:
+    assert issubclass(LogicalCompilerValidationError, LogicalCompilerError)
+    assert issubclass(LogicalMappingError, LogicalCompilerError)
+    assert issubclass(LogicalRoutingError, LogicalCompilerError)
+    assert issubclass(UnsupportedLogicalBackendError, LogicalCompilerError)
 
 
 def test_serialized_compilation_result_lowers_to_the_same_execution_plan() -> None:
@@ -148,12 +185,81 @@ def test_direct_lowering_rejects_a_stale_compilation_result() -> None:
     )
     stale = replace(compilation, circuit_hash="stale-circuit")
 
-    with pytest.raises(ValueError, match="source hashes do not match"):
+    with pytest.raises(
+        LogicalCompilerValidationError,
+        match="source hashes do not match",
+    ) as exc_info:
         lower_compilation_result(
             circuit,
             specification,
             latency,
             policy,
             stale,
+            resource_protocol_bindings=bindings,
+        )
+
+    assert exc_info.value.code == "invalid_logical_compiler_input"
+    assert exc_info.value.details == {
+        "expected_sources": {
+            "circuit_hash": circuit.semantic_hash,
+            "architecture_hash": specification.architecture_hash,
+            "latency_profile_hash": latency.binding_hash,
+        },
+        "actual_sources": {
+            "circuit_hash": "stale-circuit",
+            "architecture_hash": specification.architecture_hash,
+            "latency_profile_hash": latency.binding_hash,
+        },
+    }
+
+
+def test_compile_and_lower_rejects_invalid_pipeline_result_as_contract_error() -> None:
+    circuit, specification, latency, policy, bindings, _compilation = (
+        _lowering_fixture()
+    )
+
+    class InvalidPipeline:
+        def compile(self, _circuit, _specification, _latency):
+            return {"not": "a logical compilation result"}
+
+    with pytest.raises(
+        LogicalCompilerValidationError,
+        match="must return a LogicalCompilationResult",
+    ) as exc_info:
+        compile_and_lower(
+            circuit,
+            specification,
+            latency,
+            policy,
+            compiler_pipeline=InvalidPipeline(),
+            resource_protocol_bindings=bindings,
+        )
+
+    assert exc_info.value.details == {"actual_type": "dict"}
+
+
+def test_lowering_keeps_python_argument_and_option_errors_distinct() -> None:
+    circuit, specification, latency, policy, bindings, compilation = (
+        _lowering_fixture()
+    )
+
+    with pytest.raises(TypeError, match="compilation must be"):
+        lower_compilation_result(
+            circuit,
+            specification,
+            latency,
+            policy,
+            object(),  # type: ignore[arg-type]
+            resource_protocol_bindings=bindings,
+        )
+
+    with pytest.raises(ValueError, match="parallelism must be positive"):
+        lower_compilation_result(
+            circuit,
+            specification,
+            latency,
+            policy,
+            compilation,
+            resource_delivery_channels=0,
             resource_protocol_bindings=bindings,
         )

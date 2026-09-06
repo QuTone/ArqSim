@@ -8,13 +8,13 @@ import sys
 
 import pytest
 
-from heteqsys.api import EvaluationConfig, run_evaluation
-from heteqsys.evaluation import ExecutionPlan, RuntimeComponentManifest
-from heteqsys.program import FTCircuit, load_ft_workload
-from heteqsys.report_v1 import (
+from arqsim.api import EvaluationConfig, run_evaluation
+from arqsim.evaluation import ExecutionPlan, RuntimeComponentManifest
+from arqsim.program import FTCircuit, load_ft_workload
+from arqsim.report_v1 import (
     EVALUATION_REPORT_SCHEMA_VERSION as EVALUATION_REPORT_V1_SCHEMA_VERSION,
 )
-from heteqsys.schema import normalize_json, semantic_hash
+from arqsim.schema import normalize_json, semantic_hash
 from tests.behavior_baseline_support import (
     CASES,
     assert_behavior_baseline,

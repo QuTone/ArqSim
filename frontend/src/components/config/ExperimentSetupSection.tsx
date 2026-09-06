@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ExperimentSetupParams } from "@/types/experiment";
 
-// MSF protocol metadata — matches heteqsys MSF_CONFIG
+// MSF protocol metadata — matches arqsim MSF_CONFIG
 const MSF_PROTOCOLS = [
   {
     id: "cultivation",
@@ -97,14 +97,14 @@ export function ExperimentSetupSection({ params, onParamsChange }: Props) {
               Default · black-box injection
             </SelectItem>
             <SelectItem value="finite_t_injection_demo_v1" className="text-xs">
-              Finite T injection demo
+              Finite T injection demo · Profile 2.3
             </SelectItem>
           </SelectContent>
         </Select>
         <p className="rounded-md border border-white/10 bg-muted/20 px-2.5 py-2 font-mono text-[10px] leading-relaxed text-muted-foreground/75">
           {params.evaluationPreset === "default"
-            ? "Uses the core defaults: black-box injection and fidelity disabled."
-            : "Explicit demo policy: full Trace v3, seed 5, reference reaction latency, and canonical fidelity. Use ArqSim Timeline Demo with Profile 2.3 to exercise both T-measurement branches."}
+            ? "Uses the core defaults: black-box injection and canonical_reference_v1 fidelity. Fidelity is disabled only by explicit opt-out."
+            : "Locked acceptance path: ArqSim Timeline Demo + Profile 2.3, full Trace v4, finite-state injection, seed 0, reference reaction latency, and canonical fidelity. Other experiment and device overrides are ignored."}
         </p>
       </div>
 

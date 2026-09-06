@@ -8,18 +8,18 @@ from pathlib import Path
 
 import pytest
 
-from heteqsys.architecture.gallery import (
+from arqsim.architecture.gallery import (
     GalleryEntry,
     QuantileSizingConfig,
     get_gallery_entry,
     list_gallery_entries,
 )
-from heteqsys.architecture.logical_layout_policy import LogicalLayoutPolicy
-from heteqsys.architecture.sizing import SizingPolicy
+from arqsim.architecture.logical_layout_policy import LogicalLayoutPolicy
+from arqsim.architecture.sizing import SizingPolicy
 
 
 PROJECT_ROOT = Path(__file__).parents[1]
-ARCHITECTURE_ROOT = PROJECT_ROOT / "heteqsys" / "architecture"
+ARCHITECTURE_ROOT = PROJECT_ROOT / "arqsim" / "architecture"
 GALLERY_ROOT = ARCHITECTURE_ROOT / "gallery"
 
 _EXPECTED = {
@@ -107,7 +107,7 @@ def test_reference_baseline_quantiles_have_one_typed_owner() -> None:
     assert config.buffer_rounding == "ceil"
 
 
-@pytest.mark.parametrize("prefix", ("heteqsys.", "arqsim."))
+@pytest.mark.parametrize("prefix", ("arqsim.",))
 def test_gallery_prefix_compatibility_is_only_a_lookup_convenience(
     prefix: str,
 ) -> None:

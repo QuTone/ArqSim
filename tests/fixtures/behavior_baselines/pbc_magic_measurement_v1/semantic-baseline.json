@@ -2,18 +2,18 @@
   "case_id": "pbc_magic_measurement_v1",
   "diagnostic_hashes": {
     "architecture": "f570aaac27261e71f0fb289ae8b62343d58f0ffe0bd78e1ee9eeab9b7f9469cc",
-    "compilation": "8c1d5c14e87fb7df3dca4e165500d4d06a3e1ca7ffba2490437eca9e85e6c8be",
-    "compiler": "912eb0f02129a9c9bd87c2f38b8d3af3f4c90082d95eaef7b7f52f657cf6c64e",
-    "config": "520c45c349fd3706d4d512023f303d1fab2cec798ec0573de460195131a4a7a0",
-    "execution": "fea8e7d45b9c4acac509e6940891c947a40551aa9c6077f6b6bdbcdbbeac61f3",
-    "execution_plan": "0b0765c3991c77f8b7e6d32eb9927a38f1d812b7e7ac01e1125419cec10c877e",
+    "compilation": "acb84d5614d7027ad1e45a25524e1710f3a88412bdab48ee6edf7dcbdba7c6d8",
+    "compiler": "cb260848d3113c8c425a814137671ba945ce41c5ba746be45adb3e15ed98da4b",
+    "config": "1e2cf825a60dbd7a2911a9d841eee008df08506181430a4266ba4c83c781dcb1",
+    "execution": "ebd594562ff12286b34b5b475bd8ff2c59f40df98568492b8b7bc2b0727bb9d7",
+    "execution_plan": "8810f7cd18c1692a936b1980da07a06437749450e8af04fe064129684484fcaf",
     "fidelity_profile": null,
-    "footprint_estimate": "e1ca93e713cc219e8a27d8f7fcc95a08223b1a69682cb7afdb400d65ffa8c19e",
+    "footprint_estimate": "4d5e8bd908529b32f908f751868efe4705a4c0ac9267da53aacccefb5b8a5497",
     "latency_profile": "77db6b50195fa8d7b93bb633ae01189d602f4e89656dea21b4d0021305b7b0b6",
-    "report": "03ba766d63d4e4cc6e51aba475980c4e646306ab6b6562f7a0c3744bd9a9799b",
-    "runtime_components": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
-    "trace": "ff272bb7d2a058f01c05c9c778f34e9cee96270de8cb0292d4e19a1b03727cc8",
-    "workload": "ed9087aab909f45c8779b5ef23bbb82456d909ff3faf6d9b7c49bd2c446924b7"
+    "report": "430bf7257718c5de93a7cd8fd95a854a9dd1004a5c8305d29e14fc55c2a4bb5f",
+    "runtime_components": "8deed83cf3e6fcabb2a6286a4142fc619199ad440e7507ed01d6387bfa38db00",
+    "trace": "d3da348917511f2ae38fbfc41fbe21f5d8286df3e446de541b3ee242c271b64e",
+    "workload": "bf5b6a8ed5228399f3de093bf2057d03238ef79b8c0655e2481ab755f6472c3e"
   },
   "inputs": {
     "config": {
@@ -30,7 +30,9 @@
         "store_load_policy": "dependency_aware_overlap",
         "trace_level": "full"
       },
-      "fidelity_profile": null,
+      "fidelity_profile": {
+        "preset": "canonical_reference_v1"
+      },
       "footprint_model": {
         "preset": "protocol_aware_reference_v1"
       },
@@ -108,7 +110,7 @@
       "runtime_components": {
         "components": {
           "execution_backend": {
-            "component_hash": "6466bc476c96a0b5f6d8ef297f317a9e092fe881bf317d349ad87041fa04a481",
+            "component_hash": "9fbdc77db3ffcf357f785b1e9b3764e41dcfd216a4aa4242a35fca2acfc282de",
             "component_id": "backend.profile.v1",
             "contract_version": "1",
             "effective_config": {
@@ -117,38 +119,38 @@
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "execution_backend",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           },
-          "outcome_model": {
-            "component_hash": "d402e3a1dabf14d52fefd4e2c52a3a5e425877fa8ea0e964673000d6e176d2f0",
-            "component_id": "outcome.seeded_bernoulli.v1",
+          "measurement_provider": {
+            "component_hash": "275f8b7378a7b5ba1a610f73b34e582f643a4275874878cdc9c1e19593e8e939",
+            "component_id": "measurement.seeded_bernoulli.v1",
             "contract_version": "1",
             "effective_config": {
               "distribution": "independent_bernoulli_half",
-              "seed_identity": "program_work_lineage"
+              "seed_identity": "program_work_lineage_and_register"
             },
             "implementation_version": "1",
             "provider": "arqsim",
-            "role": "outcome_model",
-            "schema_version": "arqsim.runtime-component.v3"
+            "role": "measurement_provider",
+            "schema_version": "arqsim.runtime-component.v4"
           },
           "runtime_realizer": {
-            "component_hash": "12fc92bfed2c1914a875113335ce5c8b959fcc92caf634db827c94b433b4c8a7",
-            "component_id": "runtime_realizer.state_bound.v2",
+            "component_hash": "0b5166ae14f63201d859b09229c756df0542f136389a9aaba722b6a137d167ba",
+            "component_id": "runtime_realizer.state_bound.v3",
             "contract_version": "1",
             "effective_config": {
               "binding": "fifo_first_free",
-              "continuation": "finite_injection_recipe_v1",
+              "continuation": "fully_scheduled_injection_recipe_v1",
               "deferred_program": "joint_magic_route",
               "deferred_resource": "state_bound_resource_move"
             },
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "runtime_realizer",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           },
           "scheduler": {
-            "component_hash": "60304b909a42e50cb511ed1cb9eb403744d951476717660580a8ba6247685226",
+            "component_hash": "6576c8ce29a08703c1f8f721ab9af363df6ba8a6d07ea533258bf992d63c9a5c",
             "component_id": "scheduler.program_first_eager.v1",
             "contract_version": "1",
             "effective_config": {
@@ -158,17 +160,19 @@
             "implementation_version": "1",
             "provider": "arqsim",
             "role": "scheduler",
-            "schema_version": "arqsim.runtime-component.v3"
+            "schema_version": "arqsim.runtime-component.v4"
           }
         },
         "event_engine": {
-          "component_hash": "a653143af6817731cbf56982a48da087fe60ed2a891cc67afe52e0049c26198b",
-          "component_id": "event_engine.transactional_dynamic_frontier.v2",
+          "component_hash": "39c1420959e3bb1eb1f64e9927cf1168f5629a7d4a6122803acd9f92b59ec9ff",
+          "component_id": "event_engine.transactional_dynamic_frontier.v3",
           "contract_version": "1",
           "effective_config": {
             "commit_granularity": "single_candidate",
             "continuation_order": "activation_order_then_monotonic_schedule_id",
             "dispatch": "eager_when_ready",
+            "measurement_dispatch": "expected_logical_measurements_only",
+            "measurement_seed_stream": "logical_measurement.v1",
             "program_continuations": "finite_injection_recipe_v1",
             "program_horizon": "stop_without_resource_drain",
             "resource_fitting": "typed_dispatch_receipt_v1",
@@ -182,10 +186,10 @@
           "implementation_version": "1",
           "provider": "arqsim",
           "role": "event_engine",
-          "schema_version": "arqsim.runtime-component.v3"
+          "schema_version": "arqsim.runtime-component.v4"
         },
-        "manifest_hash": "34d7cf608900e6d8ee42f07b7411dd3ed7497bd8255cdfefa135452f76feae06",
-        "schema_version": "arqsim.runtime-manifest.v3"
+        "manifest_hash": "dca5abf003954822ac6783a56381bc772f6b04e60574fc942e02656e5b35921b",
+        "schema_version": "arqsim.runtime-manifest.v4"
       },
       "schema_version": "arqsim.evaluation-config.v1",
       "workflow_id": "step2-pbc-v1"
@@ -238,7 +242,7 @@
       "num_clbits": 0,
       "num_qubits": 3,
       "representation": "pbc",
-      "schema_version": "heteqsys.ft-workload.v2"
+      "schema_version": "arqsim.ft-workload.v2"
     }
   },
   "known_limitations": [
@@ -383,7 +387,7 @@
     "summary": {
       "completed_program_instructions": 4,
       "event_count": 6,
-      "fidelity_complete_coverage": null,
+      "fidelity_complete_coverage": true,
       "footprint_checks": {
         "all_capacity_entries_accounted": true,
         "all_component_costs_non_negative": true,
@@ -406,7 +410,7 @@
         "token_locations_consistent": true,
         "transaction_versions_consistent": true
       },
-      "success_probability": null,
+      "success_probability": 0.999960093118655,
       "total_latency_s": 0.005039,
       "total_physical_qubits": 7203.0
     }
@@ -452,8 +456,7 @@
         },
         {
           "capacity": 1,
-          "id": "resource_move",
-          "module": "sc_node/sc_msf"
+          "id": "resource_move"
         }
       ],
       "initial_locations": {
@@ -530,7 +533,7 @@
               2
             ],
             "resource_policy": "consume_ready_magic_states_at_dispatch",
-            "route_hash": "32e5cf98aedb545fef8b74c24872ffce03551fd2f06a5f59a9942b1b7973866d",
+            "route_hash": "8d9c54eaacb5c5231e782da484e8b28b986c210eadd6a3bc68a73d0b348182be",
             "route_metrics": {},
             "route_steps": [],
             "source_layer": 0,

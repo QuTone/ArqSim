@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from heteqsys.api import (
+from arqsim.api import (
     CANONICAL_FIDELITY_PRESET,
     EvaluationConfig,
     run_evaluation,
     validate_evaluation_report_document,
 )
-from heteqsys.operation_profiles import (
+from arqsim.operation_profiles import (
     ArrivalDistribution,
     OperationLatencyProfile,
     ResolvedResourceProtocolBindings,
@@ -18,13 +18,13 @@ from heteqsys.operation_profiles import (
     resolve_resource_protocol_bindings,
     with_effective_arrivals,
 )
-from heteqsys.program import FTCircuit, LogicalLayer, LogicalOperation
-from heteqsys.qec import (
+from arqsim.program import FTCircuit, LogicalLayer, LogicalOperation
+from arqsim.qec import (
     get_entanglement_distillation_profile,
     get_magic_state_factory_profile,
 )
-from heteqsys.schema import normalize_json, semantic_hash
-from heteqsys.specification import build_architecture_specification
+from arqsim.schema import normalize_json, semantic_hash
+from arqsim.specification import build_architecture_specification
 
 
 def _t_circuit(num_qubits: int = 1) -> FTCircuit:
