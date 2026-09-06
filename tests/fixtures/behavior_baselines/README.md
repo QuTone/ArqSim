@@ -1,56 +1,36 @@
-# Step 2 behavior baselines
+# Runtime behavior baselines
 
-These fixtures preserve the observable behavior immediately before the
-transactional Event Engine refactor.
+These fixtures preserve behavior and forensic snapshots from before the
+transactional Event Engine refactor. Each case contains:
 
-Each case contains five artifacts:
+| Artifact | Purpose |
+| --- | --- |
+| `workload.qasm` | Human-readable source. |
+| `workload.json` | Frozen normalized `FTCircuit` used for execution. |
+| `config.json` | Frozen evaluation inputs. |
+| `semantic-baseline.json` | Regression contract checked with numerical tolerances. |
+| `report.v1.json` | Locked pre-refactor forensic snapshot. |
 
-- `workload.qasm`: small, human-readable source;
-- `workload.json`: normalized `FTCircuit` and the executable baseline input;
-- `config.json`: fully materialized public evaluation configuration;
-- `semantic-baseline.json`: the stable regression contract used by tests;
-- `report.v1.json`: a complete forensic report snapshot for inspection and
-  later frontend-contract work.
+Tests also check that QASM normalizes to the committed workload, keeping parser
+layering changes distinct from runtime changes. Current public-report fixtures
+live in [public_api](../public_api/README.md).
 
-The Engine baseline runs from `workload.json`, not directly from QASM. This
-keeps parser or Qiskit layering changes separate from runtime behavior. Tests
-still verify that each readable QASM source normalizes to the committed
-workload.
-
-Verify the committed baseline without writing (this is deliberately the
-default):
+From the repository root, verify without writing (`--check` is equivalent):
 
 ```bash
 python -m tests.generate_behavior_baselines
 ```
 
-The explicit alias is:
+The [generator](../../generate_behavior_baselines.py) has three explicit write
+modes for reviewed changes:
 
-```bash
-python -m tests.generate_behavior_baselines --check
-```
+| Flag | Changes |
+| --- | --- |
+| `--update-semantic` | Semantic baseline only; preserves the frozen forensic report identity. |
+| `--update-outputs` | Semantic baseline and forensic report. |
+| `--refresh-inputs` | Normalized workload/configuration and their dependent outputs. |
 
-Regenerating semantic/report output after an approved model change requires an
-explicit write flag:
-
-```bash
-python -m tests.generate_behavior_baselines --update-outputs
-```
-
-Refreshing `workload.json` or `config.json` is an intentional baseline-input
-change and must be explicit:
-
-```bash
-python -m tests.generate_behavior_baselines --refresh-inputs
-```
-
-`--refresh-inputs` also updates the dependent outputs. Never use either write
-mode merely to make a regression test pass; first classify the difference as
-an old bug, an owner-approved model change, or a regression.
-
-The semantic baseline is the Step 3 compatibility gate. The complete report
-is diagnostic evidence, not a byte-for-byte cross-platform gate: equivalent
-floating-point results are compared with a tight tolerance, and additive
-report fields are allowed. `report.v1.json` intentionally remains the locked
-pre-refactor forensic snapshot; after Step 3 it must not be silently refreshed
-merely to make a changed run pass.
+The full forensic report is diagnostic evidence, not a byte-for-byte
+cross-platform gate. Do not rewrite it as part of routine semantic maintenance.
+Classify differences as bug fixes, approved model changes, or regressions
+before selecting a write mode; do not update fixtures merely to pass tests.

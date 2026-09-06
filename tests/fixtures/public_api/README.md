@@ -1,24 +1,20 @@
 # Public report fixtures
 
-`report-v2.json` is the current native public contract shipped by the package.
-`report-v1.json` is the byte-stable, one-way compatibility projection. Both are
-separate from the locked Step-2 forensic reports, which preserve pre-refactor
-evidence.
+`report-v2.json` exercises the current native public-report contract.
+`report-v1.json` is its byte-stable, one-way compatibility projection. The
+[behavior baselines](../behavior_baselines/README.md) separately retain locked
+pre-refactor forensic reports.
 
-The default command is read-only and fails on any difference:
+From the repository root, check without writing:
 
 ```bash
 python -m tests.generate_public_report_fixture
 ```
 
-After reviewing an intentional v2 schema or contract change, refresh it
-explicitly:
+The [generator](../../generate_public_report_fixture.py) runs fixed inputs
+twice, strictly validates Report v2 and its causal Trace, and byte-compares the
+v1 rendering with its frozen fixture. After an intentional contract review,
+`--update` writes only v2; the generator never rewrites v1.
 
-```bash
-python -m tests.generate_public_report_fixture --update
-```
-
-The generator runs the fixed input twice, strictly validates the v2 report and
-causal trace ledger, and byte-compares the explicit one-way v1 rendering with
-its frozen fixture. It only writes v2 in `--update` mode and never rewrites the
-v1 fixture.
+See [Report and Trace Schema](../../../docs/01-public-api/report-and-trace-schema.md)
+for the persisted contract and validation rules.

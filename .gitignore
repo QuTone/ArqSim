@@ -17,6 +17,7 @@ env/
 .tox/
 .nox/
 .hypothesis/
+.ipynb_checkpoints/
 
 # Local credentials and environment overrides
 .env
@@ -32,6 +33,8 @@ dist-ssr/
 results/
 processing/
 logs/
+*.log
+/report.json
 .mplconfig/
 .matplotlib/
 .coverage
@@ -42,6 +45,16 @@ htmlcov/
 # Private local workspaces are never release assets
 Archive/
 private/
+/docs/archive/
+/docs/roadmap/
+paper/
+papers/
+paper_artifact/
+paper_snapshot/
+manuscript/
+manuscripts/
+submission/
+submissions/
 
 # Editors and operating systems
 .vscode/

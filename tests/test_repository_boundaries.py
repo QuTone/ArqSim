@@ -184,13 +184,22 @@ def test_release_metadata_matches_the_public_package_contract() -> None:
         r'(?m)^arqsim\s*=\s*"arqsim\.cli:main"\s*$', scripts
     )
     package_discovery = _toml_section("tool.setuptools.packages.find")
-    assert 'include = ["arqsim*"]' in package_discovery
+    declared_packages = set(re.findall(r'"(arqsim[^\"]*)"', package_discovery))
+    actual_packages = {
+        ".".join(path.parent.relative_to(PROJECT_ROOT).parts)
+        for path in PACKAGE_ROOT.rglob("__init__.py")
+    }
+    assert declared_packages == actual_packages
+    assert "namespaces = false" in package_discovery
 
 
 def test_declared_runtime_package_data_exists_in_the_source_tree() -> None:
     package_data = _toml_section("tool.setuptools.package-data")
     expected_patterns = (
-        "architecture/gallery/*/profile.yaml",
+        *(
+            path.relative_to(PACKAGE_ROOT).as_posix()
+            for path in sorted((PACKAGE_ROOT / "architecture/gallery").glob("*/profile.yaml"))
+        ),
         "qec/protocol_profiles/*.yaml",
         "operation_profiles/fidelity_profiles/*.yaml",
     )
@@ -449,8 +458,14 @@ def test_readme_python_quickstart_runs_through_the_public_facade() -> None:
 def test_local_markdown_links_resolve_inside_the_repository() -> None:
     documents = [
         PROJECT_ROOT / "README.md",
+        *PROJECT_ROOT.glob("frontend/README.md"),
+        *PROJECT_ROOT.glob("server/README.md"),
+        *PROJECT_ROOT.glob("server/benchmark/README.md"),
+        *sorted((PROJECT_ROOT / "arqsim").rglob("README.md")),
         *sorted((PROJECT_ROOT / "docs").rglob("*.md")),
         *sorted((PROJECT_ROOT / "examples").rglob("*.md")),
+        *sorted((PROJECT_ROOT / "system_cases").rglob("README.md")),
+        *sorted((PROJECT_ROOT / "tests" / "fixtures").rglob("README.md")),
     ]
     missing: list[str] = []
     link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")

@@ -68,7 +68,16 @@ FORBIDDEN_PACKAGE_FILES = frozenset(
     }
 )
 FORBIDDEN_CACHE_PARTS = frozenset(
-    {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "build", "dist"}
+    {
+        "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
+        ".ipynb_checkpoints", "build", "dist",
+    }
+)
+PRIVATE_SOURCE_PARTS = frozenset(
+    {
+        "private", "Archive", "paper", "papers", "paper_artifact",
+        "paper_snapshot", "manuscript", "manuscripts", "submission", "submissions",
+    }
 )
 
 
@@ -110,6 +119,8 @@ def _copy_release_source(destination: Path) -> None:
                     ".pytest_cache",
                     ".mypy_cache",
                     ".ruff_cache",
+                    ".ipynb_checkpoints",
+                    *PRIVATE_SOURCE_PARTS,
                     "*.egg-info",
                     "*.pyc",
                     "*.pyo",
@@ -147,7 +158,7 @@ def _build_artifacts(source: Path, artifacts: Path) -> tuple[Path, Path]:
 def _expected_package_files(source: Path) -> set[str]:
     expected: set[str] = set()
     for path in (source / "arqsim").rglob("*"):
-        if not path.is_file() or "__pycache__" in path.parts:
+        if not path.is_file() or "__pycache__" in path.parts or _is_private_source_path(path):
             continue
         if path.suffix not in {".py", ".yaml"}:
             continue
@@ -155,12 +166,22 @@ def _expected_package_files(source: Path) -> set[str]:
     return expected
 
 
+def _is_private_source_path(path: Path) -> bool:
+    return bool(PRIVATE_SOURCE_PARTS.intersection(path.parts)) or any(
+        f"/{prefix}/" in f"/{path.as_posix()}/"
+        for prefix in ("docs/archive", "docs/roadmap")
+    )
+
+
 def _is_release_source_file(path: Path) -> bool:
     return (
         path.is_file()
         and not FORBIDDEN_CACHE_PARTS.intersection(path.parts)
+        and not _is_private_source_path(path)
         and not any(part.endswith(".egg-info") for part in path.parts)
-        and path.suffix not in {".pyc", ".pyo"}
+        and path.suffix not in {".pyc", ".pyo", ".log"}
+        and path.name != ".env"
+        and not path.name.startswith(".env.")
     )
 
 
@@ -173,6 +194,7 @@ def _expected_sdist_files(source: Path) -> set[str]:
             "README.md",
             "LICENSE",
             "THIRD_PARTY_NOTICES.md",
+            "arqsim/README.md",
         }
     )
     for tree_name in REPOSITORY_SOURCE_TREES:
@@ -193,17 +215,21 @@ def _assert_no_legacy_or_cache_paths(
     forbidden: list[str] = []
     for name in names:
         parts = Path(name).parts
-        if FORBIDDEN_CACHE_PARTS.intersection(parts):
+        if FORBIDDEN_CACHE_PARTS.intersection(parts) or _is_private_source_path(Path(name)):
             forbidden.append(name)
             continue
-        if name.endswith((".pyc", ".pyo")):
+        if (
+            name.endswith((".pyc", ".pyo", ".log"))
+            or Path(name).name == ".env"
+            or Path(name).name.startswith(".env.")
+        ):
             forbidden.append(name)
             continue
         if any(name.endswith(path) for path in FORBIDDEN_PACKAGE_FILES):
             forbidden.append(name)
     if forbidden:
         raise RuntimeError(
-            f"{artifact} contains legacy or cache/build paths: {sorted(forbidden)}"
+            f"{artifact} contains private, legacy or generated paths: {sorted(forbidden)}"
         )
 
 

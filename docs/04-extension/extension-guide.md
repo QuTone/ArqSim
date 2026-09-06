@@ -29,6 +29,11 @@ deterministic for a fixed request and must leave a serializable receipt.
    slot ownership, engine capacity, deterministic hashes, and one end-to-end
    report.
 
+When distributing a new gallery package, add its package name and profile YAML
+to [pyproject.toml](../../pyproject.toml), and its source paths to
+[MANIFEST.in](../../MANIFEST.in). Run `python tests/run_packaging_smoke.py` from
+the repository root to verify that the installed package includes the extension.
+
 A Profile bundle establishes static topology, sizing, and logical layout. That
 alone does not make the architecture executable. End-to-end support must also
 provide or validate the applicable compiler capabilities, operation timing and

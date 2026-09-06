@@ -256,5 +256,5 @@ Before a general compiler exchange is exposed, the instruction model needs:
 See [Offline Pipeline API](offline-pipeline-api.md),
 [Compiler IR Walkthrough](compiler-ir-walkthrough.md),
 [Evaluation Engine](../03-runtime/evaluation-engine.md), and
-[Known Limitations](../roadmap/known-limitations.md) for the surrounding
+[Known Limitations](../known-limitations.md) for the surrounding
 contracts.

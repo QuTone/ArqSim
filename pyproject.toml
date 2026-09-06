@@ -54,14 +54,43 @@ arqsim = "arqsim.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["arqsim*"]
+namespaces = false
+# Public packages are explicit so ignored local directories cannot enter a wheel.
+include = [
+    "arqsim",
+    "arqsim.architecture",
+    "arqsim.architecture.gallery",
+    "arqsim.architecture.gallery._shared",
+    "arqsim.architecture.gallery.na_c_plus_sc_f",
+    "arqsim.architecture.gallery.na_cf",
+    "arqsim.architecture.gallery.na_m_plus_sc_cf",
+    "arqsim.architecture.gallery.na_mc_plus_sc_f",
+    "arqsim.architecture.gallery.na_mcf",
+    "arqsim.architecture.gallery.sc_cf",
+    "arqsim.compiler",
+    "arqsim.compiler.neutral_atom",
+    "arqsim.evaluation",
+    "arqsim.operation_profiles",
+    "arqsim.program",
+    "arqsim.qec",
+    "arqsim.synthesizer",
+    "arqsim.visualization",
+]
 
 [tool.setuptools.package-data]
 "arqsim" = [
-    "architecture/gallery/*/profile.yaml",
+    "architecture/gallery/na_c_plus_sc_f/profile.yaml",
+    "architecture/gallery/na_cf/profile.yaml",
+    "architecture/gallery/na_m_plus_sc_cf/profile.yaml",
+    "architecture/gallery/na_mc_plus_sc_f/profile.yaml",
+    "architecture/gallery/na_mcf/profile.yaml",
+    "architecture/gallery/sc_cf/profile.yaml",
     "qec/protocol_profiles/*.yaml",
     "operation_profiles/fidelity_profiles/*.yaml",
 ]
+
+[tool.setuptools.exclude-package-data]
+"arqsim" = ["README.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

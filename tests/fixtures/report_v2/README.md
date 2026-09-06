@@ -1,15 +1,17 @@
 # Report-v2 fixtures
 
-- `static-summary.v2.json` exercises a static Plan/Trace with canonical
-  fidelity enabled and no diagnostic time log.
-- `dynamic-t-full.v2.json` exercises finite-state T injection, measurement,
-  classical reaction, materialized logical correction, dynamic work lineage,
-  and the checked full diagnostic time log.
+- `static-summary.v2.json` covers a static Plan/Trace with canonical fidelity
+  and no diagnostic time log.
+- `dynamic-t-full.v2.json` covers finite T injection, measurement, reaction,
+  conditional logical correction, dynamic lineage, and the checked full log.
 
-Check determinism and codec validity with:
+From the repository root, check determinism and codec validity without writing:
 
 ```bash
 python -m tests.generate_report_v2_fixtures
 ```
 
-After an intentional schema or semantic review, refresh them with `--update`.
+For a reviewed schema or semantic change, the
+[generator](../../generate_report_v2_fixtures.py) accepts `--update`.
+See [Report and Trace Schema](../../../docs/01-public-api/report-and-trace-schema.md)
+for the contract these fixtures exercise.

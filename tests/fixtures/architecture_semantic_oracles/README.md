@@ -1,42 +1,31 @@
 # Architecture semantic oracles
 
-These six fixtures are the behavior gate for the ground-up refactor.  They are
-not snapshots of `ArchitectureSpecification.to_dict()` or report v1.  Each
-fixture keeps only facts that survive a change of Python classes or serialized
-document shape:
+These six fixtures preserve gallery behavior across internal class or wire
+format changes. They record:
 
-- Node/Module/Submodule ownership, type, and payload;
-- local connections and shared Interconnect endpoint access;
-- resolved capacity, QEC binding, slot identity, and meaningful logical
-  geometry (BB memory slots are explicitly identity-only);
-- resource-protocol provisioning;
-- compiler backend selection and the Program dependency/claim/cost semantics;
-- recurring resource process timing and resource claims;
-- deterministic completion schedule, analytical latency, occupancy, blocking,
-  and core token metrics;
-- analytical footprint results, kept under `results` rather than static
-  architecture.
+- resource ownership, connectivity, capacities, QEC bindings, slot identities,
+  and logical geometry, including identity-only BB memory slots;
+- resource-protocol provisioning and compiler backend selection;
+- Program dependencies, claims, and costs, plus recurrent Resource processes;
+- deterministic schedules, latency, occupancy, blocking, and token metrics;
+- physical-footprint estimates under `results`, separate from static resources.
 
-For profiles 1.3, 2.2, and 2.3, one Bell-pair token is owned by the shared
-Interconnect.  It has two endpoint-local halves, one encoded logical-qubit
-state per endpoint.  Pair capacity is therefore counted once by the runtime,
-while endpoint state and physical footprint are accounted at both endpoints.
+For Profiles 1.3, 2.2, and 2.3, the shared Interconnect owns one Bell-pair token
+with an encoded logical state at each endpoint. Runtime counts pair capacity
+once; endpoint state and physical footprint are accounted at both endpoints.
 
-The fixtures intentionally omit hashes, schema/layout-plan wrappers, legacy
-roles, ports, compiler routing-node IDs, runtime component manifests, report
-section names, event/reservation IDs, and other implementation receipts.
+Hashes, wrapper classes, routing-node IDs, manifests, and event/reservation IDs
+are deliberately omitted. The owning contracts are described in
+[Architecture Specification](../../../docs/00-foundations/architecture-specification.md)
+and [Offline Pipeline API](../../../docs/02-offline-pipeline/offline-pipeline-api.md).
 
-Verification is the default and never writes:
+From the repository root, verify without writing:
 
 ```bash
 python -m tests.generate_architecture_semantic_oracles
 ```
 
-After an approved semantic change, refresh requires an explicit flag:
-
-```bash
-python -m tests.generate_architecture_semantic_oracles --update
-```
-
-Never update these fixtures merely to make a refactor pass.  First classify a
-difference as an old bug, an owner-approved model change, or a regression.
+For a reviewed semantic change, the [generator](../../generate_architecture_semantic_oracles.py)
+accepts `--update`. Classify a difference as a bug fix, an approved model change,
+or a regression before updating fixtures; do not refresh them to make a
+refactor pass.

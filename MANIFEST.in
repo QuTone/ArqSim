@@ -1,21 +1,65 @@
+# Include only maintained source directories; do not recursively collect local work.
 include LICENSE
 include README.md
 include THIRD_PARTY_NOTICES.md
 include pyproject.toml
 
-recursive-include arqsim *.py *.yaml
-recursive-include docs *
-recursive-include examples *
-recursive-include tests *
-include system_cases/__init__.py
-recursive-include system_cases/finite_runtime_injection_demo *
-recursive-include system_cases/finite_runtime_injection_demo_locus_v2 *
-recursive-include system_cases/finite_runtime_injection_demo_measurement_v3 *
+include arqsim/*.py arqsim/README.md
+include arqsim/architecture/*.py
+include arqsim/architecture/gallery/*.py
+include arqsim/architecture/gallery/_shared/*.py
+include arqsim/architecture/gallery/na_c_plus_sc_f/*.py arqsim/architecture/gallery/na_c_plus_sc_f/profile.yaml
+include arqsim/architecture/gallery/na_cf/*.py arqsim/architecture/gallery/na_cf/profile.yaml
+include arqsim/architecture/gallery/na_m_plus_sc_cf/*.py arqsim/architecture/gallery/na_m_plus_sc_cf/profile.yaml
+include arqsim/architecture/gallery/na_mc_plus_sc_f/*.py arqsim/architecture/gallery/na_mc_plus_sc_f/profile.yaml
+include arqsim/architecture/gallery/na_mcf/*.py arqsim/architecture/gallery/na_mcf/profile.yaml
+include arqsim/architecture/gallery/sc_cf/*.py arqsim/architecture/gallery/sc_cf/profile.yaml
+include arqsim/compiler/*.py
+include arqsim/compiler/neutral_atom/*.py
+include arqsim/evaluation/*.py
+include arqsim/operation_profiles/*.py
+include arqsim/operation_profiles/fidelity_profiles/*.yaml
+include arqsim/program/*.py
+include arqsim/qec/*.py
+include arqsim/qec/protocol_profiles/*.yaml
+include arqsim/synthesizer/*.py
+include arqsim/visualization/*.py
+include docs/README.md docs/known-limitations.md
+include docs/00-foundations/architecture-specification.md docs/00-foundations/repository-structure.md
+include docs/01-public-api/public-api.md docs/01-public-api/report-and-trace-schema.md
+include docs/02-offline-pipeline/compiler-ir-walkthrough.md docs/02-offline-pipeline/execution-plan-instruction-reference.md docs/02-offline-pipeline/offline-pipeline-api.md
+include docs/03-runtime/evaluation-engine.md
+include docs/04-extension/extension-guide.md
+include docs/provenance/ppm/README.md docs/provenance/ppm/fit_multi_patch_ppm.py docs/provenance/ppm/multi_patch_ppm_fit_p1e-3.json docs/provenance/ppm/multi_patch_ppm_results.csv
+include examples/*.py examples/README.md
+include examples/notebooks/*.ipynb
+include examples/workloads/*.qasm
+include system_cases/*.py
+include system_cases/finite_runtime_injection_demo/*.py system_cases/finite_runtime_injection_demo/*.yaml system_cases/finite_runtime_injection_demo/ACCEPTANCE.md system_cases/finite_runtime_injection_demo/README.md
+include system_cases/finite_runtime_injection_demo/reference/*.json
+include system_cases/finite_runtime_injection_demo/workload/*.qasm
+include system_cases/finite_runtime_injection_demo_locus_v2/*.py system_cases/finite_runtime_injection_demo_locus_v2/*.yaml system_cases/finite_runtime_injection_demo_locus_v2/README.md
+include system_cases/finite_runtime_injection_demo_locus_v2/reference/*.json
+include system_cases/finite_runtime_injection_demo_locus_v2/workload/*.qasm
+include system_cases/finite_runtime_injection_demo_measurement_v3/*.py system_cases/finite_runtime_injection_demo_measurement_v3/*.yaml system_cases/finite_runtime_injection_demo_measurement_v3/ACCEPTANCE.md system_cases/finite_runtime_injection_demo_measurement_v3/README.md
+include system_cases/finite_runtime_injection_demo_measurement_v3/reference/*.json
+include system_cases/finite_runtime_injection_demo_measurement_v3/workload/*.qasm
+include tests/*.py
+include tests/fixtures/*.qasm
+include tests/fixtures/architecture_semantic_oracles/*.json tests/fixtures/architecture_semantic_oracles/README.md
+include tests/fixtures/behavior_baselines/README.md
+include tests/fixtures/behavior_baselines/clifford_t_remote_magic_v1/*.json tests/fixtures/behavior_baselines/clifford_t_remote_magic_v1/*.qasm
+include tests/fixtures/behavior_baselines/pbc_magic_measurement_v1/*.json tests/fixtures/behavior_baselines/pbc_magic_measurement_v1/*.qasm
+include tests/fixtures/public_api/*.json tests/fixtures/public_api/README.md
+include tests/fixtures/report_v2/*.json tests/fixtures/report_v2/README.md
 
 prune build
 prune dist
 prune .pytest_cache
 prune arqsim.egg-info
+prune docs/archive
+prune docs/roadmap
 global-exclude *.py[cod]
 global-exclude __pycache__
 global-exclude .DS_Store
+global-exclude *.log .env .env.*
