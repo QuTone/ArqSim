@@ -403,14 +403,19 @@ def estimate_static_layerwise_aggregation(
             )
         )
 
-    totals: defaultdict[str, float] = defaultdict(float)
+    # The same costs are grouped by component and by layer below. Accurate
+    # summation avoids a false conservation failure on deep circuits.
+    component_values: defaultdict[str, list[float]] = defaultdict(list)
     for layer in layers:
         for name, value in layer.exclusive_breakdown_s.items():
-            totals[name] += value
-    total = sum(totals.values())
+            component_values[name].append(value)
+    totals = {
+        name: math.fsum(values) for name, values in component_values.items()
+    }
+    total = math.fsum(totals.values())
     if not math.isclose(
         total,
-        sum(layer.total_latency_s for layer in layers),
+        math.fsum(layer.total_latency_s for layer in layers),
         rel_tol=1e-12,
         abs_tol=1e-12,
     ):
