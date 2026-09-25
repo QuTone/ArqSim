@@ -14,6 +14,7 @@ import { ResourceEstimatesPanel } from "@/components/resources/ResourceEstimates
 import { CircuitStatistics } from "@/components/statistics/CircuitStatistics";
 import { TimelineTrace } from "@/components/timeline/TimelineTrace";
 import { ProgramExecutionPanel } from "@/components/program/ProgramExecutionPanel";
+import { evaluationScopeLabel } from "@/services/reportAdapter";
 import type {
   EvaluationReportModel,
   EvaluationViewModels,
@@ -74,6 +75,8 @@ export function EvaluationResultsPage({
 }: EvaluationResultsPageProps) {
   const [activeTab, setActiveTab] = useState<ResultsTab>("timeline");
   const headline = viewModels.headline;
+  const scope = viewModels.evaluationScope;
+  const prefixPreview = scope.kind === "prefix_preview";
 
   return (
     <div className="flex h-screen min-h-0 w-full flex-col overflow-hidden bg-background">
@@ -92,7 +95,7 @@ export function EvaluationResultsPage({
           <div className="h-6 w-px bg-border" />
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold text-foreground">
-              Evaluation result
+              {prefixPreview ? "Prefix evaluation result" : "Evaluation result"}
             </div>
             <div className="truncate font-mono text-[10px] text-muted-foreground">
               Profile {headline.profileId} · causal runtime report
@@ -103,7 +106,7 @@ export function EvaluationResultsPage({
         <div className="flex items-center gap-5">
           <div className="text-right">
             <div className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-              Latency
+              {prefixPreview ? "Prefix latency" : "Latency"}
             </div>
             <div className="font-mono text-sm font-semibold text-cyan-300">
               {compactDuration(headline.totalLatencySeconds)}
@@ -111,7 +114,7 @@ export function EvaluationResultsPage({
           </div>
           <div className="text-right">
             <div className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-              Fidelity
+              {prefixPreview ? "Prefix fidelity" : "Fidelity"}
             </div>
             <div className="font-mono text-sm font-semibold text-emerald-300">
               {compactProbability(headline.successProbability)}
@@ -136,6 +139,18 @@ export function EvaluationResultsPage({
         programs={programs}
         configs={configs}
       />
+
+      <div className="shrink-0 border-b border-border bg-secondary/30 px-4 py-2 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground">{evaluationScopeLabel(scope)}.</span>{" "}
+        {prefixPreview && (
+          <>
+            All metrics describe this prefix; architecture sized for this prefix.
+            {scope.truncated
+              ? " Rerun with a larger scope to evaluate more layers."
+              : " The selected limit covers the entire input."}
+          </>
+        )}
+      </div>
 
       <Tabs
         value={activeTab}

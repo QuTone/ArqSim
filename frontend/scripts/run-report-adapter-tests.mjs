@@ -9,6 +9,8 @@ await build({
     contents: [
       'import "./src/services/reportAdapter.test.ts";',
       'import "./src/services/profile23Acceptance.test.ts";',
+      'import "./src/services/evaluationRequests.test.ts";',
+      'import "./src/services/timelineOwnership.test.ts";',
     ].join("\n"),
     resolveDir: process.cwd(),
     sourcefile: "report-adapter-tests.ts",

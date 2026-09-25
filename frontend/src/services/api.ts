@@ -31,6 +31,7 @@ export interface EvaluationConfigDocument {
 interface EvaluationRequestBase {
   representation: WorkloadRepresentation;
   config: EvaluationConfigDocument;
+  preview_max_layers?: number;
 }
 
 export type EvaluationRequest = EvaluationRequestBase &
@@ -45,17 +46,7 @@ export interface Benchmark {
   tGates: string;
   depth: number;
   category: string;
-}
-
-export function minimalEvaluationConfig(
-  profileId: string,
-  workflowId?: string,
-): EvaluationConfigDocument {
-  return {
-    schema_version: "arqsim.evaluation-config.v1",
-    profile_id: profileId,
-    ...(workflowId ? { workflow_id: workflowId } : {}),
-  };
+  representations: WorkloadRepresentation[];
 }
 
 async function errorDetail(response: Response): Promise<string> {

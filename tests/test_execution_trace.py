@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from copy import deepcopy
+import math
 from types import MappingProxyType
 
 import pytest
@@ -74,6 +75,102 @@ def _out_of_order_completion_plan() -> ExecutionPlan:
         (),
         (),
     )
+
+
+@pytest.mark.parametrize("prefix_duration_s", [100.0, 1e9])
+def test_replay_short_operation_after_long_execution(prefix_duration_s: float) -> None:
+    """A short service remains verifiable after the absolute clock grows."""
+    duration_s = 1e-6
+    plan = ExecutionPlan(
+        "circuit",
+        "architecture",
+        "latency",
+        EvaluationPolicy(trace_level="full"),
+        ProgramDAG(
+            (
+                ArchitectureInstruction(
+                    0, ArchitectureOpcode.EXECUTE_COMPUTE,
+                    duration_s=prefix_duration_s,
+                ),
+                ArchitectureInstruction(
+                    1, ArchitectureOpcode.EXECUTE_COMPUTE,
+                    duration_s=duration_s, predecessor_ids=(0,),
+                ),
+            )
+        ),
+        ResourceDAG(()),
+        (),
+        (),
+    )
+    trace = evaluate(plan).trace
+    assert trace.total_latency_s == prefix_duration_s + duration_s
+    assert replay_execution_trace(trace, plan) == trace.terminal_state
+
+    # Scaling tolerance with the absolute timestamp would hide this material
+    # change to the short operation. It must still fail the frozen-Plan check.
+    changed_end_s = trace.total_latency_s + duration_s / 4
+    forged = replace(
+        trace,
+        total_latency_s=changed_end_s,
+        transitions=tuple(
+            replace(
+                transition,
+                end_s=changed_end_s,
+                time_s=(
+                    changed_end_s
+                    if transition.kind == ExecutionTransitionKind.COMPLETION
+                    else transition.time_s
+                ),
+            )
+            if transition.instruction_id == 1
+            else transition
+            for transition in trace.transitions
+        ),
+    )
+    with pytest.raises(TraceReplayError, match="duration disagrees"):
+        replay_execution_trace(forged, plan)
+
+
+def test_nearby_completions_keep_their_recorded_timestamps() -> None:
+    first_end = 0.05
+    later_end = math.nextafter(first_end, math.inf)
+    plan = ExecutionPlan(
+        "circuit",
+        "architecture",
+        "latency",
+        EvaluationPolicy(trace_level="full"),
+        ProgramDAG(
+            (
+                ArchitectureInstruction(
+                    0, ArchitectureOpcode.EXECUTE_COMPUTE, duration_s=first_end,
+                ),
+                ArchitectureInstruction(
+                    1, ArchitectureOpcode.EXECUTE_COMPUTE, duration_s=later_end,
+                ),
+                ArchitectureInstruction(
+                    2, ArchitectureOpcode.FENCE, predecessor_ids=(1,),
+                ),
+            )
+        ),
+        ResourceDAG(()),
+        (),
+        (),
+    )
+    result = evaluate(plan)
+    events = {event.instruction_id: event for event in result.events}
+    assert events[0].end_s == first_end
+    assert events[1].end_s == later_end
+    assert events[2].start_s == later_end
+    times = [entry["time_s"] for entry in result.discrete_time_log]
+    assert first_end in times
+    assert later_end in times
+    assert all(
+        transition.time_s == transition.end_s
+        for transition in result.transitions
+        if transition.kind == ExecutionTransitionKind.COMPLETION
+    )
+    assert replay_execution_trace(result.trace, plan) == result.trace.terminal_state
+    assert all(result.invariant_checks.values())
 
 
 def _inflight_plan(*, trace_level: str = "summary") -> ExecutionPlan:

@@ -6,6 +6,8 @@ import test from "node:test";
 import {
   adaptEvaluationReport,
   architectureProfileToViewModel,
+  evaluationScopeLabel,
+  evaluationScopeView,
   MAX_TIMELINE_EVENT_LIMIT,
   parseArchitectureProfile,
   parseEvaluationReportV2,
@@ -40,10 +42,77 @@ function finiteInjectionReportFixture(): unknown {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-test("Finite-injection request preset is the explicit browser acceptance default", () => {
+function prefixScopeFixture(truncated = true) {
+  const report = parseEvaluationReportV2(coreReportV2Fixture("static-summary"));
+  const workload = report.request.workload;
+  const layers = workload.layers.length;
+  const operations = workload.layers.reduce((sum, layer) => sum + layer.operations.length, 0);
+  workload.provenance.evaluation_scope = {
+    kind: "prefix_preview",
+    requested_max_layers: truncated ? layers : layers + 12,
+    source_workload_hash: "a".repeat(64),
+    source_layer_count: truncated ? layers + 12 : layers,
+    source_operation_count: truncated ? operations + 24 : operations,
+    evaluated_layer_count: layers,
+    evaluated_operation_count: operations,
+    truncated,
+  };
+  return report;
+}
+
+test("prefix scope is read from the backend receipt and matches evaluated statistics", () => {
+  const report = prefixScopeFixture();
+  const model = adaptEvaluationReport(report);
+  const views = reportToViewModels(model);
+  const scope = views.evaluationScope;
+  assert.equal(scope.kind, "prefix_preview");
+  if (scope.kind !== "prefix_preview") throw new Error("Expected prefix scope");
+  assert.equal(scope.evaluatedLayerCount, views.circuitStatistics.layerCount);
+  assert.equal(scope.evaluatedOperationCount, views.circuitStatistics.operationCount);
+  assert.equal(scope.truncated, true);
+  assert.equal(views.headline.totalLatencySeconds, report.results.summary.total_latency_s);
+  assert.equal(views.headline.successProbability, report.results.summary.success_probability);
+  assert.equal(views.timeline.totalProgramLayerCount, scope.evaluatedLayerCount);
+  assert.match(evaluationScopeLabel(scope), /Prefix preview: first .* layers/);
+  assert.deepEqual(evaluationScopeView(model), scope);
+});
+
+test("a preview covering the full input remains explicitly scoped without claiming truncation", () => {
+  const scope = reportToViewModels(prefixScopeFixture(false)).evaluationScope;
+  assert.equal(scope.kind, "prefix_preview");
+  if (scope.kind !== "prefix_preview") throw new Error("Expected prefix scope");
+  assert.equal(scope.truncated, false);
+  assert.equal(scope.evaluatedLayerCount, scope.sourceLayerCount);
+  const full = reportToViewModels(coreReportV2Fixture("static-summary")).evaluationScope;
+  assert.deepEqual(full, { kind: "full_workload" });
+  assert.equal(evaluationScopeLabel(full), "Full workload");
+});
+
+test("malformed or contradictory prefix receipts fail at the HTTP report boundary", () => {
+  const corruptions: Array<(scope: PlainRecord) => void> = [
+    (scope) => { scope.kind = "full_workload"; },
+    (scope) => { scope.requested_max_layers = 0; },
+    (scope) => { scope.requested_max_layers = 257; },
+    (scope) => { scope.requested_max_layers = 1.5; },
+    (scope) => { scope.source_workload_hash = "unknown"; },
+    (scope) => { scope.source_layer_count = 0; },
+    (scope) => { scope.source_operation_count = 0; },
+    (scope) => { scope.evaluated_layer_count = 999; },
+    (scope) => { scope.evaluated_operation_count = 999; },
+    (scope) => { scope.truncated = false; },
+    (scope) => { Reflect.deleteProperty(scope, "source_workload_hash"); },
+  ];
+  for (const corrupt of corruptions) {
+    const report = prefixScopeFixture();
+    corrupt(report.request.workload.provenance.evaluation_scope as PlainRecord);
+    assert.throws(() => adaptEvaluationReport(report), /evaluation_scope/);
+  }
+});
+
+test("General evaluation is the browser default; finite injection remains explicit", () => {
   assert.equal(
     defaultExperimentSetupParams.evaluationPreset,
-    "finite_t_injection_demo_v1",
+    "default",
   );
   assert.equal(
     FINITE_INJECTION_DEMO_PRESET_ID,
@@ -274,7 +343,10 @@ test("canonical dynamic-T Report-v2 fixture retains dynamic timeline spans", () 
     timeline.gadgetHosts[0].ownerTrackId,
     /^submodule:.+\/na_compute\/compute_region$/,
   );
-  assert.ok(timeline.rows.some((row) => row.trackKind === "classical"));
+  assert.ok(timeline.rows.some((row) =>
+    row.id === timeline.gadgetHosts[0].ownerTrackId &&
+    row.events.some((event) => event.opcode === "CLASSICAL_REACTION"),
+  ));
   assert.equal(timeline.renderedEventCount, timeline.candidateEventCount);
   assert.equal(timeline.eventTruncated, false);
 });
@@ -381,7 +453,10 @@ test("Finite-injection reference exposes both branches, typed Program work, and 
     views.programExecution.logicalGadgets.map((gadget) => gadget.correctionApplied),
     [true, false],
   );
-  assert.ok(views.timeline.rows.some((row) => row.label === "Classical Decoder"));
+  assert.ok(views.timeline.rows.some((row) =>
+    row.id === views.timeline.gadgetHosts[0].ownerTrackId &&
+    row.events.some((event) => event.opcode === "CLASSICAL_REACTION"),
+  ));
   const computeTracks = views.timeline.rows.filter(
     (row) =>
       row.id === "submodule:na_compute_node/na_compute/compute_region",
@@ -393,7 +468,7 @@ test("Finite-injection reference exposes both branches, typed Program work, and 
         event.runtimeLineage === null ? [] : [event.runtimeLineage.step],
       ),
     ),
-    new Set(["source", "entangle", "measurement", "correction"]),
+    new Set(["source", "entangle", "measurement", "reaction", "correction"]),
   );
   assert.equal(computeTracks[0].parentTrackId, "module:na_compute_node/na_compute");
   assert.equal(computeTracks[0].structural, false);
@@ -402,7 +477,7 @@ test("Finite-injection reference exposes both branches, typed Program work, and 
       views.timeline.rows
         .filter(
           (row) =>
-            row.id === "connection:na_compute_node/na_memory_compute_bus",
+            row.id === "submodule:na_compute_node/na_compute/store_load_buffer",
         )
         .flatMap((row) => row.events)
         .map((event) => event.opcode),
@@ -412,7 +487,7 @@ test("Finite-injection reference exposes both branches, typed Program work, and 
   assert.ok(
     views.timeline.rows.some(
       (row) =>
-        row.id === "movement:na_compute_node/na_compute" &&
+        row.id === "module:na_compute_node/na_compute" &&
         row.parentTrackId === "module:na_compute_node/na_compute" &&
         row.events.every((event) => event.opcode === "MOVE_QUBITS"),
     ),
@@ -430,11 +505,11 @@ test("Finite-injection reference exposes both branches, typed Program work, and 
       (event) => event.opcode === "PREPARE_LOGICAL_BELL",
     ),
   );
-  const interconnectTransferTrack = views.timeline.rows.find(
-    (row) => row.id === "interconnect-transfer:compute_msf_link",
+  const sourceBufferTrack = views.timeline.rows.find(
+    (row) => row.id === "submodule:sc_msf_node/sc_msf/magic_state_output_buffer",
   );
   assert.ok(
-    interconnectTransferTrack?.events.some(
+    sourceBufferTrack?.events.some(
       (event) => event.opcode === "TELEPORT_QUBITS",
     ),
   );
@@ -444,35 +519,36 @@ test("Finite-injection reference exposes both branches, typed Program work, and 
     "submodule",
   );
   assert.equal(
-    interconnectTransferTrack?.events.find(
+    sourceBufferTrack?.events.find(
       (event) => event.opcode === "TELEPORT_QUBITS",
     )
       ?.locus.kind,
-    "transfer",
+    "submodule",
   );
   const storeEvent = views.timeline.rows
     .flatMap((row) => row.events)
     .find((event) => event.opcode === "STORE_QUBITS");
   assert.deepEqual(storeEvent?.locus, {
-    kind: "transfer",
-    trackId: "connection:na_compute_node/na_memory_compute_bus",
-    ownerRefs: [
-      "na_compute_node/na_memory_compute_bus",
+    kind: "submodule",
+    trackId: "submodule:na_compute_node/na_compute/store_load_buffer",
+    ownerRefs: ["na_compute_node/na_compute/store_load_buffer"],
+    participantRefs: [
       "na_compute_node/na_compute/store_load_buffer",
-      "na_compute_node/na_memory/memory_region",
+      "na_compute_node/na_memory",
     ],
+    ownershipConvention: "single_engine_owner",
   });
   assert.equal(
     views.timeline.rows.some(
-      (row) => row.id.startsWith("module:") || row.id.startsWith("interconnect:"),
+      (row) => row.trackKind !== "module" && row.trackKind !== "submodule",
     ),
     false,
   );
   assert.ok(
     views.timeline.groups.some(
       (group) =>
-        group.id === "interconnect:compute_msf_link" &&
-        group.label === "NA Compute ↔ SC MSF",
+        group.id === "module:compute_msf_link/bell_engine" &&
+        group.label === "Bell Engine",
     ),
   );
   timelineEvents.forEach((event) => {
@@ -774,7 +850,7 @@ test("resource backpressure distinguishes block capacity from discard saturation
   };
   const baseSynthetic = {
     ...model,
-    architectureBuffers: syntheticBuffers,
+    architectureBuffers: [...model.architectureBuffers, ...syntheticBuffers],
     architectureBufferSnapshots: [
       {
         timeSeconds: 0,
@@ -874,9 +950,9 @@ test("buffer presentation preserves an explicitly unbound Plan buffer", () => {
   );
 });
 
-test("milestone-only ownership stays semantic and never creates an empty execution row", () => {
+test("milestone-only ownership never creates an empty execution row for an idle Module", () => {
   const model = adaptEvaluationReport(finiteInjectionReportFixture());
-  const ownerRef = "idle_node/idle_module";
+  const ownerRef = "na_compute_node/na_memory";
   const timeline = reportToViewModels({
     ...model,
     architectureBuffers: model.architectureBuffers.map((buffer) =>
@@ -1039,7 +1115,10 @@ test("shared runtime phases project to two logical parents and one in-place host
     views.timeline.gadgetHosts[0].ownerTrackId,
     /^submodule:.+\/na_compute\/compute_region$/,
   );
-  assert.ok(views.timeline.rows.some((row) => row.label === "Classical Decoder"));
+  assert.ok(views.timeline.rows.some((row) =>
+    row.id === views.timeline.gadgetHosts[0].ownerTrackId &&
+    row.events.some((event) => event.opcode === "CLASSICAL_REACTION"),
+  ));
 });
 
 test("Report-v2 parser freezes the Plan-v9 topology and runtime mode", () => {

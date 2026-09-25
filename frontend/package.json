@@ -17,7 +17,8 @@
     "test:server": "python -m pytest -q ../server/tests",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:previews": "node scripts/run-preview-matrix.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",

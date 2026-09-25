@@ -1,5 +1,7 @@
 export interface ExperimentSetupParams {
   evaluationPreset: "default" | "finite_t_injection_demo_v1";
+  /** null requests a full evaluation; numbers limit the evaluated input layers. */
+  previewMaxLayers: number | null;
   msfProtocol: "cultivation" | "MSD1" | "MSD2";
   msfCopies: number;
   naCycleTimeMs: number;
@@ -7,12 +9,10 @@ export interface ExperimentSetupParams {
 }
 
 export const defaultExperimentSetupParams: ExperimentSetupParams = {
-  // The browser owns an acceptance-demo default because its initial workload
-  // and architecture are the ArqSim Timeline Demo on Profile 2.3. This does
-  // not change the core API's minimal-config defaults, which remain black-box
-  // injection with canonical_reference_v1 fidelity. Disabling fidelity is an
-  // explicit opt-out.
-  evaluationPreset: "finite_t_injection_demo_v1",
+  // Ordinary evaluations use the core defaults on any supported workload and
+  // canonical profile. The locked finite-injection acceptance demo is opt-in.
+  evaluationPreset: "default",
+  previewMaxLayers: 12,
   msfProtocol: "cultivation",
   msfCopies: 1,
   naCycleTimeMs: 1.0,

@@ -351,6 +351,15 @@ function TimelineBlock({
               {event.label}
             </div>
             <Detail label="Time" value={eventTime(event)} />
+            <Detail label="Display location" value={event.locus.ownerRefs.map(humanize).join(" · ")} />
+            {(event.locus.participantRefs?.length ?? 0) > 1 && (
+              <Detail label="Participants" value={event.locus.participantRefs!.map(humanize).join(" · ")} />
+            )}
+            {event.locus.ownershipConvention === "parent_operation" && (
+              <div className="text-[10px] text-white/60">
+                Shown at its causal parent; no decoder device is implied.
+              </div>
+            )}
             {parent ? (
               <Detail label="Parent" value={parent} />
             ) : scope ? (
@@ -1008,7 +1017,7 @@ export function TimelineTrace({
               {formatSeconds(viewModel.displayDurationSeconds)}
             </span>
             <span className="font-mono text-[10px] text-muted-foreground/60">
-              first {viewModel.visibleProgramLayerCount} of {viewModel.totalProgramLayerCount} program layers
+              first {viewModel.visibleProgramLayerCount} of {viewModel.totalProgramLayerCount} evaluated layers
             </span>
             <span className="font-mono text-[10px] text-muted-foreground/60">
               · {viewModel.renderedEventCount.toLocaleString()} of {viewModel.candidateEventCount.toLocaleString()} causal events

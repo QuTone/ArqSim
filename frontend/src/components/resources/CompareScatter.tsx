@@ -14,6 +14,7 @@ import {
 } from "recharts";
 
 import type { EvaluationReportModel } from "@/types/evaluationReport";
+import { evaluationScopeLabel, evaluationScopeView } from "@/services/reportAdapter";
 
 interface CompareScatterProps {
   allResults: Record<string, EvaluationReportModel>;
@@ -34,6 +35,8 @@ interface ComparePoint {
   profileLabel: string;
   qubits: number;
   timeSeconds: number;
+  scopeLabel: string;
+  prefixPreview: boolean;
 }
 
 const PROGRAM_COLORS = [
@@ -114,6 +117,7 @@ function CompareTooltip({
         <span className="text-muted-foreground">{point.profileLabel}</span>
       </div>
       <div className="space-y-0.5">
+        <div className="max-w-xs text-amber-200/90">{point.scopeLabel}</div>
         <div className="flex justify-between gap-4">
           <span className="text-muted-foreground">Space</span>
           <span>{formatQubits(point.qubits)} qubits</span>
@@ -151,6 +155,7 @@ export function CompareScatter({
         const profileId = report.profile_id;
         const programId = keyProgramId || workflowId;
         const configId = keyConfigId || profileId;
+        const scope = evaluationScopeView(report);
         return {
           comboId,
           programId,
@@ -164,6 +169,8 @@ export function CompareScatter({
           profileLabel: report.profile_label,
           qubits: report.summary.total_physical_qubits,
           timeSeconds: report.summary.total_latency_s,
+          scopeLabel: evaluationScopeLabel(scope),
+          prefixPreview: scope.kind === "prefix_preview",
         } satisfies ComparePoint;
       }),
     [allResults, configs, programs],
@@ -198,6 +205,7 @@ export function CompareScatter({
   }, [allPoints]);
 
   const visiblePoints = allPoints.filter((point) => !hiddenPrograms.has(point.programId));
+  const hasPrefixPreviews = allPoints.some((point) => point.prefixPreview);
   const groupedByProfile = useMemo(() => {
     const groups = new Map<string, ComparePoint[]>();
     for (const point of visiblePoints) {
@@ -242,6 +250,12 @@ export function CompareScatter({
 
   return (
     <div className="flex h-full flex-col gap-1.5 px-3 pb-1 pt-2">
+      {hasPrefixPreviews && (
+        <p className="shrink-0 rounded border border-amber-500/20 bg-amber-500/5 px-2 py-1 text-[11px] text-amber-200/90">
+          Prefix metrics only; each architecture is sized for its evaluated input.
+          Equal PBC and Clifford+T layer counts cover different work and do not rank full workloads.
+        </p>
+      )}
       <div className="flex shrink-0 flex-wrap gap-1.5">
         <span className="self-center font-mono text-[10px] text-muted-foreground">Programs:</span>
         {presentProgramIds.map((programId) => {
@@ -309,7 +323,7 @@ export function CompareScatter({
               tickLine={{ stroke: "hsl(var(--border))" }}
             >
               <RechartsLabel
-                value="Total latency"
+                value={hasPrefixPreviews ? "Evaluated-scope latency" : "Total latency"}
                 angle={-90}
                 position="left"
                 offset={48}
@@ -353,7 +367,8 @@ export function CompareScatter({
       </div>
 
       {selectedPoint && (
-        <div className="flex shrink-0 items-center gap-3 rounded-md border border-primary/20 bg-primary/5 px-3 py-1 font-mono text-xs">
+        <div className="flex shrink-0 flex-wrap items-center gap-3 rounded-md border border-primary/20 bg-primary/5 px-3 py-1 font-mono text-xs">
+          <span className="w-full text-[10px] text-amber-200/90">{selectedPoint.scopeLabel}</span>
           <span style={{ color: programColors[selectedPoint.programId] }}>{selectedPoint.programLabel}</span>
           <span className="text-muted-foreground/40">×</span>
           <span className="text-muted-foreground">{selectedPoint.profileLabel}</span>

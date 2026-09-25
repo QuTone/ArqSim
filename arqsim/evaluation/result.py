@@ -2044,10 +2044,15 @@ def replay_execution_trace(trace: ExecutionTrace, plan: Any) -> TraceStateProjec
                     execution_backend_id == "backend.profile.v1"
                     and expected_duration is not None
                     and not math.isclose(
-                        transition.end_s - transition.start_s,
-                        expected_duration,
-                        rel_tol=1e-12,
-                        abs_tol=1e-15,
+                        # Match the engine's endpoint arithmetic. Subtracting
+                        # large timestamps loses precision for short services.
+                        # Keep tolerance tied to the service duration, not the
+                        # absolute clock, so a late event cannot hide a changed
+                        # duration behind a timestamp-relative tolerance.
+                        transition.end_s,
+                        transition.start_s + expected_duration,
+                        rel_tol=0.0,
+                        abs_tol=max(1e-15, expected_duration * 1e-12),
                     )
                 ):
                     raise TraceReplayError(

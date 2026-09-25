@@ -94,7 +94,7 @@ export function ExperimentSetupSection({ params, onParamsChange }: Props) {
           </SelectTrigger>
           <SelectContent className="bg-popover border-border">
             <SelectItem value="default" className="text-xs">
-              Default · black-box injection
+              General evaluation · black-box injection
             </SelectItem>
             <SelectItem value="finite_t_injection_demo_v1" className="text-xs">
               Finite T injection demo · Profile 2.3
@@ -103,8 +103,40 @@ export function ExperimentSetupSection({ params, onParamsChange }: Props) {
         </Select>
         <p className="rounded-md border border-white/10 bg-muted/20 px-2.5 py-2 font-mono text-[10px] leading-relaxed text-muted-foreground/75">
           {params.evaluationPreset === "default"
-            ? "Uses the core defaults: black-box injection and canonical_reference_v1 fidelity. Fidelity is disabled only by explicit opt-out."
+            ? "Evaluates selected benchmarks and canonical architecture presets with runtime timelines, black-box injection, and canonical_reference_v1 fidelity."
             : "Locked acceptance path: ArqSim Timeline Demo + Profile 2.3, full Trace v4, finite-state injection, seed 0, reference reaction latency, and canonical fidelity. Other experiment and device overrides are ignored."}
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">Evaluation scope</Label>
+        <Select
+          value={params.evaluationPreset === "finite_t_injection_demo_v1"
+            ? "full" : String(params.previewMaxLayers ?? "full")}
+          disabled={params.evaluationPreset === "finite_t_injection_demo_v1"}
+          onValueChange={(value) => onParamsChange({
+            ...params,
+            previewMaxLayers: value === "full" ? null : Number(value),
+          })}
+        >
+          <SelectTrigger className="h-8 text-xs bg-muted/30 border-border">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-popover border-border">
+            {[12, 24, 48, 96].map((layers) => (
+              <SelectItem key={layers} value={String(layers)} className="text-xs">
+                First {layers} layers · preview
+              </SelectItem>
+            ))}
+            <SelectItem value="full" className="text-xs">Full workload</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-[10px] leading-relaxed text-muted-foreground">
+          {params.evaluationPreset === "finite_t_injection_demo_v1"
+            ? "The finite-T demo is small and always runs in full."
+            : params.previewMaxLayers === null
+              ? "Evaluates the entire workload. Large benchmarks may take minutes."
+              : "Evaluates only the chosen representation's first layers. Metrics and architecture sizing describe this prefix; PBC and Clifford+T layer counts are not equivalent."}
         </p>
       </div>
 
