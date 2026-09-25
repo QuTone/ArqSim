@@ -1,6 +1,7 @@
 # Include only maintained source directories; do not recursively collect local work.
 include LICENSE
 include README.md
+include CONTRIBUTING.md
 include THIRD_PARTY_NOTICES.md
 include pyproject.toml
 

@@ -306,6 +306,7 @@ export function QuantumProgramSection({
               <div className="text-xs font-medium text-foreground mb-2">
                 Active: {activeDetails.name}
               </div>
+              <div className="text-[10px] text-muted-foreground">Full Clifford+T input statistics</div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">T gates</span>
                 <Badge variant="secondary" className="font-mono text-xs bg-quantum-cyan/10 text-quantum-cyan border-0">
@@ -320,8 +321,8 @@ export function QuantumProgramSection({
               </div>
               {isLargeInteractiveWorkload(activeDetails) ? (
                 <p className="rounded-md border border-amber-400/25 bg-amber-400/5 px-2 py-1.5 text-[10px] leading-relaxed text-amber-200/80">
-                  Large analytical workload: the complete causal report can take minutes.
-                  The timeline view remains capped, but evaluation itself is not truncated.
+                  Use a prefix scope for a quick timeline. Selecting Full workload evaluates
+                  the entire input and can take minutes; its timeline initially shows 12 layers.
                 </p>
               ) : null}
             </div>

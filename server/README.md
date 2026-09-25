@@ -60,6 +60,47 @@ canonical `FTCircuit` document with a matching representation. Invalid inputs
 return HTTP 422. See the [public API guide](../docs/01-public-api/public-api.md)
 for configuration, defaults, and error details.
 
+Each benchmark lists its available normalized `representations`. The timeline
+demo has a Clifford+T input and works with all six presets in the default
+black-box mode; it has no PBC derivative. Superconducting presets also accept
+Clifford+T inputs, so callers can select that representation when PBC is absent.
+The default evaluation captures the full diagnostic log used by timeline,
+wait-cause, and buffer views. Large workloads can produce large reports.
+
+### Prefix previews
+
+Add `"preview_max_layers":12` at the request's top level to evaluate only the
+first 12 normalized FT input layers. The limit must be an integer from 1 to
+256; omitting it (or using `null`) retains complete-workload evaluation.
+This applies to both bundled and inline workloads and both report endpoints.
+For example:
+
+```bash
+curl -X POST http://127.0.0.1:8002/evaluate-v2 \
+  -H 'Content-Type: application/json' \
+  -d '{"benchmark_name":"adder_n64","representation":"clifford_t","preview_max_layers":12,"config":{"schema_version":"arqsim.evaluation-config.v1","profile_id":"1.1"}}' \
+  -o prefix-report.json
+```
+
+The server selects whole layers **before** architecture sizing, compilation,
+and execution, preserving the original quantum and classical register widths.
+The resulting report contains the evaluated prefix, its real runtime trace,
+and matching latency, footprint, and fidelity results. Dynamic children of a
+selected T operation finish normally; the server does not clip runtime events.
+Source parsing is still required, but the excluded suffix is not compiled or
+executed. No whole-benchmark metrics are extrapolated.
+
+`request.workload.provenance.evaluation_scope` records `kind: "prefix_preview"`,
+the requested limit, source semantic hash, source/evaluated layer and operation
+counts, and whether truncation occurred. When the source fits within the limit,
+the preview evaluates the whole workload. Report v1 carries the same provenance
+under `workload.evaluated`.
+
+Sizing and mapping are resolved for the prefix, so its timestamps need not match
+the opening timestamps of a complete-workload run. Layers belong to the selected
+representation: a PBC prefix and a Clifford+T prefix need not contain equivalent
+algorithm work. Use complete evaluations for full-benchmark comparisons.
+
 ## Checks and files
 
 With `pytest` installed in the active Python environment, run

@@ -642,8 +642,12 @@ export type TimelineOperationLocusKind =
 export interface TimelineOperationLocusViewModel {
   kind: TimelineOperationLocusKind;
   trackId: string;
-  /** Canonical architecture refs participating in this operation. */
+  /** Single primary display anchor; not the complete set of resource claims. */
   ownerRefs: readonly string[];
+  /** Architecture owners participating according to Plan and Trace facts. */
+  participantRefs?: readonly string[];
+  /** Presentation convention used to choose one anchor for a multi-owner event. */
+  ownershipConvention?: string;
 }
 
 export type TimelineTrackKind =
@@ -833,6 +837,9 @@ export interface RuntimeTokenFlowModel {
 }
 
 export interface CompletedEvaluationEventModel extends EvaluationEventDocument {
+  /** Typed Trace locations; absent in legacy Report v1. */
+  requiredLocations?: Readonly<Record<string, string>>;
+  completionLocations?: Readonly<Record<string, string>>;
   engineClaims: Readonly<Record<string, number>>;
   tokenFlow: RuntimeTokenFlowModel;
   runtime: RuntimeEventSemanticsModel | null;
@@ -1027,7 +1034,22 @@ export interface EvaluationReportModel {
   };
 }
 
+export type EvaluationScopeViewModel =
+  | { kind: "full_workload" }
+  | {
+      kind: "prefix_preview";
+      representation: string;
+      requestedMaxLayers: number;
+      sourceWorkloadHash: string;
+      sourceLayerCount: number;
+      sourceOperationCount: number;
+      evaluatedLayerCount: number;
+      evaluatedOperationCount: number;
+      truncated: boolean;
+    };
+
 export interface EvaluationViewModels {
+  evaluationScope: EvaluationScopeViewModel;
   headline: HeadlineMetricsViewModel;
   architecture: ArchitectureHierarchyViewModel;
   timeline: TimelineViewModel;

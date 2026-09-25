@@ -83,7 +83,8 @@ test("Profile 2.3 end-to-end acceptance matrix stays coherent", () => {
     ],
   );
 
-  // Timeline ownership follows semantic locus, not a scheduling-engine claim.
+  // Every display anchor is a real Module/Submodule. Multi-owner work keeps
+  // one bar, while contention claims and timing remain evaluator facts.
   const computeRow = rows.get(
     "submodule:na_compute_node/na_compute/compute_region",
   );
@@ -93,7 +94,9 @@ test("Profile 2.3 end-to-end acceptance matrix stays coherent", () => {
   const pairGeneratorRow = rows.get(
     "submodule:compute_msf_link/bell_engine/pair_generator",
   );
-  const linkTransferRow = rows.get("interconnect-transfer:compute_msf_link");
+  const sourceBufferRow = rows.get(
+    "submodule:sc_msf_node/sc_msf/magic_state_output_buffer",
+  );
   assert.ok(computeRow?.events.some((event) => event.opcode === "EXECUTE_COMPUTE"));
   assert.ok(factoryRow?.events.some((event) => event.opcode === "PREPARE_MAGIC_STATE"));
   assert.ok(
@@ -102,17 +105,17 @@ test("Profile 2.3 end-to-end acceptance matrix stays coherent", () => {
     ),
   );
   assert.ok(
-    linkTransferRow?.events.some(
+    sourceBufferRow?.events.some(
       (event) => event.opcode === "TELEPORT_QUBITS",
     ),
   );
   assert.equal(
     views.timeline.rows.some(
-      (row) => row.id.startsWith("module:") || row.id.startsWith("interconnect:"),
+      (row) => row.trackKind !== "module" && row.trackKind !== "submodule",
     ),
     false,
   );
-  const movementRow = rows.get("movement:na_compute_node/na_compute");
+  const movementRow = rows.get("module:na_compute_node/na_compute");
   assert.equal(movementRow?.parentTrackId, "module:na_compute_node/na_compute");
   assert.ok(
     movementRow?.events.every((event) => event.opcode === "MOVE_QUBITS"),
@@ -120,10 +123,10 @@ test("Profile 2.3 end-to-end acceptance matrix stays coherent", () => {
   for (const opcode of ["STORE_QUBITS", "LOAD_QUBITS"]) {
     const operation = events.find((event) => event.opcode === opcode);
     assert.ok(operation);
-    assert.equal(operation.locus.kind, "transfer");
+    assert.equal(operation.locus.kind, "submodule");
     assert.equal(
       eventRows.get(operation.id),
-      "connection:na_compute_node/na_memory_compute_bus",
+      "submodule:na_compute_node/na_compute/store_load_buffer",
     );
   }
   assert.deepEqual(
@@ -131,8 +134,7 @@ test("Profile 2.3 end-to-end acceptance matrix stays coherent", () => {
     [
       ["module:na_compute_node/na_compute", "NA Compute"],
       ["module:sc_msf_node/sc_msf", "SC MSF"],
-      ["node:na_compute_node", "NA Compute Node"],
-      ["interconnect:compute_msf_link", "NA Compute ↔ SC MSF"],
+      ["module:compute_msf_link/bell_engine", "Bell Engine"],
     ],
   );
 

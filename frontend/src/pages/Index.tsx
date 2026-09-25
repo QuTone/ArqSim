@@ -17,16 +17,16 @@ import {
 } from "@/types/experiment";
 import {
   api,
-  minimalEvaluationConfig,
   type Benchmark,
-  type EvaluationConfigDocument,
-  type WorkloadRepresentation,
 } from "@/services/api";
 import { architectureProfileToViewModel, reportToViewModels } from "@/services/reportAdapter";
 import {
-  finiteInjectionDemoConfig,
   finiteInjectionDemoSelectionError,
 } from "@/services/evaluationPresets";
+import {
+  buildEvaluationRequest,
+  previewEvaluationArchitecture,
+} from "@/services/evaluationRequests";
 import type {
   ArchitectureHierarchyViewModel,
   EvaluationReportModel,
@@ -101,6 +101,21 @@ const Index = () => {
   // Cache for avoiding redundant API calls
   const [resultCache] = useState<Map<string, EvaluationReportModel>>(new Map());
 
+  // The architecture shown in an unselected preset preview is also the one run.
+  // Share this list with result selectors so their labels describe the request.
+  const configsToRun = useMemo<SelectedConfig[]>(() => {
+    if (selectedConfigs.length > 0) return selectedConfigs;
+    return [{
+      ...previewEvaluationArchitecture(
+        previewProfileId,
+        previewProfileId ? profilePreviews[previewProfileId]?.profileLabel : null,
+      ),
+      modules: [],
+      links: [],
+      source: "preset",
+    }];
+  }, [selectedConfigs, previewProfileId, profilePreviews]);
+
   useEffect(() => {
     let cancelled = false;
     api.getArchitectureProfiles()
@@ -148,19 +163,11 @@ const Index = () => {
       toast.error("Please select at least one quantum program");
       return;
     }
-    setTimelineLayerLimit(12);
-
-    // Default to one public ArchitectureProfile if no preset is selected.
-    const configsToRun = selectedConfigs.length > 0
-      ? selectedConfigs
-      : [{
-          id: "default",
-          profileId: "2.3",
-          name: "NA-MC + SC-F (Profile 2.3)",
-          modules,
-          links,
-          source: "preset" as const,
-        }];
+    setTimelineLayerLimit(
+      experimentParams.evaluationPreset === "default"
+        ? experimentParams.previewMaxLayers ?? 12
+        : 12,
+    );
 
     if (experimentParams.evaluationPreset === "finite_t_injection_demo_v1") {
       const selectionError = finiteInjectionDemoSelectionError(
@@ -192,59 +199,13 @@ const Index = () => {
     );
 
     try {
-      const buildEvaluationRequest = (program: typeof selectedPrograms[0], arch: typeof configsToRun[0]) => {
-        if (!arch.profileId) {
-          throw new Error(
-            `“${arch.name}” is an authoring-only composition. ` +
-            "Live evaluation currently accepts the six canonical ArchitectureProfile presets.",
-          );
-        }
-        const profileId = arch.profileId;
-        const representation: WorkloadRepresentation =
-          profileId === "1.2" || profileId === "2.2" ? "pbc" : "clifford_t";
-        if (experimentParams.evaluationPreset === "finite_t_injection_demo_v1") {
-          return {
-            benchmark_name: program.id,
-            representation: "clifford_t" as const,
-            config: finiteInjectionDemoConfig(),
-          };
-        }
-        const config: EvaluationConfigDocument = minimalEvaluationConfig(profileId);
-        const overrides: Record<string, unknown> = {};
-        if (experimentParams.msfCopies !== 1) {
-          overrides["protocols.magic_state.copies"] = experimentParams.msfCopies;
-        }
-        const protocolIds: Record<string, string> = {
-          cultivation: "cultivation-d5-d15-p1e3",
-          MSD1: "litinski-15to1x20to4-13-5-5-23-11-13-p1e3",
-          MSD2: "litinski-15to1-17-7-7-p1e3",
-        };
-        if (experimentParams.msfProtocol !== "cultivation") {
-          overrides["protocols.magic_state.id"] = protocolIds[experimentParams.msfProtocol];
-        }
-        if (deviceParams.rPhybell !== 1e4) {
-          overrides["protocols.entanglement_distillation.reference_physical_bell_pair_rate_per_s"] =
-            deviceParams.rPhybell;
-        }
-        if (experimentParams.naCycleTimeMs !== 1) {
-          overrides["timing.qec_cycle_time_s_by_modality.neutral_atom"] =
-            experimentParams.naCycleTimeMs * 1e-3;
-        }
-        if (experimentParams.scCycleTimeUs !== 1) {
-          overrides["timing.qec_cycle_time_s_by_modality.superconducting"] =
-            experimentParams.scCycleTimeUs * 1e-6;
-        }
-        if (Object.keys(overrides).length) config.layout_policy_overrides = overrides;
-        return { benchmark_name: program.id, representation, config } as const;
-      };
-
       // Bound concurrency: each evaluation can generate a large causal report.
       const outcomes = await settleWithConcurrency(
         allCombos,
         MAX_PARALLEL_EVALUATIONS,
         async ({ program, arch }) => {
           const comboId = `${program.id}|${arch.id}`;
-          const request = buildEvaluationRequest(program, arch);
+          const request = buildEvaluationRequest(program, arch, experimentParams, deviceParams);
           const cacheKey = JSON.stringify(request);
           if (resultCache.has(cacheKey)) {
             return { comboId, result: resultCache.get(cacheKey)! };
@@ -270,7 +231,10 @@ const Index = () => {
           // A failed rerun invalidates an older result under the same UI key.
           // Otherwise it would look as though the new parameter set succeeded.
           delete results[comboId];
-          failedCombos.push(comboId);
+          const reason = outcome.reason instanceof Error
+            ? outcome.reason.message
+            : String(outcome.reason);
+          failedCombos.push(`${program.name} / ${arch.name}: ${reason}`);
           console.error(`Evaluation failed for ${comboId}:`, outcome.reason);
         }
       }
@@ -286,7 +250,10 @@ const Index = () => {
       }
 
       if (failedCombos.length > 0) {
-        toast.error(`${failedCombos.length} evaluation(s) failed: ${failedCombos.join(", ")}`);
+        toast.error(`${failedCombos.length} evaluation(s) failed`, {
+          description: failedCombos.join("\n"),
+          duration: 12_000,
+        });
       }
       if (successCount > 0) {
         toast.success(`${successCount}/${allCombos.length} evaluation(s) completed`);
@@ -321,17 +288,7 @@ const Index = () => {
     setViewingProgramId(programId);
     setViewingConfigId(configId);
     // Find the architecture config and update canvas to show its modules
-    const allConfigs = selectedConfigs.length > 0
-      ? selectedConfigs
-      : [{
-          id: "default",
-          profileId: "2.3",
-          name: "NA-MC + SC-F (Profile 2.3)",
-          modules,
-          links,
-          source: "preset" as const,
-        }];
-    const config = allConfigs.find(c => c.id === configId);
+    const config = configsToRun.find(c => c.id === configId);
     if (config && config.modules.length > 0) {
       setModules(config.modules);
       setLinks(config.links);
@@ -343,20 +300,12 @@ const Index = () => {
   [selectedPrograms]);
 
   const configOptions = useMemo(() => {
-    const options = selectedConfigs.map(c => ({
+    return configsToRun.map(c => ({
       id: c.id,
       label: c.name,
-      type: c.modules.length > 0 ? c.modules[0].modality.toUpperCase() : "SC"
+      type: c.modules.length > 0 ? c.modules[0].modality.toUpperCase() : "Preset",
     }));
-    if (!options.length) {
-      options.push({
-        id: "default",
-        label: "NA-MC + SC-F (Profile 2.3)",
-        type: "NA + SC",
-      });
-    }
-    return options;
-  }, [selectedConfigs]);
+  }, [configsToRun]);
 
   if (workspaceView === "results" && activeViewModels) {
     return (

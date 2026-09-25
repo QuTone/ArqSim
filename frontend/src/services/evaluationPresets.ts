@@ -34,7 +34,7 @@ export function finiteInjectionDemoSelectionError(
   return (
     "The finite-T acceptance demo requires exactly ArqSim Timeline Demo and " +
     "Architecture Profile 2.3. Remove other selections or switch Runtime " +
-    "semantics to Default."
+    "semantics to General evaluation."
   );
 }
 

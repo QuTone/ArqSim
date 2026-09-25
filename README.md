@@ -63,6 +63,7 @@ runs without the frontend.
 | --- | --- |
 | Run demos and understand results | [Examples](examples/README.md) |
 | Use or extend the Python package | [Core package guide](arqsim/README.md) |
+| Report a bug or contribute a change | [Contributing](CONTRIBUTING.md) |
 | Inspect timelines and resource use | [Frontend setup](https://github.com/QuTone/ArqSim/tree/main/frontend#readme) (full checkout) |
 | Use the local HTTP adapter | [Server setup](https://github.com/QuTone/ArqSim/tree/main/server#readme) (full checkout) |
 | Read the API, compiler, runtime, or extension contracts | [Documentation index](docs/README.md) |

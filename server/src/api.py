@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import sys
 import re
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Literal, Optional
 
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 sys.path.append(str(Path(__file__).parent))
 
@@ -58,6 +59,8 @@ class EvaluationRequest(BaseModel):
 
     ``representation`` is always explicit and must agree with the workload
     document. ``config`` is a public ``arqsim.evaluation-config.v1`` document.
+    ``preview_max_layers`` optionally evaluates only the first N normalized
+    input layers. Omit it for a complete workload evaluation.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -66,6 +69,7 @@ class EvaluationRequest(BaseModel):
     config: dict[str, Any]
     benchmark_name: Optional[str] = None
     workload: Optional[dict[str, Any]] = None
+    preview_max_layers: Optional[int] = Field(default=None, strict=True, ge=1, le=256)
 
 @app.get("/")
 def root() -> dict[str, str]:
@@ -102,6 +106,7 @@ def get_benchmarks() -> list[dict[str, Any]]:
             if bench_id in BENCHMARK_CACHE:
                 benchmarks.append(BENCHMARK_CACHE[bench_id])
                 continue
+            representations = _benchmark_representations(bench_id)
             try:
                 normalized = _benchmark_workload_path(bench_id, "clifford_t")
                 stats = workload_stats(load_ft_workload(normalized, "clifford_t"))
@@ -120,6 +125,7 @@ def get_benchmarks() -> list[dict[str, Any]]:
                     "tGates": f"{int(stats['t_count']):,}",
                     "depth": int(stats["depth"]),
                     "category": category,
+                    "representations": representations,
                 }
                 BENCHMARK_CACHE[bench_id] = bench_data
                 benchmarks.append(bench_data)
@@ -132,6 +138,7 @@ def get_benchmarks() -> list[dict[str, Any]]:
                         "tGates": "-",
                         "depth": 0,
                         "category": "other",
+                        "representations": representations,
                     }
                 )
     except Exception as exc:
@@ -164,6 +171,19 @@ def _benchmark_workload_path(
             f"Benchmark {benchmark_name!r} has ambiguous {representation} workloads"
         )
     return matches[0]
+
+
+def _benchmark_representations(benchmark_name: str) -> list[str]:
+    """Advertise only normalized derivatives that resolve unambiguously."""
+
+    available: list[str] = []
+    for representation in ("clifford_t", "pbc"):
+        try:
+            _benchmark_workload_path(benchmark_name, representation)
+        except (FileNotFoundError, ValueError):
+            continue
+        available.append(representation)
+    return available
 
 
 def _resolve_workload(request: EvaluationRequest) -> FTCircuit:
@@ -204,6 +224,8 @@ def _run_public_evaluation(
 ) -> dict[str, Any]:
     try:
         circuit = _resolve_workload(request)
+        if request.preview_max_layers is not None:
+            circuit = _prefix_preview(circuit, request.preview_max_layers)
         config = EvaluationConfig.from_dict(request.config)
         report = run_evaluation(circuit, config)
         if report_version == "v1":
@@ -221,6 +243,32 @@ def _run_public_evaluation(
 
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+def _prefix_preview(circuit: FTCircuit, max_layers: int) -> FTCircuit:
+    """Select whole input layers before architecture resolution and execution.
+
+    Register widths and operations are preserved. The resulting architecture,
+    compilation, trace and metrics describe this prefix circuit, not the first
+    timestamps of a separately sized and compiled complete workload.
+    """
+
+    layers = circuit.layers[:max_layers]
+    scope = {
+        "kind": "prefix_preview",
+        "requested_max_layers": max_layers,
+        "source_workload_hash": circuit.semantic_hash,
+        "source_layer_count": len(circuit.layers),
+        "source_operation_count": circuit.operation_count,
+        "evaluated_layer_count": len(layers),
+        "evaluated_operation_count": sum(len(layer.operations) for layer in layers),
+        "truncated": len(layers) < len(circuit.layers),
+    }
+    return replace(
+        circuit,
+        layers=layers,
+        provenance={**circuit.provenance, "evaluation_scope": scope},
+    )
 
 
 @app.post("/evaluate", deprecated=True)

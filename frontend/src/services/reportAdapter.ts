@@ -24,7 +24,9 @@ import {
   EvaluationReportModel,
   EvaluationReportV1,
   EvaluationReportV2,
+  EvaluationScopeViewModel,
   EvaluationViewModels,
+  FTCircuitDocument,
   ExecutionPlanV9Document,
   ExecutionTraceV4Document,
   ExecutionTransitionV4Document,
@@ -55,6 +57,7 @@ import {
   TimelineViewModel,
   TimeBreakdownViewModel,
 } from "@/types/evaluationReport";
+import { timelineOwnershipResolver } from "./timelineOwnership";
 
 export interface ReportViewOptions {
   /** Number of source Program layers included in the initial timeline window. */
@@ -361,6 +364,73 @@ function validateCircuit(value: unknown, path: string): void {
       optionalNumber(operation.weight, `${operationPath}.weight`);
     });
   });
+  circuitEvaluationScope(circuit as unknown as FTCircuitDocument, path);
+}
+
+/** Scope comes from the evaluated workload receipt, never a current UI control. */
+function circuitEvaluationScope(
+  circuit: FTCircuitDocument,
+  path = "report.circuit",
+): EvaluationScopeViewModel {
+  const value = circuit.provenance.evaluation_scope;
+  if (value === undefined) return { kind: "full_workload" };
+  const scopePath = `${path}.provenance.evaluation_scope`;
+  const scope = record(value, scopePath);
+  exactFields(scope, scopePath, [
+    "kind", "requested_max_layers", "source_workload_hash", "source_layer_count",
+    "source_operation_count", "evaluated_layer_count", "evaluated_operation_count", "truncated",
+  ]);
+  if (scope.kind !== "prefix_preview") contractError(`${scopePath}.kind`, '"prefix_preview"');
+  const count = (field: string) => {
+    const value = nonNegativeInteger(scope[field], `${scopePath}.${field}`);
+    if (!Number.isSafeInteger(value)) contractError(`${scopePath}.${field}`, "a safe integer");
+    return value;
+  };
+  const requestedMaxLayers = count("requested_max_layers");
+  if (requestedMaxLayers === 0 || requestedMaxLayers > 256) {
+    contractError(`${scopePath}.requested_max_layers`, "an integer from 1 to 256");
+  }
+  const sourceWorkloadHash = string(scope.source_workload_hash, `${scopePath}.source_workload_hash`);
+  if (!/^[a-f0-9]{64}$/.test(sourceWorkloadHash)) {
+    contractError(`${scopePath}.source_workload_hash`, "a lowercase SHA-256 digest");
+  }
+  const sourceLayerCount = count("source_layer_count");
+  const sourceOperationCount = count("source_operation_count");
+  const evaluatedLayerCount = count("evaluated_layer_count");
+  const evaluatedOperationCount = count("evaluated_operation_count");
+  const truncated = boolean(scope.truncated, `${scopePath}.truncated`);
+  const operationCount = circuit.layers.reduce((sum, layer) => sum + layer.operations.length, 0);
+  if (
+    evaluatedLayerCount !== circuit.layers.length ||
+    evaluatedLayerCount !== Math.min(requestedMaxLayers, sourceLayerCount) ||
+    evaluatedOperationCount !== operationCount ||
+    sourceOperationCount < evaluatedOperationCount ||
+    truncated !== (evaluatedLayerCount < sourceLayerCount) ||
+    (!truncated && sourceOperationCount !== evaluatedOperationCount)
+  ) {
+    contractError(scopePath, "prefix counts and truncation matching the evaluated circuit");
+  }
+  return {
+    kind: "prefix_preview",
+    representation: circuit.representation,
+    requestedMaxLayers,
+    sourceWorkloadHash,
+    sourceLayerCount,
+    sourceOperationCount,
+    evaluatedLayerCount,
+    evaluatedOperationCount,
+    truncated,
+  };
+}
+
+export function evaluationScopeView(report: EvaluationReportModel): EvaluationScopeViewModel {
+  return circuitEvaluationScope(report.circuit);
+}
+
+export function evaluationScopeLabel(scope: EvaluationScopeViewModel): string {
+  if (scope.kind === "full_workload") return "Full workload";
+  const representation = scope.representation === "clifford_t" ? "Clifford+T" : scope.representation.toUpperCase();
+  return `Prefix preview: first ${scope.evaluatedLayerCount}/${scope.sourceLayerCount} ${representation} layers`;
 }
 
 function validateCircuitV2(value: unknown, path: string): void {
@@ -2474,6 +2544,8 @@ function completionTransitionEvent(
     start_s: transition.start_s,
     end_s: transition.end_s,
     duration_s: transition.end_s - transition.start_s,
+    requiredLocations: stringRecord(transition.required_locations, "transition.required_locations"),
+    completionLocations: stringRecord(transition.completion_locations, "transition.completion_locations"),
     metadata: transition.metadata,
     wait_reasons: transition.wait_reasons,
     engineClaims: Object.fromEntries(
@@ -3359,131 +3431,43 @@ function architectureLabel(value: string): string {
     .replace(/\bQec\b/g, "QEC");
 }
 
-function exactEngineSubmodule(
-  event: CompletedEvaluationEventModel,
-  engineOwners: Readonly<Record<string, EngineOwnershipViewModel>>,
-): string | null {
-  const owners = new Set(
-    Object.entries(event.engineClaims)
-      .filter(([, demand]) => demand > 0)
-      .flatMap(([engineId]) => {
-        const owner = engineOwners[engineId]?.submoduleRef;
-        return owner === null || owner === undefined ? [] : [owner];
-      }),
-  );
-  return owners.size === 1 ? [...owners][0] : null;
-}
-
-function timelineTrackCatalog(
-  architecture: ArchitectureHierarchyViewModel,
-): {
-  groups: ReadonlyMap<string, TimelineTrackGroupDescriptor>;
-  nodes: ReadonlyMap<string, TimelineTrackGroupDescriptor>;
-  modules: ReadonlyMap<string, TimelineTrackGroupDescriptor>;
-  submodules: ReadonlyMap<string, TimelineTrackDescriptor>;
-  interconnects: ReadonlyMap<string, TimelineTrackGroupDescriptor>;
-  connections: readonly TimelineTrackDescriptor[];
-} {
+function timelineTrackCatalog(architecture: ArchitectureHierarchyViewModel) {
   const groups = new Map<string, TimelineTrackGroupDescriptor>();
-  const nodes = new Map<string, TimelineTrackGroupDescriptor>();
-  const modules = new Map<string, TimelineTrackGroupDescriptor>();
+  const modules = new Map<string, TimelineTrackDescriptor>();
   const submodules = new Map<string, TimelineTrackDescriptor>();
-  const connections: TimelineTrackDescriptor[] = [];
-  let moduleOrder = 0;
-  for (const node of architecture.nodes) {
-    const nodeGroup = {
-      id: `node:${node.id}`,
-      label: architectureLabel(node.label),
-      subtitle: `${architectureLabel(node.modality)} node`,
-      kind: "node" as const,
-      order: 8_000 + nodes.size * 100,
-    };
-    nodes.set(node.id, nodeGroup);
-    groups.set(nodeGroup.id, nodeGroup);
-    for (const module of node.modules) {
-      const order = moduleOrder;
-      moduleOrder += 100;
-      modules.set(module.ref, {
+  let order = 0;
+  for (const owner of [...architecture.nodes, ...architecture.interconnects]) {
+    for (const module of owner.modules) {
+      const group: TimelineTrackGroupDescriptor = {
         id: `module:${module.ref}`,
         label: architectureLabel(module.label),
-        subtitle: `Module · ${architectureLabel(node.label)}`,
+        subtitle: `Module · ${architectureLabel(owner.label)}`,
         kind: "module",
-        order,
-      });
-      groups.set(`module:${module.ref}`, modules.get(module.ref)!);
-      module.submodules.forEach((submodule, index) => {
-        submodules.set(submodule.ref, {
-          id: `submodule:${submodule.ref}`,
-          label: architectureLabel(submodule.label),
-          subtitle: `${architectureLabel(module.label)} · ${architectureLabel(node.label)}`,
-          trackKind: "submodule",
-          order: order + index + 1,
-          ownerRefs: [submodule.ref],
-          structural: false,
-          parentTrackId: `module:${module.ref}`,
-        });
-      });
-    }
-    node.connections.forEach((connection, index) => {
-      const endpointRefs = connection.endpoints.map((endpoint) =>
-        `${node.id}/${endpoint.replace(/^\/+/, "")}`,
-      );
-      connections.push({
-        id: `connection:${node.id}/${connection.id}`,
-        label: architectureLabel(connection.id),
-        subtitle: `Local connection · ${architectureLabel(node.label)}`,
-        trackKind: "transfer",
-        order: 9_000 + index,
-        ownerRefs: [`${node.id}/${connection.id}`, ...endpointRefs],
+        order: order++,
+      };
+      groups.set(group.id, group);
+      modules.set(module.ref, {
+        ...group,
+        trackKind: "module",
+        ownerRefs: [module.ref],
         structural: false,
-        parentTrackId: `node:${node.id}`,
+        parentTrackId: group.id,
       });
-    });
-  }
-  const interconnects = new Map<string, TimelineTrackGroupDescriptor>();
-  architecture.interconnects.forEach((interconnect, index) => {
-    const order = 10_000 + index * 100;
-    const endpointModuleLabels = interconnect.access.flatMap((access) => {
-      const localRef = access.localSubmoduleRefs[0];
-      if (localRef === undefined) return [];
-      const moduleId = localRef.split("/", 1)[0];
-      const module = architecture.nodes
-        .find((node) => node.id === access.nodeId)
-        ?.modules.find((candidate) => candidate.id === moduleId);
-      return [architectureLabel(module?.label ?? moduleId)];
-    });
-    interconnects.set(interconnect.id, {
-      id: `interconnect:${interconnect.id}`,
-      label:
-        endpointModuleLabels.length === 2
-          ? endpointModuleLabels.join(" ↔ ")
-          : architectureLabel(interconnect.label),
-      subtitle: `Interconnect · ${interconnect.id}`,
-      kind: "interconnect",
-      order,
-    });
-    groups.set(
-      `interconnect:${interconnect.id}`,
-      interconnects.get(interconnect.id)!,
-    );
-    let submoduleIndex = 0;
-    interconnect.modules.forEach((module) => {
-      module.submodules.forEach((submodule) => {
+      for (const submodule of module.submodules) {
         submodules.set(submodule.ref, {
           id: `submodule:${submodule.ref}`,
           label: architectureLabel(submodule.label),
-          subtitle: `${architectureLabel(module.label)} · Interconnect component`,
+          subtitle: `${architectureLabel(module.label)} · ${architectureLabel(owner.label)}`,
           trackKind: "submodule",
-          order: order + submoduleIndex + 1,
+          order: order++,
           ownerRefs: [submodule.ref],
           structural: false,
-          parentTrackId: `interconnect:${interconnect.id}`,
+          parentTrackId: group.id,
         });
-        submoduleIndex += 1;
-      });
-    });
-  });
-  return { groups, nodes, modules, submodules, interconnects, connections };
+      }
+    }
+  }
+  return { groups, modules, submodules };
 }
 
 function bufferOwnerTrack(
@@ -3492,44 +3476,18 @@ function bufferOwnerTrack(
 ): TimelineTrackDescriptor {
   if (buffer.submoduleRef !== null) {
     const submodule = catalog.submodules.get(buffer.submoduleRef);
-    if (submodule !== undefined) return submodule;
+    if (submodule !== undefined && submodule.parentTrackId === `module:${buffer.moduleRef}`) {
+      return submodule;
+    }
+    return contractError(`buffer.${buffer.id}`, "an existing Submodule and its owning Module");
   }
   if (buffer.moduleRef !== null) {
     const module = catalog.modules.get(buffer.moduleRef);
-    if (module !== undefined) {
-      return {
-        ...module,
-        trackKind: "module",
-        ownerRefs: [buffer.moduleRef],
-        structural: false,
-        parentTrackId: null,
-      };
-    }
-    const interconnect = [...catalog.interconnects.entries()].find(
-      ([interconnectId]) =>
-        buffer.moduleRef === interconnectId ||
-        buffer.moduleRef?.startsWith(`${interconnectId}/`),
-    )?.[1];
-    if (interconnect !== undefined) {
-      return {
-        ...interconnect,
-        trackKind: "interconnect",
-        ownerRefs: [buffer.moduleRef],
-        structural: false,
-        parentTrackId: null,
-      };
-    }
-    return {
-      id: `module:${buffer.moduleRef}`,
-      label: architectureLabel(buffer.moduleRef),
-      subtitle: "Module",
-      trackKind: "module",
-      order: 9_000,
-      ownerRefs: [buffer.moduleRef],
-      structural: false,
-      parentTrackId: null,
-    };
+    if (module !== undefined) return module;
+    return contractError(`buffer.${buffer.id}`, "an existing architecture Module");
   }
+  // Control/request buffers can legally be unbound. This is a state annotation,
+  // not an execution track or an inferred architectural Module.
   return {
     id: "resource:unbound",
     label: "Unbound Resources",
@@ -3828,221 +3786,6 @@ function timelineBackpressureSpans(
   }));
 }
 
-function localConnectionTrack(
-  targetModules: readonly string[],
-  catalog: ReturnType<typeof timelineTrackCatalog>,
-): TimelineTrackDescriptor | null {
-  if (targetModules.length < 2) return null;
-  const targets = new Set(targetModules);
-  const matches = catalog.connections.filter((connection) => {
-    const connectedModules = new Set(
-      connection.ownerRefs.slice(1).map((endpoint) =>
-        endpoint.split("/").slice(0, 2).join("/"),
-      ),
-    );
-    return (
-      connectedModules.size === targets.size &&
-      [...targets].every((moduleRef) => connectedModules.has(moduleRef))
-    );
-  });
-  return matches.length === 1 ? matches[0] : null;
-}
-
-function internalMovementTrack(
-  moduleRef: string,
-  catalog: ReturnType<typeof timelineTrackCatalog>,
-): TimelineTrackDescriptor {
-  const owner = catalog.modules.get(moduleRef);
-  return {
-    id: `movement:${moduleRef}`,
-    label: "Internal Movement",
-    subtitle: owner === undefined
-      ? architectureLabel(moduleRef)
-      : `${owner.label} · Local operand motion`,
-    trackKind: "transfer",
-    order: (owner?.order ?? 9_000) + 80,
-    ownerRefs: [moduleRef],
-    structural: false,
-    parentTrackId: owner?.id ?? null,
-  };
-}
-
-function pairGeneratorTrack(
-  linkId: string,
-  event: CompletedEvaluationEventModel,
-  engineOwners: Readonly<Record<string, EngineOwnershipViewModel>>,
-  catalog: ReturnType<typeof timelineTrackCatalog>,
-): TimelineTrackDescriptor | null {
-  const exact = exactEngineSubmodule(event, engineOwners);
-  if (exact !== null) {
-    const exactTrack = catalog.submodules.get(exact);
-    if (exactTrack !== undefined) return exactTrack;
-  }
-  const candidates = [...catalog.submodules.entries()]
-    .filter(([ref]) =>
-      ref.startsWith(`${linkId}/`) &&
-      (ref.includes("/bell_engine/") || ref.endsWith("/pair_generator")),
-    )
-    .map(([, track]) => track);
-  return candidates.length === 1 ? candidates[0] : null;
-}
-
-function interconnectTransferTrack(
-  linkId: string,
-  catalog: ReturnType<typeof timelineTrackCatalog>,
-): TimelineTrackDescriptor {
-  const owner = catalog.interconnects.get(linkId);
-  return {
-    id: `interconnect-transfer:${linkId}`,
-    label: "Teleportation",
-    subtitle: owner === undefined
-      ? `Interconnect · ${linkId}`
-      : `${owner.label} · Link transfer`,
-    trackKind: "transfer",
-    order: (owner?.order ?? 19_000) + 80,
-    ownerRefs: [linkId],
-    structural: false,
-    parentTrackId: owner?.id ?? null,
-  };
-}
-
-function moduleActivityTrack(
-  moduleRef: string,
-  catalog: ReturnType<typeof timelineTrackCatalog>,
-): TimelineTrackDescriptor {
-  const owner = catalog.modules.get(moduleRef);
-  return {
-    id: `module-activity:${moduleRef}`,
-    label: "Module Activity",
-    subtitle: owner?.label ?? architectureLabel(moduleRef),
-    trackKind: "module",
-    order: (owner?.order ?? 9_000) + 90,
-    ownerRefs: [moduleRef],
-    structural: false,
-    parentTrackId: owner?.id ?? null,
-  };
-}
-
-function trackForEvent(
-  event: CompletedEvaluationEventModel,
-  eventView: Omit<TimelineEventViewModel, "locus">,
-  engineOwners: Readonly<Record<string, EngineOwnershipViewModel>>,
-  catalog: ReturnType<typeof timelineTrackCatalog>,
-): TimelineTrackDescriptor {
-  if (eventView.lane === "classical") {
-    return {
-      id: "classical:decoder",
-      label: "Classical Decoder",
-      subtitle: "Classical control",
-      trackKind: "classical",
-      order: 30_000,
-      ownerRefs: [],
-      structural: false,
-      parentTrackId: null,
-    };
-  }
-
-  // Visual ownership follows the operation's semantic locus. Engine claims
-  // remain contention/sub-lane evidence and never override explicit transfer
-  // or interconnect targets.
-  const uniqueLinks = [...new Set(eventView.targetLinks)].sort();
-  const uniqueModules = [...new Set(eventView.targetModules)].sort();
-
-  if (event.opcode === "MOVE_QUBITS" && uniqueModules.length === 1) {
-    return internalMovementTrack(uniqueModules[0], catalog);
-  }
-
-  if (uniqueLinks.length === 0) {
-    const connection = localConnectionTrack(uniqueModules, catalog);
-    if (connection !== null) return connection;
-  }
-
-  if (uniqueLinks.length === 1) {
-    const linkId = uniqueLinks[0];
-    if (event.opcode === "PREPARE_LOGICAL_BELL") {
-      const generator = pairGeneratorTrack(linkId, event, engineOwners, catalog);
-      if (generator !== null) return generator;
-    }
-    return interconnectTransferTrack(linkId, catalog);
-  }
-  if (uniqueLinks.length > 1) {
-    return {
-      id: `interconnect-transfer:${uniqueLinks.join("|")}`,
-      label: uniqueLinks.map(architectureLabel).join(" ↔ "),
-      subtitle: "Interconnect path",
-      trackKind: "transfer",
-      order: 19_500,
-      ownerRefs: uniqueLinks,
-      structural: false,
-      parentTrackId: null,
-    };
-  }
-
-  if (uniqueModules.length > 1) {
-    return {
-      id: `transfer:${uniqueModules.join("|")}`,
-      label: uniqueModules
-        .map((moduleRef) =>
-          catalog.modules.get(moduleRef)?.label ?? architectureLabel(moduleRef),
-        )
-        .join(" ↔ "),
-      subtitle: "Inter-module transfer",
-      trackKind: "transfer",
-      order: 20_000,
-      ownerRefs: uniqueModules,
-      structural: false,
-      parentTrackId: null,
-    };
-  }
-
-  const engineSubmodule = exactEngineSubmodule(event, engineOwners);
-  if (engineSubmodule !== null) {
-    const track = catalog.submodules.get(engineSubmodule);
-    if (track !== undefined) return track;
-  }
-
-  if (uniqueModules.length === 1) {
-    const moduleRef = uniqueModules[0];
-    return moduleActivityTrack(moduleRef, catalog);
-  }
-
-  if (event.opcode === "FENCE") {
-    return {
-      id: "control:program",
-      label: "Program Control",
-      subtitle: "Synchronization",
-      trackKind: "control",
-      order: 40_000,
-      ownerRefs: [],
-      structural: false,
-      parentTrackId: null,
-    };
-  }
-  if (event.plane === "resource") {
-    const fallback = event.process_id ?? "unbound";
-    return {
-      id: `resource:${fallback}`,
-      label: architectureLabel(fallback),
-      subtitle: "Unbound resource process",
-      trackKind: "resource",
-      order: 50_000,
-      ownerRefs: [],
-      structural: false,
-      parentTrackId: null,
-    };
-  }
-  return {
-    id: "control:program",
-    label: "Program Control",
-    subtitle: "Unbound program work",
-    trackKind: "control",
-    order: 40_000,
-    ownerRefs: [],
-    structural: false,
-    parentTrackId: null,
-  };
-}
-
 function timelineView(
   report: EvaluationReportModel,
   requestedLimit: number,
@@ -4110,6 +3853,13 @@ function timelineView(
     logicalGadgets.map((gadget) => [gadget.invocationId, gadget.label]),
   );
   const trackCatalog = timelineTrackCatalog(report.architecture);
+  const resolveOwnership = timelineOwnershipResolver(
+    report.architecture,
+    report.engineOwners,
+    report.architectureBuffers ?? [],
+    [...events, ...inflightEvents],
+    report.source_schema_version === EVALUATION_REPORT_V1,
+  );
   const buffersById = new Map(
     (report.architectureBuffers ?? []).map((buffer) => [buffer.id, buffer]),
   );
@@ -4127,18 +3877,17 @@ function timelineView(
       trackCatalog,
       clipped ? displayCutoff : null,
     );
-    const track = trackForEvent(
-      event,
-      eventDraft,
-      report.engineOwners,
-      trackCatalog,
-    );
+    const ownership = resolveOwnership(event);
+    const track = (trackCatalog.submodules.get(ownership.primaryRef)
+      ?? trackCatalog.modules.get(ownership.primaryRef))!;
     const eventView: TimelineEventViewModel = {
       ...eventDraft,
       locus: {
         kind: track.trackKind,
         trackId: track.id,
         ownerRefs: track.ownerRefs,
+        participantRefs: ownership.participantRefs,
+        ownershipConvention: ownership.convention,
       },
     };
     const entry = rows.get(track.id) ?? {
@@ -4439,6 +4188,7 @@ export function reportToViewModels(
   }
   const logicalGadgets = logicalGadgetSpans(report);
   return {
+    evaluationScope: evaluationScopeView(report),
     headline: {
       profileId: report.profile_id,
       workflowId: report.workflow_id,

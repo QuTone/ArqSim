@@ -39,6 +39,49 @@ The browser submits new evaluations to `/evaluate-v2`. There is no
 frontend-specific result schema: the HTTP service returns the core report
 contract directly.
 
+The benchmark catalog declares the available `representations` for each
+workload. General evaluations prefer PBC for Profiles 1.2 and 2.2 when available
+and otherwise use Clifford+T; other profiles require Clifford+T. Selection is
+made before execution from catalog facts, with no retry under different
+semantics after a failed evaluation. An incompatible representation or a backend
+error is shown with the affected workload and architecture.
+
+General evaluation is the browser default. Explicitly selected presets define
+the comparison; with none selected, the currently previewed canonical profile
+is used consistently for the request and result selector.
+
+## Prefix evaluation scope
+
+General browser requests default to `preview_max_layers: 12`; the setup offers
+12, 24, 48, 96, or a full workload. Omission of `preview_max_layers` preserves
+the existing full-evaluation API behavior. The finite-injection demo always
+omits this field and retains its full frozen workload.
+
+The HTTP adapter takes the first N layers of the resolved representation,
+preserving the source qubit and classical-bit widths, then compiles and evaluates
+that input normally. Architecture sizing, latency, fidelity, and all statistics
+belong to this prefix. This is a new evaluation of a smaller input, not a paused
+full run; compiler decisions and its schedule may differ from a full run.
+Equal PBC and Clifford+T layer counts do not represent equivalent algorithm work.
+
+Scope authority is the returned workload's `provenance.evaluation_scope` receipt:
+`kind: "prefix_preview"`, `requested_max_layers`, `source_workload_hash`,
+`source_layer_count`, `source_operation_count`, `evaluated_layer_count`,
+`evaluated_operation_count`, and `truncated`. The adapter validates this receipt,
+including counts against the evaluated circuit, and supplies the persistent
+result banner and per-point comparison labels. Current selector state never
+defines the scope of an existing report. Absent scope metadata denotes a full
+workload. A prefix limit that covers the whole input still records a preview
+receipt with `truncated: false`.
+
+Request-keyed caches include the prefix limit. Changing evaluation scope clears
+the visible result selection. Prefix timelines start at the requested layer
+limit, while full-workload timelines initially show 12 layers. The independent
+timeline display and event caps only limit presentation of the returned report;
+evaluating additional prefix layers requires a new request. HTTP preview limits
+must be integers from 1 through 256. Neither time nor fidelity is extrapolated
+to the full source.
+
 ## Report versions
 
 Report v2 is the native integration boundary. The HTTP adapter renders Report
@@ -74,41 +117,53 @@ reaction or correction. Logical ready-to-dispatch time is a separate queue-wait
 interval and is never added to execution duration. Expanding or collapsing the
 host changes only presentation, not event identity or accounting.
 
-Timeline row identity is an architecture/runtime-level logical-operation locus,
-not an opcode, resource-state type, recipe step, process ID, Program/Resource
-plane, or physical-pulse owner. The adapter resolves that locus in this frozen
-order:
+Every execution bar has one primary display anchor: a Module or Submodule
+present in the returned Architecture Specification. The adapter resolves this
+anchor from typed Plan/Trace ownership, without checking a preset profile ID:
 
-1. virtual Classical Decoder for classical control;
-2. an explicit target interconnect;
-3. an inter-module transfer locus;
-4. the exact submodule owned by a named engine;
-5. one unambiguous target module; and
-6. an explicit control/resource fallback.
+1. For movement or teleportation, use a recorded source endpoint or consumed
+   payload buffer when the evidence identifies one unambiguously.
+2. Use a unique claimed, targeted compute region, then an engine's declared
+   Module/Submodule owner. Multiple owners use a stable canonical participant.
+3. Use a single target Module, or a stable canonical participant from known
+   engines, buffers and recorded locations.
+4. For delay-only Classical Reaction without its own ownership evidence, follow
+   its recorded causal parent to the same display anchor.
 
-An engine claim is contention evidence. It selects an exact submodule only at
-step 4 and cannot override an explicit interconnect or inter-module transfer.
-The timeline displays operation loci with visible activity and their architecture
-owner headers. Active submodules such as a factory engine appear beneath their
-parent module. Idle modules have no execution row; their complete inventory and
-memory ownership remain in the Architecture Specification and report model.
-Passive slots and buffers remain Architecture State rather than becoming
-operation loci.
-Overlapping events are packed into sub-bands beneath the resolved locus; a
-sub-band is not another module. Tooltip projection intentionally keeps only the
-semantic label, execution timing, and immediately relevant wait/branch detail.
+Missing or invalid ownership evidence fails explicitly. The adapter does not
+invent a Teleportation Module, Classical Decoder, pairwise transfer row or
+unbound execution row. An existing report without enough ownership metadata
+cannot be drawn by guessing a location. FENCE remains a control dependency and
+has no hardware execution bar. Unbound request/control buffers remain explicitly
+unbound Architecture State; they do not become Modules.
+
+A primary anchor is a presentation convention, not a claim that all physical
+work occurs inside it. A transfer involving several participants appears once,
+with its real participating owners retained in the tooltip. Anchoring a resource
+transfer at its source buffer does not make that passive buffer a transfer
+engine. Delay-only reaction retains its empty engine claim. Row selection never
+changes scheduler claims, timing, token flow, utilization or report accounting.
+
+For the Profile 2.3 reference, resource teleportation is anchored at the MSF
+output buffer, Store/Load at the declared Store/Load Buffer, and intra-module
+movement at the claimed Compute Module. Interconnect-hosted Submodules appear
+beneath their real owning Modules, such as the link's Bell Engine.
+Only owners with activity receive execution rows. Idle owners remain visible in
+the Architecture Specification and report model. Overlapping events are packed
+into sub-bands beneath their owner; a sub-band is not another Module.
+
+The T source-instruction host remains on its Compute anchor. When collapsed,
+it shows one execution bar from dispatch to the terminal child. When expanded,
+CX, measurement, reaction and optional logical-S children retain their individual
+Trace identities and owners. A delay-only reaction follows its causal parent's
+anchor; declared reaction hardware uses its own owner. The ready-to-dispatch
+ghost remains a separate non-occupying wait interval.
+
 Reaction hover cards show the measurement bit separately from the committed
 continuation receipt. An `activate` receipt with no child work IDs can close one
 invocation while sibling invocations keep the source open; it does not mean
-the source instruction completed.
-Consumers needing internal IDs or raw lineage inspect the canonical Plan/Trace
-artifacts.
-
-The T source-instruction host is anchored on its Compute locus. When collapsed,
-it shows one execution bar from dispatch to the terminal child. When expanded,
-Compute-side CX, measurement, and optional logical-S children are revealed in
-place, while reaction is revealed on Classical Decoder. The ready-to-dispatch
-ghost remains a separate non-occupying wait interval.
+the source instruction completed. Consumers needing full claims or raw lineage
+inspect the canonical Plan/Trace artifacts.
 
 Program events may also carry a hatched ready-to-dispatch waiting ghost. The
 ghost is non-occupying demand, not an execution span or inferred module-idle
@@ -141,8 +196,8 @@ wire-level details.
 
 `src/services/evaluationPresets.ts` owns the finite-injection request helper:
 full trace, finite-state injection v1, seed 0, canonical fidelity, and the
-reference reaction-latency values plus provenance. The browser initially
-selects this acceptance demo for ArqSim Timeline Demo and Profile 2.3. The
+reference reaction-latency values plus provenance. The browser offers this
+acceptance demo as an explicit opt-in for ArqSim Timeline Demo and Profile 2.3. The
 normal minimal request does not call this helper and preserves the core
 `black_box` semantics with `canonical_reference_v1` fidelity; only explicit
 `fidelity_profile: null` disables fidelity. The helper accepts no arguments and
@@ -161,13 +216,14 @@ byte-identical reference report.
 - Treat report hashes, evaluator results, and trace lineage as read-only.
 - Add presentation fields by extending the version-neutral model and its
   adapter tests; do not derive new execution facts in components.
-- Derive displayed architecture-locus rows from typed Plan/Trace ownership
-  using the frozen locus priority, waiting ghosts from Program ready/dispatch
-  facts, and buffer-state tracks only from Plan metadata plus recorded snapshots.
-  Retain typed ledger milestone facts in the adapter without adding accounting
-  events or requiring a tick visualization.
-- Treat engine claims as contention evidence, never as authority to override
-  an explicit interconnect or transfer locus.
+- Give each execution event one real Module/Submodule display anchor from typed
+  Plan/Trace ownership. Retain other participants without duplicating event bars
+  or inventing hardware rows; reject missing or contradictory ownership evidence.
+- Project waiting ghosts from Program ready/dispatch facts and buffer-state
+  tracks only from Plan metadata plus recorded snapshots. Retain typed ledger
+  milestones without adding accounting events or requiring a tick visualization.
+- Treat engine claims as contention facts. Resolving a display anchor must not
+  add, remove or redistribute those claims, timing or resource accounting.
 - Keep a T host's source-instruction identity on Compute; measure execution
   dispatch-to-terminal and queue wait ready-to-dispatch as separate intervals.
 - Keep default tooltips minimal; wire IDs and full provenance belong in the
@@ -181,11 +237,18 @@ From `frontend/`:
 ```bash
 npm run test:adapter
 npm run test:server
+npm run test:previews
 npm run typecheck
 npm run lint
 npm run build
 ```
 
 The adapter tests consume codec-validated static and dynamic-T Report-v2
-fixtures from the ArqSim monorepo root. Server smoke tests cover Profile v3,
-native v2 output, and explicit v1 compatibility output.
+fixtures from the ArqSim monorepo root. Ownership regressions check real owners,
+one bar per runtime event, unchanged report facts, both transfer directions,
+causal reaction ownership and stable row counts for pairwise interactions.
+Server smoke tests cover Profile v3, native v2 output, explicit v1 compatibility
+output and prefix scope receipts. `npm run test:previews` runs real 12-layer
+previews for every bundled benchmark and canonical preset, then checks their
+frontend projections against the returned reports. It requires the server's
+Python dependencies and is also run by CI.

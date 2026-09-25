@@ -1679,12 +1679,10 @@ def evaluate(
             trace_state_snapshot() if capture_discrete_log else {}
         )
         # Completion -> state update -> dependency update -> same-time fixed point.
-        while running_heap and math.isclose(
-            running_heap[0][0],
-            now,
-            rel_tol=0.0,
-            abs_tol=1e-15,
-        ):
+        # The clock advances to an exact heap endpoint. Nearby but distinct
+        # endpoints must remain separate: completing the later event now would
+        # release its resources and successors before its recorded end time.
+        while running_heap and running_heap[0][0] == now:
             _, event_id = running_heap[0]
             complete(event_id)
             heapq.heappop(running_heap)
